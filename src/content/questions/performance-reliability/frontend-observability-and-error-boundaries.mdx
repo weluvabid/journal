@@ -1,0 +1,50 @@
+---
+id: 'frontend-observability-and-error-boundaries'
+title: 'What should frontend observability capture beyond uncaught exceptions?'
+domain: 'performance-reliability'
+summary: 'Combine errors, failed requests, performance, release context, user-impact signals, and privacy controls.'
+difficulty: 'intermediate'
+minutes: 10
+tags: ['observability', 'errors', 'reliability']
+prerequisites: []
+related: []
+featured: false
+---
+
+## Short answer
+
+Useful observability connects an error or degraded interaction to route, release, browser, network, and relevant application state—without collecting unnecessary personal data.
+
+## Reason from first principles
+
+Error boundaries catch certain rendering failures, not every async callback or event handler. Promise rejections and network failures need separate instrumentation. Sampling, source maps, deduplication, and release tagging determine whether telemetry is actionable.
+
+## A concrete example
+
+```js
+window.addEventListener('unhandledrejection', (event) => {
+  reportUnexpectedFailure(event.reason);
+});
+```
+
+## Boundary cases to reason through
+
+Attach release identifiers and source maps so minified stack traces can be mapped to source. Redact credentials, personal data, and request bodies by default. Instrumentation itself must be isolated: a telemetry endpoint outage must not create another user-facing failure. Track expected aborts and validation rejections separately from unexpected defects.
+
+## Common misconception
+
+A global error listener is not a substitute for local recovery or explicit error states.
+
+## Why this matters in production
+
+Define what is actionable, redact secrets, avoid high-cardinality payloads, and test that telemetry failures do not break the product.
+
+## Interviewer follow-ups
+
+- How do you distinguish expected aborts from defects?
+- What should never be sent to telemetry?
+
+## Further reading
+
+- [Error boundaries](https://react.dev/reference/react/Component#catching-rendering-errors-with-an-error-boundary) — primary or authoritative documentation for the underlying behavior.
+- [MDN Web Docs](https://developer.mozilla.org/) — use the relevant API reference for adjacent browser details.

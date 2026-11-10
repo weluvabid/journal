@@ -1,0 +1,135 @@
+---
+id: 'feature-flags-and-progressive-delivery'
+title: 'How do you ship frontend features safely with flags?'
+domain: 'ui-engineering'
+summary: 'Flags as a delivery mechanism, not just a boolean — targeting, cleanup, server vs client evaluation, and avoiding a permanent experiment mess.'
+difficulty: 'advanced'
+minutes: 14
+tags: ['feature-flags', 'progressive-delivery', 'release', 'experiments']
+prerequisites: ['frontend-data-fetching-architecture']
+related: ['client-side-routing-mental-model', 'error-surfaces-and-boundaries']
+featured: false
+searchTerms: ['feature toggle', 'gradual rollout', 'canary release', 'kill switch']
+---
+
+## Short answer
+
+Feature flags let you ship code dark, turn it on for a subset of users, and roll back without a redeploy. On the frontend they are more than `if (flag) renderNewThing()`. You need a clear evaluation source, consistent targeting, a plan for loading states when the flag is unknown, and a discipline for removing flags once the feature is fully on or fully off. Without that, the client becomes a graveyard of permanent conditionals.
+
+## Reason from first principles
+
+Three common jobs:
+
+1. **Release control** — merge and deploy code before the product is ready for everyone. Turn it on when ready; turn it off if it breaks.
+2. **Targeted rollout** — employees, beta users, a percentage of traffic, a specific region or plan.
+3. **Experiments** — A/B or multivariate tests with a defined measurement window.
+
+The same boolean can serve more than one of these, but the operational rules differ. An experiment that never ends is not an experiment; a release flag that never gets deleted is technical debt with a product face.
+
+## Evaluation: where the decision is made
+
+**Server-driven**  
+The server (or an edge config) decides the flag values and sends them with the page or an early bootstrap payload. The client renders consistently with what the server already assumed. Best for flags that affect SEO or first paint. A flag is never an authorization boundary: enforce permissions on the server regardless of what the client renders.
+
+**Client-driven**  
+The client fetches flags from a provider SDK after load. Flexible and fast to change, but you must handle the gap before flags arrive (default values, skeleton, or “flags loading” behaviour) and avoid flashing the wrong variant.
+
+**Hybrid**  
+Critical flags in the initial payload; less critical ones loaded async. Common in practice.
+
+Whatever you choose, the client should treat flag values as data that can change, not as build-time constants — unless you deliberately compile them away for a given release.
+
+## Practical rules that keep the codebase sane
+
+**Default safely.**  
+When a flag is missing or the provider is down, pick the safer experience (usually the old path for release flags). Do not throw; do not show a blank page.
+
+**Avoid nested flag pyramids.**  
+`if (flagA) { if (flagB) { if (flagC) ... } }` becomes untestable quickly. Prefer independent flags or a single “experience” flag that selects a coherent variant.
+
+**Keep the old path working until removal.**  
+The point of a release flag is that you can turn it off. If you gut the old code the day you merge, you no longer have a rollback.
+
+**Delete flags.**  
+When a feature is at 100% and stable, remove the flag and the dead branch. When an experiment ends, remove it and keep only the winning path. Put cleanup on the calendar; it will not happen by accident.
+
+**Do not use flags for long-term permissions.**  
+“Is this user an admin?” belongs in auth/roles, not in a temporary flag system. Mixing them blurs ownership and makes audits harder.
+
+## Loading and consistency
+
+If flags load after first paint:
+
+- Decide what the UI does in the unknown state (old UI, skeleton, or non-interactive placeholder).
+- Avoid a visible flash from old → new when the flag resolves to on. That flash is often worse than a short wait.
+- For experiments, ensure the same user keeps seeing the same variant (sticky assignment). Re-randomising on every load invalidates the experiment.
+
+Server-rendered apps should evaluate flags on the server for the first paint so HTML and hydrated UI match.
+
+## Progressive delivery beyond the boolean
+
+Flags pair well with:
+
+- **Percentage rollouts** — 1% → 10% → 50% → 100%, with error and performance checks between steps.
+- **Kill switches** — a flag that disables a heavy or risky feature instantly if metrics tank.
+- **Dependency order** — do not enable a UI that calls a backend endpoint that is still flagged off.
+
+The frontend’s job is to respect the evaluation and choose an explicit safe default when the flag state is unclear (usually keeping the new path off). Authorization must still be enforced independently by the server.
+
+## Concrete implementation sketch
+
+```ts
+type CheckoutFlags = { checkoutV2: boolean };
+type FlagState =
+  | { status: 'loading' }
+  | { status: 'ready'; flags: CheckoutFlags };
+
+function Checkout({ state }: { state: FlagState }) {
+  if (state.status === 'loading') return <CheckoutSkeleton />;
+  return state.flags.checkoutV2 ? <CheckoutV2 /> : <CheckoutLegacy />;
+}
+```
+
+The loading state is explicit, and the legacy path remains available for rollback. This flag only selects presentation/behaviour; the server must independently authorize every checkout operation. In a real application, derive `state` and `flags` from the provider's bootstrap lifecycle rather than inventing a second source of truth.
+
+## Boundary cases
+
+**Flags that change mid-session.**  
+Rare but real (you toggled a kill switch). Decide whether the UI updates live or only on next navigation/reload. Live updates are powerful and easy to get wrong (half-mounted trees, in-flight mutations).
+
+**Multiple surfaces**  
+Web, mobile web, native, email links. The same flag name with different evaluation can produce inconsistent product behaviour. Align targeting rules or accept the inconsistency deliberately.
+
+**SEO and public pages**  
+Crawlers should see a stable, intentional variant. Client-only flag evaluation that changes the main content after load is a poor fit for public marketing pages.
+
+**Testing**  
+Unit tests need a way to force flag values. E2E tests should pin flags so the scenario is deterministic. Do not depend on the live provider in CI.
+
+## Common misconceptions
+
+- “We’ll clean the flags up later.”  
+  Later rarely comes. Treat removal as part of the feature’s definition of done.
+
+- “A flag is just an if statement.”  
+  The if is the easy part. Bootstrap, defaults, targeting, measurement, and cleanup are the product.
+
+- “More flags = more control.”  
+  Unmanaged flags reduce control. Nobody knows which combinations are actually supported.
+
+## Why this matters in production
+
+Flags are one of the highest-leverage tools for shipping safely. They are also one of the fastest ways to create a codebase no one wants to touch. Teams that win use them for delivery and experiments, keep evaluation consistent, and delete them when the work is finished. Teams that lose leave every experiment in the tree forever and then wonder why simple changes feel risky.
+
+## Interviewer follow-ups
+
+- How do you avoid a flash of the wrong variant when flags load asynchronously?
+- When would you evaluate a flag on the server vs the client?
+- How do you structure cleanup so flags do not accumulate?
+- How should a kill switch behave for an in-flight user session?
+
+## Further reading
+
+- [Martin Fowler — Feature Toggles](https://martinfowler.com/articles/feature-toggles.html) — categories, trade-offs, and lifecycle discipline.
+- [LaunchDarkly — Feature flags](https://launchdarkly.com/docs/home/flags) — practical targeting and evaluation concepts.
+- [Unleash — Feature flags](https://docs.getunleash.io/reference/feature-toggles) — lifecycle and operational guidance.

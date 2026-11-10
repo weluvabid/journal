@@ -1,0 +1,49 @@
+---
+id: 'hydration-and-islands'
+title: 'What is hydration, and why do islands architectures reduce client JavaScript?'
+domain: 'frameworks-ui-architecture'
+summary: 'Explain server-rendered HTML, client reconciliation, hydration boundaries, and selective interactivity.'
+difficulty: 'advanced'
+minutes: 12
+tags: ['ssr', 'hydration', 'islands']
+prerequisites: ['browser-rendering-pipeline']
+related: ['static-content-platform-architecture', 'javascript-bundle-budgeting']
+featured: true
+---
+
+## Short answer
+
+Hydration attaches client-side behavior to server-rendered markup and reconciles it with the framework’s expected tree. Islands architectures hydrate only selected interactive regions, leaving static content as HTML.
+
+## Reason from first principles
+
+Hydration requires server and client output to agree. Nondeterministic dates, random IDs, browser-only state, or locale differences can create mismatches. Islands reduce shipped JavaScript but introduce boundaries for shared state and interaction.
+
+## A concrete example
+
+```astro
+<StaticArticle />
+<SearchPanel client:idle />
+```
+
+## Boundary cases to reason through
+
+Hydration mismatches are frequently caused by values that differ between server and browser: random numbers, current time, locale formatting, viewport reads, and browser storage. Keep browser-only reads behind client lifecycle boundaries. Islands also need explicit data boundaries; two independently hydrated components do not automatically share one in-memory state store.
+
+## Common misconception
+
+SSR does not mean zero JavaScript, and hydration is not the same as rendering HTML.
+
+## Why this matters in production
+
+Choose hydration strategies per interaction urgency. Measure transferred JavaScript, hydration cost, and time to usable controls.
+
+## Interviewer follow-ups
+
+- What causes a hydration mismatch?
+- When would `client:visible` be inappropriate?
+
+## Further reading
+
+- [Astro islands architecture](https://docs.astro.build/en/concepts/islands/) — primary or authoritative documentation for the underlying behavior.
+- [MDN Web Docs](https://developer.mozilla.org/) — use the relevant API reference for adjacent browser details.

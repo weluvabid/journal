@@ -1,0 +1,137 @@
+---
+id: 'css-performance-and-thrashing'
+title: 'What actually causes style and layout thrashing?'
+domain: 'css-rendering'
+summary: 'Invalidation, forced synchronous layout, paint cost, and the practical rules that keep interactions smooth.'
+difficulty: 'intermediate'
+minutes: 14
+tags: ['css', 'performance', 'layout', 'paint', 'thrashing']
+prerequisites: ['browser-rendering-pipeline']
+related: ['core-web-vitals-and-user-experience', 'long-tasks-and-cooperative-scheduling']
+featured: false
+searchTerms: ['forced reflow', 'layout thrashing', 'layout invalidation']
+---
+
+## Short answer
+
+Thrashing happens when the browser is forced to recalculate style or layout repeatedly inside a short window — often because JavaScript alternates writes and reads of geometry, or because style changes invalidate large parts of the tree more often than necessary. The fix is usually batching reads and writes, reducing the scope of invalidation, and preferring properties that the compositor can update without layout or paint.
+
+## Reason from first principles
+
+The rendering pipeline does not recompute everything from scratch on every change. It tracks what is dirty. A style change may invalidate style, layout, paint, or only compositing. A geometry read (`offsetWidth`, `getBoundingClientRect`, `clientHeight`, etc.) requires up-to-date layout. If you write styles and then read geometry, the browser must flush layout immediately so it can give you the correct number. Do that in a loop and you get forced synchronous layout on every iteration — classic thrashing.
+
+Paint cost is separate. Even without layout, invalidating large painted areas or creating many layers can make frames expensive. Compositor-only changes (`transform`, `opacity` on their own layer) are the cheap path when you can use them honestly.
+
+So the practical questions are:
+
+1. Am I forcing layout repeatedly?
+2. Am I invalidating more of the tree than I need to?
+3. Am I asking the browser to paint large regions every frame?
+4. Am I creating so many layers that compositing itself becomes the bottleneck?
+
+## A concrete example
+
+**Write → read → write → read in a loop**
+
+```js
+// Forces layout on every iteration
+items.forEach((el) => {
+  el.style.width = '50%';
+  const h = el.offsetHeight; // layout flush
+  el.style.height = `${h + 8}px`;
+});
+```
+
+**Batch the reads and the writes**
+
+```js
+items.forEach((el) => {
+  el.style.width = '50%';
+});
+
+// Read all geometry before making the next batch of writes.
+// The first read may flush the width changes; subsequent reads do not
+// force another layout because this loop performs no DOM writes.
+const heights = items.map((el) => el.offsetHeight);
+
+items.forEach((el, index) => {
+  el.style.height = `${heights[index] + 8}px`;
+});
+```
+
+Still not free, but far cheaper than N flushes.
+
+**Measuring inside resize or scroll handlers without batching**  
+Scroll and resize can fire at high frequency. Reading geometry and writing styles on every event is a reliable way to drop frames. Debounce, throttle, or use `requestAnimationFrame` to coalesce the work.
+
+**Invalidating large subtrees**  
+Changing a class high in the tree that affects many descendants forces a lot of style and layout work. Prefer local changes when you can. CSS containment (`contain: layout`, `contain: paint`) can limit how far invalidation spreads, at the cost of understanding the containment rules.
+
+## What is cheap vs expensive (practical view)
+
+**Often cheaper (once a layer exists)**  
+`transform`, `opacity` — can be compositor-only.
+
+**Usually layout + paint**  
+Changes to width, height, top, left, margin, padding, border, font-size, and most flow-affecting properties.
+
+**Paint-heavy even without layout**  
+Large box-shadows, complex gradients, filters, and big image invalidations can still be expensive.
+
+These are rules of thumb. The Performance panel and the Layers / Rendering tools are the source of truth for your page.
+
+## Layer promotion and its costs
+
+Promoting an element to its own layer can make transform/opacity animations cheap. It also costs memory and can increase compositing work when many layers move. `will-change: transform` is a hint that you expect change; leaving it on permanently for many elements is a common source of “why is this heavy on mobile?” problems. Promote what you animate; demote when you are done if the element does not need to stay elevated.
+
+## Measurement that actually helps
+
+1. Reproduce the janky interaction.
+2. Record a Performance profile.
+3. Look for long tasks, purple/layout bars, and repeated style/layout work on the main thread.
+4. Check whether geometry reads are interspersed with DOM/style writes.
+5. Fix the hottest path first; re-measure.
+
+Guessing “this CSS property is slow” without a profile wastes time. The same property can be cheap or expensive depending on the size of the invalidated tree and what else is happening in the frame.
+
+## Boundary cases
+
+**Tables and complex flex/grid**  
+Some layout modes are more expensive to recalculate than simple block flow. Large tables and deeply nested flex/grid with percentage sizes can amplify the cost of a single invalidation.
+
+**Web fonts and layout shift**  
+Late-loading fonts reflow text. That is a layout cost and a CLS cost. `font-display` and size adjustments help the user experience; they do not remove the layout work entirely.
+
+**SVG and canvas**  
+Different pipelines. Invalidating a large SVG DOM can be expensive; canvas moves the cost to your own drawing code. Do not assume the same rules apply without measuring.
+
+**`getBoundingClientRect` in a hot path**  
+Even a single read can force layout if style writes are pending. In animation loops, cache values or structure the code so reads happen before writes in the frame.
+
+## Common misconceptions
+
+- “GPU accelerated means fast.”  
+  Only if you are on the compositor path and not invalidating layout/paint every frame. Too many layers can make things slower.
+
+- “If I use `transform` I never cause layout.”  
+  Changing `transform` is usually cheap. Changing something else that then requires you to read geometry still forces layout.
+
+- “Thrashing is only a JavaScript problem.”  
+  CSS that invalidates large regions on every hover or every animation frame can produce the same kind of cost without a single line of JS.
+
+## Why this matters in production
+
+Interaction jank that is not caused by long JavaScript tasks is often style or layout thrashing. Core Web Vitals (especially INP) and perceived smoothness depend on keeping the main thread free enough to respond and the rendering pipeline free enough to produce frames. The teams that fix this well measure first, batch reads and writes, and treat layer promotion as a deliberate trade-off rather than a default.
+
+## Interviewer follow-ups
+
+- What is forced synchronous layout, and how do you detect it?
+- When would you use CSS containment?
+- Why can `will-change` hurt performance?
+- How would you structure a scroll handler that needs to measure and update the DOM?
+
+## Further reading
+
+- [What forces layout / reflow](https://gist.github.com/paulirish/5d52fb081b3570c81e3a) — the classic list of triggers.
+- [Rendering performance](https://web.dev/articles/rendering-performance) — practical overview of the pipeline.
+- Browser Performance and Rendering tools — the definitive way to see what your page is doing.

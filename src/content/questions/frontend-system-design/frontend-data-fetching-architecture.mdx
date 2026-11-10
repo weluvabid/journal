@@ -1,0 +1,49 @@
+---
+id: 'frontend-data-fetching-architecture'
+title: 'How would you structure data fetching across a large frontend?'
+domain: 'frontend-system-design'
+summary: 'Define ownership, cache keys, invalidation, deduplication, mutation semantics, and server-state boundaries.'
+difficulty: 'advanced'
+minutes: 13
+tags: ['system-design', 'data-fetching', 'caching']
+prerequisites: []
+related: []
+featured: false
+searchTerms: ['data fetching', 'server state', 'client cache', 'query cache']
+---
+
+## Short answer
+
+Treat server state as a cache of remote authority, not as ordinary local UI state. Centralize request identity, caching, deduplication, invalidation, cancellation, and mutation reconciliation in a mature data-fetching library.
+
+## Reason from first principles
+
+A cache key must include every input that changes the response, including tenant/user scope where relevant. Invalidation should be precise enough to avoid stale reads but broad enough to preserve correctness. Avoid writing a custom query cache unless the product has a compelling reason.
+
+## A concrete example
+
+```ts
+const queryKey = ['projects', { organizationId, status, page }];
+```
+
+## Boundary cases to reason through
+
+Cache keys must include all variables that affect the server response and must be scoped to the active identity or tenant. On logout or account switch, remove or isolate private cached data. Decide whether mutations update a cache entry, invalidate related queries, or require a full refetch; these are consistency decisions, not merely library configuration.
+
+## Common misconception
+
+A successful HTTP response does not mean every component should independently own a copy forever.
+
+## Why this matters in production
+
+Define stale-time and retry policy, auth transitions, optimistic update behavior, and cache isolation between identities.
+
+## Interviewer follow-ups
+
+- How do you prevent cross-user cache leakage?
+- When should a mutation invalidate versus update a query?
+
+## Further reading
+
+- [TanStack Query overview](https://tanstack.com/query/latest/docs/framework/react/overview) — primary or authoritative documentation for the underlying behavior.
+- [MDN Web Docs](https://developer.mozilla.org/) — use the relevant API reference for adjacent browser details.

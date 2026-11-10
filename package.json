@@ -1,0 +1,48 @@
+{
+  "name": "frontend-atlas",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "engines": {
+    "node": ">=26.0.0",
+    "pnpm": ">=12.0.0"
+  },
+  "packageManager": "pnpm@12.0.0",
+  "scripts": {
+    "dev": "astro dev",
+    "build": "astro build",
+    "preview": "astro preview",
+    "typecheck": "astro check",
+    "lint": "eslint . --max-warnings 0",
+    "lint:fix": "eslint . --fix",
+    "format": "prettier --write .",
+    "format:check": "prettier --check .",
+    "test": "node --experimental-strip-types --test tests/*.test.mjs",
+    "check": "pnpm lint && pnpm format:check && pnpm typecheck && pnpm test && pnpm build",
+    "hooks:install": "sh ./scripts/install-hooks.sh"
+  },
+  "dependencies": {
+    "@weluvabid/iris": "0.4.1",
+    "qr": "0.7.2",
+    "svelte": "^5.0.0"
+  },
+  "devDependencies": {
+    "@astrojs/check": "0.9.12",
+    "@astrojs/mdx": "8.1.2",
+    "@astrojs/svelte": "9.1.2",
+    "@eslint/js": "9.39.0",
+    "@tailwindcss/vite": "4.3.3",
+    "astro": "7.4.5",
+    "eslint": "9.39.0",
+    "eslint-config-prettier": "10.1.8",
+    "eslint-plugin-svelte": "^3.24.1",
+    "globals": "16.5.0",
+    "prettier": "3.6.2",
+    "prettier-plugin-astro": "0.14.1",
+    "prettier-plugin-svelte": "3.5.2",
+    "tailwindcss": "4.3.3",
+    "typescript": "5.9.3",
+    "typescript-eslint": "8.46.0",
+    "yaml": "2.9.1"
+  }
+}

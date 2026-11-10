@@ -1,0 +1,48 @@
+---
+id: 'derived-state-and-single-source-of-truth'
+title: 'Why is duplicating derived state in a UI component risky?'
+domain: 'frameworks-ui-architecture'
+summary: 'Distinguish source state from computed values and identify synchronization bugs.'
+difficulty: 'intermediate'
+minutes: 9
+tags: ['state-management', 'derived-state', 'architecture']
+prerequisites: ['controlled-and-uncontrolled-state']
+related: ['state-machines-for-ui-workflows', 'frontend-data-fetching-architecture']
+featured: false
+---
+
+## Short answer
+
+Store the minimal state needed to represent user intent; derive values that can be computed from it. Duplicating derived data creates multiple sources of truth that must be kept synchronized.
+
+## Reason from first principles
+
+If `filteredItems` is fully determined by `items` and `query`, storing it independently creates invalid combinations. Memoization is a performance optimization, not a correctness requirement; introduce it only when measurement or identity semantics justify it.
+
+## A concrete example
+
+```ts
+const visibleItems = items.filter((item) => item.name.includes(query));
+```
+
+## Boundary cases to reason through
+
+Effects that copy one state variable into another often create a one-render lag and ordering problems. Derive synchronously when possible. If a value is expensive, memoize based on its real dependencies; if it represents a user decision, store that decision rather than a derived projection. Async resources need explicit pending, success, and error states.
+
+## Common misconception
+
+“Avoid derived state” does not mean “never cache.” It means cache only with an explicit invalidation and consistency model.
+
+## Why this matters in production
+
+This principle reduces effect chains, stale UI, race conditions, and unnecessary state transitions.
+
+## Interviewer follow-ups
+
+- When is a reducer useful?
+- How would you model an async resource state without impossible combinations?
+
+## Further reading
+
+- [You might not need an Effect](https://react.dev/learn/you-might-not-need-an-effect) — primary or authoritative documentation for the underlying behavior.
+- [MDN Web Docs](https://developer.mozilla.org/) — use the relevant API reference for adjacent browser details.

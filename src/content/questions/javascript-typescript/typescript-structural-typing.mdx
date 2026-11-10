@@ -1,0 +1,50 @@
+---
+id: 'typescript-structural-typing'
+title: 'What does TypeScript mean by structural typing?'
+domain: 'javascript-typescript'
+summary: 'Explain compatibility through member shape, excess-property checks, and the limits of compile-time guarantees.'
+difficulty: 'intermediate'
+minutes: 11
+tags: ['typescript', 'types', 'structural-typing']
+prerequisites: []
+related: []
+featured: false
+---
+
+## Short answer
+
+Two types are compatible when their required members are structurally compatible; nominal names are generally not required. Excess-property checks add a useful freshness check for object literals, but they are not a general exact-object type system.
+
+## Reason from first principles
+
+A value with more properties can often be assigned to a type requiring fewer properties. TypeScript erases types at runtime, so a declared type cannot validate JSON, URL parameters, or user input.
+
+## A concrete example
+
+```ts
+type Point = { x: number; y: number };
+const source = { x: 1, y: 2, label: 'origin' };
+const point: Point = source; // allowed
+```
+
+## Boundary cases to reason through
+
+Structural compatibility can be affected by function parameter variance and compiler options such as `strictFunctionTypes`. Excess-property checks are a contextual check on fresh literals, not an exactness guarantee that follows a value everywhere. At runtime, validate untrusted payloads before treating them as the declared interface.
+
+## Common misconception
+
+TypeScript types are not runtime schemas and do not guarantee that external values match.
+
+## Why this matters in production
+
+Use runtime schema validation at trust boundaries. Consider branded types when domain identity matters beyond shape.
+
+## Interviewer follow-ups
+
+- Why can a fresh object literal fail where a variable succeeds?
+- How would you validate an API response?
+
+## Further reading
+
+- [Type compatibility](https://www.typescriptlang.org/docs/handbook/type-compatibility.html) — primary or authoritative documentation for the underlying behavior.
+- [MDN Web Docs](https://developer.mozilla.org/) — use the relevant API reference for adjacent browser details.

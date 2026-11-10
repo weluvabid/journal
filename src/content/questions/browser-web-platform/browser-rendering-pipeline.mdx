@@ -1,0 +1,127 @@
+---
+id: 'browser-rendering-pipeline'
+title: 'What happens between changing the DOM and pixels appearing on screen?'
+domain: 'browser-web-platform'
+summary: 'Trace style calculation, layout, paint, rasterization, compositing, and the limits of “GPU accelerated.”'
+difficulty: 'intermediate'
+minutes: 14
+tags: ['rendering', 'layout', 'paint', 'compositing']
+prerequisites: ['event-loop-tasks-and-microtasks']
+related: ['core-web-vitals-and-user-experience']
+featured: true
+searchTerms: ['style recalculation', 'layout paint composite', 'critical rendering path']
+---
+
+## Short answer
+
+A change to the DOM or to styles can invalidate one or more stages of the rendering pipeline. The browser only re-runs the stages that are actually dirty. Geometry changes usually force layout and paint. Some property changes can skip layout. A few properties (primarily `transform` and `opacity` on their own layer) can often be updated by the compositor without repainting. “GPU accelerated” is not free and is not a guarantee of better performance.
+
+## Reason from first principles
+
+The pipeline is roughly:
+
+1. **Style** — compute the final styles for each element.
+2. **Layout** — figure out geometry (size and position).
+3. **Paint** — record the drawing commands for each layer.
+4. **Raster** — turn those drawing commands into pixel data. Depending on the browser and platform, raster work may run on CPU raster threads or use GPU rasterization.
+5. **Composite** — assemble the layers into the final frame.
+
+Not every change walks the whole pipeline. The browser tracks what is invalid. Changing only a paint property (colour, for example) can skip layout. Changing a transform on a layer that is already promoted can sometimes skip both layout and paint and only require a compositor update.
+
+Layer promotion is a trade-off. It can make animations cheap, but each layer costs memory and the compositor has more work to do when many layers are moving. Promoting everything “just in case” is a common way to make a page slower.
+
+Forced synchronous layout is the classic footgun. If you write styles (or change the DOM) and then immediately read geometry (`offsetWidth`, `getBoundingClientRect`, etc.), the browser has to flush layout right then so it can give you a correct answer. Doing this in a loop produces layout thrashing.
+
+## A concrete example
+
+```css
+/* Usually compositor-only once the layer exists */
+.card {
+  transform: translateY(4px);
+  opacity: 0.98;
+}
+
+/* Geometry change — layout + paint */
+.card {
+  width: 24rem;
+  height: auto;
+}
+```
+
+A more realistic illustration of thrashing:
+
+```js
+// Bad: forces layout on every iteration
+items.forEach((item) => {
+  item.style.width = '50%';
+  const height = item.offsetHeight; // layout flush
+  item.style.height = height + 8 + 'px';
+});
+
+// Better: separate writes from reads
+items.forEach((item) => {
+  item.style.width = '50%';
+});
+// one layout
+items.forEach((item) => {
+  const height = item.offsetHeight;
+  item.style.height = height + 8 + 'px';
+});
+```
+
+Even the improved version still causes layout; it just does it once instead of N times.
+
+## Boundary cases worth reasoning about
+
+**Reading geometry after a write forces synchronous layout.**  
+This is the most common source of “why is this interaction janky?” bugs. The browser has no choice if you ask for current measurements.
+
+**Layer explosion.**  
+Creating dozens or hundreds of composited layers (via `will-change`, 3D transforms, or certain stacking contexts) increases memory use and can make compositing itself expensive. On lower-end devices this shows up as dropped frames even when the main thread looks idle.
+
+**`will-change` is a hint, not a command.**  
+Over-using it is often worse than not using it. Prefer it for elements that are actually about to animate, and remove it when the animation is done if the element does not need to stay on its own layer.
+
+**Paint containment and containment in general.**  
+`contain: layout` / `contain: paint` can limit how far invalidation spreads. They are useful, but they also change layout behaviour and can create new stacking contexts. Use them when you understand the trade-off, not as a blanket performance switch.
+
+**Subpixel layout and fractional values.**  
+Browsers work in subpixels. Rounding differences, especially with transforms and scrolling, can produce visual gaps or blurry text if you assume integer pixel geometry.
+
+**The pipeline is implementation-defined in the details.**  
+Chrome, Firefox, and Safari do not have identical heuristics for layer promotion or paint invalidation. Measure on the browsers and devices that matter to your users.
+
+## Common misconceptions
+
+- “Anything with `transform` is GPU accelerated and therefore fast.”  
+  Only if the element is on its own layer _and_ the animation does not force paint or layout. A transform that is recalculated every frame because of layout changes is still expensive.
+
+- “If I use `requestAnimationFrame` the animation will be smooth.”  
+  rAF gives you a chance to update before the next frame. It does not prevent you from doing too much work inside the callback.
+
+- “Painting is the expensive part.”  
+  Layout is often more expensive than paint for complex pages. Always check the Performance panel instead of guessing.
+
+## Why this matters in production
+
+Most interaction jank that is not caused by long JavaScript tasks comes from layout thrashing or from too much work in the rendering pipeline. The fixes are usually:
+
+- Batch DOM reads, then batch DOM writes.
+- Prefer compositor-friendly properties for continuous animations.
+- Measure real user devices, not just a high-end laptop.
+- Treat `will-change` and forced layer promotion as tools with costs, not as free optimisations.
+
+Core Web Vitals (especially INP and CLS) are downstream of these pipeline costs. If you understand when you force layout or create extra layers, you have a much clearer path to fixing the metrics that actually affect users.
+
+## Interviewer follow-ups
+
+- What causes forced synchronous layout, and how do you avoid it?
+- Why can `will-change: transform` sometimes make a page slower?
+- How does a stacking context affect painting and compositing?
+- When would you reach for CSS containment?
+
+## Further reading
+
+- [Rendering performance](https://web.dev/articles/rendering-performance) — still the best practical overview.
+- [What forces layout / reflow](https://gist.github.com/paulirish/5d52fb081b3570c81e3a) — the classic list of properties and APIs that trigger layout.
+- [CSS Triggers](https://csstriggers.com/) — quick reference for which properties affect layout, paint, and composite (note that some details have evolved).

@@ -1,0 +1,13 @@
+#!/bin/sh
+set -eu
+
+repo_root=$(git rev-parse --show-toplevel)
+cd "$repo_root"
+
+if ! command -v pnpm >/dev/null 2>&1; then
+  echo "pnpm is required to run the pre-commit checks; install the project's package manager and retry." >&2
+  exit 1
+fi
+
+echo "Running mandatory pre-commit checks: pnpm check"
+pnpm check

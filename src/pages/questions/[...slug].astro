@@ -1,0 +1,138 @@
+---
+import { getCollection, render } from 'astro:content';
+import BaseLayout from '@layouts/BaseLayout.astro';
+import { Breadcrumb, Badge, Button } from '@weluvabid/iris/components';
+import { ArrowLeft, ArrowRight } from '@weluvabid/iris/lucide';
+import ProgressControl from '@components/progress/ProgressControl.svelte';
+import ReadingProgress from '@components/progress/ReadingProgress.svelte';
+import ArticleNavigation from '@components/article/ArticleNavigation.svelte';
+import { domainById } from '@data/domains';
+import { assertValidQuestionGraph } from '@lib/content';
+import { orderDomainQuestions, questionHref, withBase } from '@lib/atlas';
+
+export async function getStaticPaths() {
+  const entries = await getCollection('questions');
+  const summaries = assertValidQuestionGraph(entries);
+  const byId = new Map(summaries.map((question) => [question.id, question]));
+  return entries.map((entry) => {
+    const question = byId.get(entry.data.id);
+    if (!question) throw new Error(`Missing validated metadata for ${entry.data.id}`);
+    return { params: { slug: question.id }, props: { entry, question, summaries, entries } };
+  });
+}
+
+const { entry, question, summaries, entries } = Astro.props;
+const { Content } = await render(entry);
+const domain = domainById.get(question.domain);
+if (!domain) throw new Error(`Unknown question domain: ${question.domain}`);
+const byId = new Map(entries.map((item) => [item.data.id, item]));
+const resolve = (ids: readonly string[]) =>
+  ids.map((id) => {
+    const related = byId.get(id);
+    if (!related) throw new Error(`Question ${question.id} references missing content ${id}`);
+    const summary = summaries.find((item) => item.id === id);
+    if (!summary) throw new Error(`Question ${question.id} references missing metadata ${id}`);
+    return { ...summary, url: questionHref(summary.id) };
+  });
+const prerequisites = resolve(question.prerequisites);
+const related = resolve(question.related);
+const domainOrder = orderDomainQuestions(
+  summaries.filter((item) => item.domain === question.domain),
+);
+const currentIndex = domainOrder.findIndex((item) => item.id === question.id);
+if (currentIndex < 0)
+  throw new Error(`Question ${question.id} is missing from its domain reading order`);
+const previousQuestion = domainOrder[currentIndex - 1];
+const nextQuestion = domainOrder[currentIndex + 1];
+---
+
+<BaseLayout title={`${question.title} — Frontend Atlas`} description={question.summary}>
+  <ReadingProgress client:load questionId={question.id} />
+  <article data-article-swipe class="mx-auto max-w-3xl [touch-action:pan-y]">
+    <Breadcrumb.Root class="mb-8">
+      <Breadcrumb.List>
+        <Breadcrumb.Item
+          ><Breadcrumb.Link href={withBase('/domains/')}>Domains</Breadcrumb.Link></Breadcrumb.Item
+        >
+        <Breadcrumb.Separator />
+        <Breadcrumb.Item
+          ><Breadcrumb.Link href={withBase(`/domains/${domain.id}/`)}>{domain.name}</Breadcrumb.Link
+          ></Breadcrumb.Item
+        >
+        <Breadcrumb.Separator />
+        <Breadcrumb.Item><Breadcrumb.Page>{question.title}</Breadcrumb.Page></Breadcrumb.Item>
+      </Breadcrumb.List>
+    </Breadcrumb.Root>
+    <header class="mb-10 border-b border-border pb-8">
+      <div class="flex flex-wrap items-center gap-2 text-xs text-muted-foreground">
+        <Badge.Badge variant="secondary">{domain.name}</Badge.Badge><Badge.Badge
+          variant="outline"
+          class="capitalize">{question.difficulty}</Badge.Badge
+        ><span>{question.minutes} min read</span>
+      </div>
+      <h1 class="mt-4 text-balance text-3xl font-semibold tracking-tight sm:text-4xl">
+        {question.title}
+      </h1>
+      <p class="mt-5 text-base leading-8 text-muted-foreground">{question.summary}</p>
+      <div class="mt-6"><ProgressControl client:load questionId={question.id} /></div>
+    </header>
+    {
+      prerequisites.length > 0 && (
+        <section class="mb-10" aria-labelledby="prerequisites-heading">
+          <h2 id="prerequisites-heading" class="mb-3 text-sm font-semibold">
+            Useful prerequisites
+          </h2>
+          <ul class="space-y-2">
+            {prerequisites.map((item) => (
+              <li>
+                <a
+                  class="inline-flex items-center gap-2 text-sm text-muted-foreground transition-colors hover:text-foreground"
+                  href={item.url}
+                >
+                  <ArrowRight class="size-4 shrink-0" aria-hidden="true" />
+                  <span>{item.title}</span>
+                </a>
+              </li>
+            ))}
+          </ul>
+        </section>
+      )
+    }
+    <div class="prose-atlas"><Content /></div>
+    {
+      related.length > 0 && (
+        <section class="mt-12" aria-labelledby="explore-next-heading">
+          <h2 id="explore-next-heading" class="mb-3 text-sm font-semibold">
+            Explore next
+          </h2>
+          <ul class="space-y-2">
+            {related.map((item) => (
+              <li>
+                <a
+                  class="inline-flex items-center gap-2 text-sm text-muted-foreground transition-colors hover:text-foreground"
+                  href={item.url}
+                >
+                  <ArrowRight class="size-4 shrink-0" aria-hidden="true" />
+                  <span>{item.title}</span>
+                </a>
+              </li>
+            ))}
+          </ul>
+        </section>
+      )
+    }
+    <div class="mt-10">
+      <Button.Root variant="ghost" href={withBase(`/domains/${domain.id}/`)}>
+        <ArrowLeft class="size-4" aria-hidden="true" />
+        Back to {domain.name}
+      </Button.Root>
+    </div>
+    <ArticleNavigation
+      client:load
+      previous={previousQuestion
+        ? { title: previousQuestion.title, url: questionHref(previousQuestion.id) }
+        : null}
+      next={nextQuestion ? { title: nextQuestion.title, url: questionHref(nextQuestion.id) } : null}
+    />
+  </article>
+</BaseLayout>

@@ -1,0 +1,56 @@
+---
+id: 'optimistic-ui-and-rollback'
+title: 'How do you implement optimistic UI without corrupting client state?'
+domain: 'ui-engineering'
+summary: 'Treat optimistic updates as speculative transactions with reconciliation, rollback, and concurrency rules.'
+difficulty: 'advanced'
+minutes: 13
+tags: ['optimistic-ui', 'mutations', 'consistency']
+prerequisites: ['promise-composition-and-failure']
+related: ['frontend-data-fetching-architecture', 'resilient-network-state']
+featured: true
+searchTerms: ['optimistic updates', 'mutation rollback', 'pending mutation']
+---
+
+## Short answer
+
+Apply a reversible local change, send the mutation, then reconcile with the authoritative response. On failure, restore or invalidate the affected state. Serialize or version overlapping mutations when order matters.
+
+## Reason from first principles
+
+A naive rollback can overwrite a newer successful change. Capture a mutation ID or prior version, and only roll back if the optimistic version is still current. Idempotency keys help the server deduplicate retried mutations.
+
+## A concrete example
+
+```ts
+const mutationId = crypto.randomUUID();
+applyOptimistic(change, mutationId);
+try {
+  reconcile(await save(change), mutationId);
+} catch (error) {
+  rollbackIfCurrent(mutationId);
+  throw error;
+}
+```
+
+## Boundary cases to reason through
+
+Suppose mutation A and mutation B both update the same record. If A fails after B succeeds, blindly restoring A’s old snapshot erases B. Associate optimistic writes with mutation/version identity and only roll back the state still owned by that mutation. Reconcile from authoritative server data after success, especially when the server normalizes values.
+
+## Common misconception
+
+“Undo the previous value on error” is unsafe when concurrent updates are possible.
+
+## Why this matters in production
+
+Define conflict behavior, retry semantics, offline behavior, and user-visible pending/error states before shipping optimistic interactions.
+
+## Interviewer follow-ups
+
+- What if two saves race?
+- How do you handle a server response arriving out of order?
+
+## Further reading
+
+- [Optimistic updates](https://tanstack.com/query/latest/docs/framework/react/guides/optimistic-updates) — primary or authoritative documentation for the underlying behavior.
+- [MDN Web Docs](https://developer.mozilla.org/) — use the relevant API reference for adjacent browser details.

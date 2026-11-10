@@ -1,0 +1,158 @@
+---
+id: 'stale-while-revalidate-and-offline'
+title: 'How do you think about stale-while-revalidate and offline UI?'
+domain: 'browser-web-platform'
+summary: 'Cache as a first-class state, revalidation, offline fallbacks, and the UX contracts users actually notice.'
+difficulty: 'advanced'
+minutes: 15
+tags: ['caching', 'offline', 'swr', 'service-worker', 'network']
+prerequisites: ['http-caching-and-validation', 'resilient-network-state']
+related: ['frontend-data-fetching-architecture', 'request-lifecycle-and-race-conditions']
+featured: false
+searchTerms: ['offline first', 'stale cache', 'background revalidation']
+---
+
+## Short answer
+
+Treat cached data as a real state of the UI, not an invisible optimisation. Stale-while-revalidate means: show what you have immediately, fetch a fresher copy in the background, and update when it arrives (or explain if it fails). Offline means: know when you have no network, prefer useful cached content over a blank error, and make the limits visible so users do not think a write succeeded when it only queued.
+
+## Reason from first principles
+
+Users care about three things:
+
+1. **Something useful appears quickly.**
+2. **What they see is eventually correct.**
+3. **When something cannot be done offline, they are told clearly.**
+
+HTTP caching can use the `stale-while-revalidate` Cache-Control extension to serve a stale response while revalidation happens in the background. Service workers and in-memory libraries such as SWR or TanStack Query can implement similar application-level behaviour, but they do not all do it automatically or with identical freshness rules. The mental model is more important than the specific tool.
+
+A useful cache entry has:
+
+- **Payload** — the data.
+- **Freshness** — is it still within the “trust without revalidation” window?
+- **Revalidation state** — is a background fetch in flight?
+- **Source** — memory, Cache Storage, HTTP disk cache, etc.
+
+The UI should be able to answer: “Am I showing cached data? Is it stale? Am I currently updating it? Did the update fail?”
+
+## Stale-while-revalidate as a UX contract
+
+Typical flow:
+
+1. Request data for a view.
+2. If a cached copy exists, render it immediately (even if stale).
+3. Start a revalidation request.
+4. When the fresh response arrives, update the UI if the data changed.
+5. If revalidation fails and you only had stale data, keep showing the stale data and surface a non-blocking “could not refresh” if it matters.
+
+This is different from “show a spinner until the network returns.” It optimises for perceived speed and resilience, at the cost of occasionally showing older content for a moment.
+
+When _not_ to do it:
+
+- Strongly consistent money or inventory views where a stale number is worse than a short wait.
+- After a mutation that must be reflected immediately — then you often update the cache optimistically or invalidate aggressively.
+
+## Offline is not just “no network”
+
+Offline support has levels:
+
+**Read-mostly offline**  
+Cached documents, lists, and assets still open. User can browse what they already have. Writes are disabled or clearly marked as unavailable.
+
+**Queued writes**  
+Actions are stored and replayed when the connection returns. Requires conflict rules, idempotency, and UI that shows “pending sync” vs “synced” vs “failed to sync.”
+
+**Full offline-first**  
+Harder. Needs careful schema design, conflict resolution, and often a product decision about which features work offline at all.
+
+Most products benefit from the first level and a careful subset of the second. Pretending everything works offline without the infrastructure usually creates silent data loss.
+
+## Practical UI states
+
+| Situation                            | What to show                                                       |
+| ------------------------------------ | ------------------------------------------------------------------ |
+| Fresh cache hit                      | Content, no fuss                                                   |
+| Stale cache + revalidating           | Content + subtle refreshing indicator if useful                    |
+| No cache + loading                   | Skeleton / spinner                                                 |
+| Revalidation failed, stale available | Keep content + optional “offline / couldn’t refresh”               |
+| No cache + offline                   | Explicit offline empty state, not a generic error                  |
+| Mutation while offline               | “Saved on this device — will sync when online” or block the action |
+
+The important part is honesty. Users tolerate stale data more than they tolerate being misled that something synced when it did not.
+
+## Service workers and HTTP cache — different layers
+
+- **HTTP cache** (browser disk/memory cache guided by headers) is mostly automatic. You influence it with `Cache-Control`, `ETag`, `Last-Modified`, etc.
+- **Service worker Cache Storage** is programmatic. You decide what to put in, when to update, and what to return for navigation and API requests.
+- **In-memory / library caches** (SWR, React Query, Apollo, etc.) live in the page and are often the fastest path for repeat views in the same session.
+
+They compose. A service worker can return a cached API response while the page’s library still applies its own stale-while-revalidate policy on top. Keep the ownership clear so you do not fight yourself with double revalidation or contradictory freshness rules.
+
+## A concrete example
+
+```ts
+async function loadProfile(userId: string) {
+  const key = `profile:${userId}`;
+  const cached = await cache.get<CacheEntry<Profile>>(key);
+
+  if (cached) {
+    renderProfile({ data: cached.data, stale: cached.isStale, refreshing: true });
+  }
+
+  try {
+    const fresh = await fetchProfile(userId);
+    await cache.set(key, fresh);
+    renderProfile({ data: fresh, stale: false, refreshing: false });
+  } catch (error) {
+    if (!cached) throw error;
+    renderProfile({ data: cached, stale: true, refreshing: false });
+  }
+}
+```
+
+This is an application-level sketch, not the browser's HTTP cache algorithm. Production code should also deduplicate concurrent requests, scope cache keys to the authenticated identity, and prevent an older request from overwriting newer data.
+
+## Boundary cases
+
+**Mutations and cache invalidation.**  
+After a successful write, either update the relevant cache entries or mark them stale so the next read revalidates. Forgetting this is the classic “I saved but the list still shows the old data” bug.
+
+**Race between revalidation and navigation.**  
+User opens a page (stale shown, revalidation starts), navigates away, and revalidation completes. Do not update an unmounted component. If the response still belongs to the current cache key and has not been superseded by a newer request, it can still update the shared cache for the next visit. Use request identity, sequence numbers, or cancellation where appropriate so an older response cannot overwrite newer data.
+
+**Partial offline.**  
+APIs fail, static assets work, or only some routes are cached. Detect real connectivity where you can (`navigator.onLine` is a hint, not truth — failed fetches are more reliable signals) and degrade per feature.
+
+**Storage limits and eviction.**  
+Cache Storage and IndexedDB can be cleared by the browser under pressure. Do not assume a write to the cache is permanent. Critical “must work offline” data needs an explicit persistence strategy and a plan for when storage is gone.
+
+**Security and personalised data.**  
+Caching authenticated responses requires care. Shared caches and shared devices can leak data if keys and headers are wrong. Prefer network-only or carefully keyed caches for sensitive content.
+
+## Common misconceptions
+
+- “Offline support means the app works fully without network.”  
+  Usually it means a defined subset of read (and sometimes write) behaviour. Scope it deliberately.
+
+- “If I set `Cache-Control: max-age=…` I have SWR.”  
+  You have HTTP caching. Stale-while-revalidate as a _UI_ pattern still needs the application to show cached data and revalidate in the background.
+
+- “`navigator.onLine === true` means requests will succeed.”  
+  It often only means the device has a network interface up. Captive portals, flaky mobile networks, and server outages still fail.
+
+## Why this matters in production
+
+Perceived performance and resilience are product features. Showing a cached view instantly and refreshing quietly often feels faster than a perfectly correct spinner. Failing honestly when offline prevents support tickets about “lost” data. The teams that get this right treat cache and network state as part of the UI model, not as an invisible layer under a single `isLoading` flag.
+
+## Interviewer follow-ups
+
+- How would you invalidate caches after a successful mutation?
+- What is the difference between HTTP caching and a service worker cache for API responses?
+- How do you show the user that data is stale vs currently refreshing?
+- What subset of writes would you support offline first, and why?
+
+## Further reading
+
+- [HTTP caching](https://developer.mozilla.org/en-US/docs/Web/HTTP/Caching) — the platform rules.
+- [Service Worker API](https://developer.mozilla.org/en-US/docs/Web/API/Service_Worker_API) — programmatic caching and offline interception.
+- SWR / TanStack Query / similar library docs — application-level stale-while-revalidate patterns and mutation invalidation.

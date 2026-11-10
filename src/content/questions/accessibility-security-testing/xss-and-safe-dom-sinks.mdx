@@ -1,0 +1,48 @@
+---
+id: 'xss-and-safe-dom-sinks'
+title: 'How does cross-site scripting happen, and how should frontend code prevent it?'
+domain: 'accessibility-security-testing'
+summary: 'Understand injection contexts, safe DOM APIs, output encoding, sanitization, and defense in depth.'
+difficulty: 'advanced'
+minutes: 12
+tags: ['security', 'xss', 'dom']
+prerequisites: ['semantic-html-and-accessibility-tree']
+related: ['csrf-and-cookie-security']
+featured: true
+---
+
+## Short answer
+
+XSS occurs when attacker-controlled data is interpreted as executable markup or script in a trusted origin. Prefer text sinks such as `textContent`, context-aware framework escaping, and vetted sanitization when rich HTML is required.
+
+## Reason from first principles
+
+Different contexts require different handling: HTML text, attributes, URLs, CSS, and JavaScript are not interchangeable. Avoid `innerHTML` with untrusted data. A Content Security Policy can reduce exploitability but does not replace safe rendering.
+
+## A concrete example
+
+```js
+messageElement.textContent = untrustedMessage;
+```
+
+## Boundary cases to reason through
+
+Sanitization must be appropriate for the output context and should use a maintained allowlist-based library when rich HTML is a requirement. URL attributes need scheme validation as well as HTML escaping. Treat stored content, markdown, postMessage payloads, and third-party data as untrusted. CSP and Trusted Types add defense in depth, not permission to use unsafe sinks.
+
+## Common misconception
+
+“It came from our API” does not make content trusted; stored XSS often arrives through legitimate data paths.
+
+## Why this matters in production
+
+Review DOM sinks, URL handling, markdown renderers, third-party scripts, and postMessage origins. Use CSP and Trusted Types where feasible.
+
+## Interviewer follow-ups
+
+- Why is HTML escaping context-specific?
+- What does Trusted Types enforce?
+
+## Further reading
+
+- [Cross Site Scripting Prevention Cheat Sheet](https://cheatsheetseries.owasp.org/cheatsheets/Cross_Site_Scripting_Prevention_Cheat_Sheet.html) — primary or authoritative documentation for the underlying behavior.
+- [MDN Web Docs](https://developer.mozilla.org/) — use the relevant API reference for adjacent browser details.

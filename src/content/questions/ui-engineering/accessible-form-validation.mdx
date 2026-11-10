@@ -1,0 +1,51 @@
+---
+id: 'accessible-form-validation'
+title: 'How should a production form communicate validation errors?'
+domain: 'ui-engineering'
+summary: 'Combine native constraints, server validation, field-level association, focus management, and accessible summaries.'
+difficulty: 'intermediate'
+minutes: 10
+tags: ['forms', 'accessibility', 'validation']
+prerequisites: []
+related: []
+featured: false
+searchTerms: ['form validation', 'inline validation', 'field errors', 'validation messages']
+---
+
+## Short answer
+
+Validate at the appropriate boundary, associate each field with its help and error text, expose invalid state, and provide a clear submission summary. Server validation remains authoritative for business rules.
+
+## Reason from first principles
+
+Use stable IDs with `aria-describedby`; set `aria-invalid` only when invalid. On failed submit, focus an error summary or the first invalid field according to the interaction model. Do not rely on color or placeholder text alone.
+
+## A concrete example
+
+```html
+<label for="email">Email</label>
+<input id="email" type="email" aria-invalid="true" aria-describedby="email-error" />
+<p id="email-error">Enter a valid email address.</p>
+```
+
+## Boundary cases to reason through
+
+A field error should be programmatically associated with its control and announced at a useful time. A form-level error summary helps users understand multiple failures and navigate to each field. Do not clear the user’s input after a server rejection. Validate again on the server because client validation can be bypassed or become stale.
+
+## Common misconception
+
+Client-side validation is not a security boundary, and announcing every keystroke error can be noisy.
+
+## Why this matters in production
+
+Design validation timing deliberately: often validate on submit, then revalidate touched fields. Preserve entered data after server errors.
+
+## Interviewer follow-ups
+
+- How would you announce async username validation?
+- Why is `required` not sufficient?
+
+## Further reading
+
+- [WAI form notifications](https://www.w3.org/WAI/tutorials/forms/notifications/) — primary or authoritative documentation for the underlying behavior.
+- [MDN Web Docs](https://developer.mozilla.org/) — use the relevant API reference for adjacent browser details.

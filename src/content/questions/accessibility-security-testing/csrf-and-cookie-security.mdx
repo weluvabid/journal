@@ -1,0 +1,48 @@
+---
+id: 'csrf-and-cookie-security'
+title: 'How do cookie attributes and CSRF defenses work together?'
+domain: 'accessibility-security-testing'
+summary: 'Explain ambient cookie credentials, SameSite, origin checks, anti-CSRF tokens, and secure session handling.'
+difficulty: 'advanced'
+minutes: 11
+tags: ['security', 'csrf', 'cookies']
+prerequisites: []
+related: []
+featured: false
+---
+
+## Short answer
+
+Browsers automatically attach matching cookies to requests, which creates CSRF risk for state-changing endpoints. Use appropriate SameSite settings plus server-side CSRF defenses such as tokens and Origin/Referer validation according to the threat model.
+
+## Reason from first principles
+
+SameSite=Lax reduces many cross-site cookie sends but does not eliminate every CSRF scenario. GET should not perform state changes. CORS is not a general CSRF defense because the request may still be sent.
+
+## A concrete example
+
+```http
+Set-Cookie: session=...; Secure; HttpOnly; SameSite=Lax; Path=/
+```
+
+## Boundary cases to reason through
+
+CSRF depends on ambient credentials being attached to a request the attacker can cause. SameSite reduces cross-site cookie sending but must be evaluated against redirects, embedded flows, and browser behavior. Validate Origin or Referer where appropriate and use anti-CSRF tokens for sensitive state changes. Never make a GET endpoint mutate state.
+
+## Common misconception
+
+CORS and CSRF solve different problems.
+
+## Why this matters in production
+
+Protect sensitive mutations, validate content types/origins, rotate sessions, and avoid state-changing links. Consider embedded/third-party contexts when choosing SameSite.
+
+## Interviewer follow-ups
+
+- When is SameSite=None required?
+- Why should GET be safe and idempotent?
+
+## Further reading
+
+- [Cross-Site Request Forgery Prevention Cheat Sheet](https://cheatsheetseries.owasp.org/cheatsheets/Cross-Site_Request_Forgery_Prevention_Cheat_Sheet.html) — primary or authoritative documentation for the underlying behavior.
+- [MDN Web Docs](https://developer.mozilla.org/) — use the relevant API reference for adjacent browser details.

@@ -1,0 +1,51 @@
+---
+id: 'component-boundaries-and-composition'
+title: 'How do you choose component boundaries in a growing frontend?'
+domain: 'frameworks-ui-architecture'
+summary: 'Use cohesion, ownership, reuse pressure, change frequency, and accessibility semantics—not line count.'
+difficulty: 'intermediate'
+minutes: 10
+tags: ['components', 'composition', 'architecture']
+prerequisites: []
+related: []
+featured: false
+---
+
+## Short answer
+
+A useful component boundary groups behavior and presentation that change together while exposing a small, meaningful contract. Composition is often more flexible than a large component with many boolean modes.
+
+## Reason from first principles
+
+A component is not automatically reusable because it appears twice. Premature abstraction can couple unrelated screens; duplicated markup may be cheaper until the shared behavior stabilizes. Prefer slots/children and data-driven primitives over dozens of flags.
+
+## A concrete example
+
+```svelte
+<Card>
+  <CardHeader>Account</CardHeader>
+  <CardBody><AccountSummary /></CardBody>
+</Card>
+```
+
+## Boundary cases to reason through
+
+A good public component API exposes stable user intent, not every implementation detail. Avoid booleans whose combinations create ambiguous states; prefer named variants or composed subcomponents. Before extracting a shared component, identify the behavior that is genuinely shared and the parts that should remain customizable by the consuming feature.
+
+## Common misconception
+
+“One component per file” and “DRY at all costs” are not architecture principles.
+
+## Why this matters in production
+
+Good boundaries make testing, accessibility, ownership, and independent iteration easier.
+
+## Interviewer follow-ups
+
+- How would you refactor a component with twelve boolean props?
+- When is duplication preferable?
+
+## Further reading
+
+- [Passing props to a component](https://react.dev/learn/passing-props-to-a-component) — primary or authoritative documentation for the underlying behavior.
+- [MDN Web Docs](https://developer.mozilla.org/) — use the relevant API reference for adjacent browser details.

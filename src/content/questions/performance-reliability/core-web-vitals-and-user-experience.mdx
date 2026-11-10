@@ -1,0 +1,53 @@
+---
+id: 'core-web-vitals-and-user-experience'
+title: 'What do Core Web Vitals measure, and how should teams use them?'
+domain: 'performance-reliability'
+summary: 'Connect LCP, INP, and CLS to real user experience, field data, and diagnostic workflows.'
+difficulty: 'intermediate'
+minutes: 11
+tags: ['web-vitals', 'performance', 'metrics']
+prerequisites: ['browser-rendering-pipeline']
+related: ['javascript-bundle-budgeting', 'long-tasks-and-cooperative-scheduling']
+featured: true
+searchTerms: ['cls', 'inp', 'lcp', 'web vitals']
+---
+
+## Short answer
+
+LCP approximates loading performance, INP measures interaction responsiveness, and CLS measures unexpected visual movement. Use field data to understand real users and lab tools to isolate causes.
+
+## Reason from first principles
+
+A passing lab run does not guarantee healthy field metrics. Segment field data by device, route, and experience. Diagnose the underlying cause rather than optimizing a metric in isolation.
+
+## A concrete example
+
+```js
+// Use the web-vitals library to report field measurements.
+import { onCLS, onINP, onLCP } from 'web-vitals';
+onCLS(sendMetric);
+onINP(sendMetric);
+onLCP(sendMetric);
+```
+
+## Boundary cases to reason through
+
+Use the 75th percentile (p75) of real-user measurements for the relevant device segment rather than relying on a single run or a global average. LCP can be delayed by server response, render-blocking resources, resource discovery, or client rendering. INP includes the full interaction lifecycle, so reduce long handlers and subsequent rendering work.
+
+## Common misconception
+
+Core Web Vitals are not a complete definition of frontend quality.
+
+## Why this matters in production
+
+Set budgets and monitor distributions, not only averages. Correlate regressions with releases and user segments.
+
+## Interviewer follow-ups
+
+- Why is INP a better responsiveness metric than FID?
+- How can late-loading images cause CLS?
+
+## Further reading
+
+- [Web Vitals](https://web.dev/articles/vitals) — primary or authoritative documentation for the underlying behavior.
+- [MDN Web Docs](https://developer.mozilla.org/) — use the relevant API reference for adjacent browser details.

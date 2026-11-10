@@ -1,0 +1,31 @@
+---
+import BaseLayout from '@layouts/BaseLayout.astro';
+import { Button, Empty } from '@weluvabid/iris/components';
+import { withBase } from '@lib/atlas';
+---
+
+<BaseLayout
+  title="Page not found — Frontend Atlas"
+  description="The page you requested could not be found."
+>
+  <Empty.Root class="mx-auto max-w-2xl border-0 py-16">
+    <Empty.Header>
+      <Empty.Title class="text-4xl tracking-tight">This page isn't in the atlas.</Empty.Title>
+    </Empty.Header>
+    <Empty.Content class="w-full max-w-lg">
+      <div class="text-left">
+        <p class="mb-3 text-sm font-medium text-foreground">Try one of these:</p>
+        <ul class="list-inside list-disc space-y-2 text-sm leading-6 text-muted-foreground">
+          <li>Open Search in the header to find a question or concept.</li>
+          <li>Browse the domain map to explore the handbook.</li>
+          <li>Return to the homepage and start again.</li>
+        </ul>
+      </div>
+      <div class="flex flex-wrap justify-center gap-3 pt-2">
+        <Button.Root variant="outline" class="rounded-full" href={withBase('/domains/')}
+          >Browse domains</Button.Root
+        >
+      </div>
+    </Empty.Content>
+  </Empty.Root>
+</BaseLayout>

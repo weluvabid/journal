@@ -1,0 +1,58 @@
+---
+id: 'execution-context-and-call-stack'
+title: 'What actually happens when JavaScript executes a function?'
+domain: 'javascript-typescript'
+summary: 'Trace execution from the call site through execution contexts, lexical environments, and the call stack.'
+difficulty: 'foundation'
+minutes: 9
+tags: ['execution', 'scope', 'runtime']
+prerequisites: []
+related: []
+featured: true
+---
+
+## Short answer
+
+A function call creates an execution context, establishes its environment and `this` binding, then evaluates its body. The engine tracks active calls on the execution stack; returning or throwing removes the current frame.
+
+## Reason from first principles
+
+The useful mental model is not “JavaScript runs line by line” but “each call temporarily adds a frame with access to an environment chain.” Lexical scope is determined by where functions are defined, while the call stack records how execution arrived there. Those are separate structures.
+
+## A concrete example
+
+```js
+const label = 'outer';
+function makeReader() {
+  const label = 'inner';
+  return function read() {
+    return label;
+  };
+}
+const read = makeReader();
+read(); // "inner"
+```
+
+`makeReader` has returned, so its stack frame is gone. Its lexical environment remains reachable through `read`’s closure.
+
+## Boundary cases to reason through
+
+A thrown exception unwinds active frames until a matching handler is found; a frame does not remain suspended just because a callback still references one of its bindings. Async functions split execution across turns: the function returns a promise, and continuation after `await` is scheduled later. Keep the stack model separate from the event-loop model when debugging traces.
+
+## Common misconception
+
+A closure is not a frozen copy of local variables, and the lexical environment is not the call stack.
+
+## Why this matters in production
+
+This distinction explains closures, recursion, stack overflows, debugging frames, and why deeply recursive synchronous work can block the main thread.
+
+## Interviewer follow-ups
+
+- How does recursion consume stack space?
+- What changes when a function is async?
+
+## Further reading
+
+- [JavaScript execution model](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Execution_model) — primary or authoritative documentation for the underlying behavior.
+- [MDN Web Docs](https://developer.mozilla.org/) — use the relevant API reference for adjacent browser details.

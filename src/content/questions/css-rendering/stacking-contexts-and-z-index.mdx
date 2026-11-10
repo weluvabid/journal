@@ -1,0 +1,56 @@
+---
+id: 'stacking-contexts-and-z-index'
+title: 'Why does a large z-index sometimes fail to place an element on top?'
+domain: 'css-rendering'
+summary: 'Understand stacking contexts as atomic painting groups rather than a global numeric z-index scale.'
+difficulty: 'intermediate'
+minutes: 10
+tags: ['css', 'stacking-context', 'z-index']
+prerequisites: ['containing-blocks-and-positioning']
+related: []
+featured: true
+---
+
+## Short answer
+
+A z-index is compared within its stacking context. A descendant cannot escape its ancestor stacking context to outrank a sibling context, regardless of how large its own z-index is.
+
+## Reason from first principles
+
+Stacking contexts are created by conditions including positioned elements with non-auto z-index, transforms, opacity below one, isolation, and several modern CSS features. The browser paints contexts atomically in their parent context.
+
+## A concrete example
+
+```css
+.sidebar {
+  position: relative;
+  z-index: 2;
+}
+.tooltip {
+  position: absolute;
+  z-index: 999999;
+}
+/* Still cannot outrank a sibling context above .sidebar. */
+```
+
+## Boundary cases to reason through
+
+A child with `z-index: 999999` remains trapped inside its parent stacking context. Inspect ancestors for transforms, opacity, isolation, positioned z-index, filters, and containment. The browser top layer used by modal dialogs and popovers participates in a different ordering model, so it can solve some overlay problems more cleanly than escalating z-index values.
+
+## Common misconception
+
+There is no single page-wide z-index ladder.
+
+## Why this matters in production
+
+Define a small layer scale and understand which components create contexts. Use top-layer primitives such as dialog/popover when their semantics fit.
+
+## Interviewer follow-ups
+
+- What creates a stacking context?
+- Why does `transform: translateZ(0)` alter layering?
+
+## Further reading
+
+- [Stacking context](https://developer.mozilla.org/en-US/docs/Web/CSS/CSS_positioned_layout/Stacking_context) — primary or authoritative documentation for the underlying behavior.
+- [MDN Web Docs](https://developer.mozilla.org/) — use the relevant API reference for adjacent browser details.

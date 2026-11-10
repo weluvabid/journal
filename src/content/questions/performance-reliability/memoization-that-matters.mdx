@@ -1,0 +1,143 @@
+---
+id: 'memoization-that-matters'
+title: 'When does memoization actually matter?'
+domain: 'performance-reliability'
+summary: 'Measure first. Memoize stable expensive work and referential stability that prevents real child work — not every function and every value.'
+difficulty: 'intermediate'
+minutes: 13
+tags: ['memoization', 'performance', 'react', 're-renders']
+prerequisites: ['derived-state-and-single-source-of-truth']
+related: ['long-tasks-and-cooperative-scheduling', 'javascript-bundle-budgeting']
+featured: false
+searchTerms: ['usememo', 'usecallback', 'referential equality', 'cache expensive computation']
+---
+
+## Short answer
+
+Memoization is worth it when the work you skip is expensive _and_ you can prove the inputs are stable enough that the cache hits. It is not worth it for cheap calculations, for values that change every render, or as a default habit. Prefer fixing the data flow (who re-renders and why) before sprinkling memo APIs everywhere.
+
+## Reason from first principles
+
+Every memoization tool is a cache with a validity rule:
+
+- `useMemo` / computed signals / derived stores — “recompute only when these inputs change.”
+- `useCallback` / stable function identity — “give me the same function reference unless these inputs change.”
+- `React.memo` / `PureComponent` / fine-grained stores — “skip re-rendering this child if its props are shallowly equal.”
+
+They all trade a comparison cost (and some memory) for the chance to skip work. If the skipped work is cheaper than the comparison, or if the inputs change every time anyway, you lose.
+
+The important question is rarely “can I memoize this?” It is “is this work actually showing up as a cost, and will memoization remove it?”
+
+## When it tends to help
+
+**1. Expensive pure calculations**  
+Filtering or transforming large lists, heavy formatting, complex derived data. If the inputs are stable between renders and the calculation shows up in profiles, memoize it.
+
+**2. Referential stability that prevents real child work**  
+A child that is wrapped in `React.memo` (or equivalent) will still re-render if you pass a new object or function every time. Stabilising _those_ props can remove a cascade of work. Stabilising props for a child that is cheap and not memoised does almost nothing.
+
+**3. Dependency arrays that would otherwise thrash**  
+Effects and memos that depend on a function or object created inline will re-run every render. A stable callback or value can stop an effect from firing constantly. The fix is sometimes “stabilise the dependency,” sometimes “move the dependency out of the effect,” and sometimes “the effect should run every time.”
+
+**4. Selector / subscription boundaries**  
+In systems with external stores, selecting a narrow slice of state (and comparing it) is a form of memoization that prevents unrelated updates from reaching the component. This is often higher leverage than memoising inside the component.
+
+## When it usually does not help
+
+- Cheap derived values (string concat, simple boolean logic, small array maps).
+- Values that change on almost every render (anything derived from rapidly changing state).
+- “I wrapped every component in `React.memo`” as a default — comparison cost adds up, and the real re-render sources remain.
+- Memoising a function that is only used in the same component and never passed down or put in a dependency list.
+
+## Concrete implementation sketch
+
+**Worth measuring and possibly memoising**
+
+```ts
+// Large list, expensive filter + sort, inputs change infrequently
+const visibleRows = useMemo(
+  () => rows.filter((row) => matchesQuery(row, query)).sort(compareRows),
+  [rows, query, compareRows],
+);
+```
+
+**Usually noise**
+
+```ts
+const label = useMemo(() => `${firstName} ${lastName}`, [firstName, lastName]);
+// cheaper to compute than to memoize
+```
+
+**Referential stability that matters**
+
+```ts
+// Child is memoised and does real work
+const onSelect = useCallback((id: string) => {
+  dispatch({ type: 'select', id });
+}, [dispatch]);
+
+<ExpensiveList onSelect={onSelect} />
+```
+
+If `ExpensiveList` is not memoised and is cheap, the `useCallback` is mostly ceremony.
+
+## How to decide in practice
+
+1. **Reproduce the slow interaction.**  
+   Use the profiler (React Profiler, browser Performance panel, or your framework’s tooling).
+
+2. **Find the expensive work.**  
+   Long tasks, repeated component renders that do meaningful work, layout thrashing, etc.
+
+3. **Ask whether memoization removes that work.**  
+   If a parent re-renders because its own state changed, memoising a child does not stop the parent. If the expensive calculation’s inputs change every time, the memo never hits.
+
+4. **Apply the smallest fix that removes the cost.**  
+   Sometimes that is memoization. Sometimes it is moving state down, splitting context, using a more precise subscription, or virtualising a list.
+
+5. **Re-measure.**  
+   If the profile does not improve, revert the memo. Memoization that does not buy you anything is just complexity.
+
+## Boundary cases
+
+**Objects and arrays as dependencies.**  
+`useMemo(() => compute(a), [{ id: a.id }])` is wrong — the object literal is new every time. Depend on the primitive fields, or memoize the object itself higher up.
+
+**Memoising context values.**  
+A context provider that creates a new `{ ...value, actions }` every render will re-render every consumer. Memoising the context value (or splitting value and actions) is often high impact.
+
+**Server components / compiled frameworks.**  
+Some frameworks and compilers auto-memoize or avoid re-renders by design. The same principles apply (do not pay for work you do not need), but the tools look different. Do not blindly copy React memo habits into a system that already has fine-grained updates or server-driven rendering.
+
+**Stale closures.**  
+A memoised callback that closed over an old value is a bug. The dependency list is part of the correctness story, not just a performance knob.
+
+## Common misconceptions
+
+- “More memoization = faster app.”  
+  Unmeasured memoization is just extra code and extra comparisons.
+
+- “`useCallback` is required for every function passed to a child.”  
+  Only when the child’s purity or an effect dependency actually cares about the reference.
+
+- “If I memoize everything, I can ignore who re-renders.”  
+  You cannot. Memoization is a patch on top of the data flow. Fix the data flow first when you can.
+
+## Why this matters in production
+
+Blind memoization makes code harder to read and harder to change without improving user-facing performance. Targeted memoization, guided by profiles, can remove real long tasks and unnecessary work. The skill is knowing which one you are doing.
+
+Teams that default to “memoize by habit” end up with noisy dependency arrays and components that are still slow. Teams that default to “never memoize” miss the few places where a stable reference or a cached derivation would have removed a visible hitch. Measurement is the difference.
+
+## Interviewer follow-ups
+
+- How do you prove that a `useMemo` is helping?
+- When would you memoize a context value?
+- What is the cost of a failed memoization (always-changing inputs)?
+- How does fine-grained reactivity change the memoization story?
+
+## Further reading
+
+- React docs on [`useMemo`](https://react.dev/reference/react/useMemo) and [`useCallback`](https://react.dev/reference/react/useCallback) — the official guidance and the warnings.
+- Browser Performance panel + React Profiler — the tools that should drive the decision.
+- Your framework’s own performance docs (Solid, Svelte, Vue, Angular signals, etc.) — the same questions, different primitives.

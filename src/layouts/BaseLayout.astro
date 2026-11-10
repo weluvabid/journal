@@ -1,0 +1,184 @@
+---
+import AtlasFooter from '@components/site/AtlasFooter.svelte';
+import AtlasHeader from '@components/site/AtlasHeader.svelte';
+import ProgressOverview from '@components/progress/ProgressOverview.svelte';
+import ProgressCardIndicators from '@components/progress/ProgressCardIndicators.svelte';
+import AtlasToaster from '@components/site/AtlasToaster.svelte';
+import { getCollection } from 'astro:content';
+import { ClientRouter } from 'astro:transitions';
+import { assertValidQuestionGraph } from '@lib/content';
+import { QUESTION_MANIFEST, MAX_QUESTION_COUNT } from '@data/question-manifest';
+import { createThemeScript } from '@weluvabid/iris/theme';
+import '@styles/global.css';
+
+import faviconSvg from '../../brand/me/favicon/favicon.svg?url';
+import faviconIco from '../../brand/me/favicon/favicon.ico?url';
+import favicon16 from '../../brand/me/exports/favicon/favicon-16.png?url';
+import favicon32 from '../../brand/me/exports/favicon/favicon-32.png?url';
+import favicon192 from '../../brand/me/exports/favicon/favicon-192.png?url';
+import appleTouchIcon from '../../brand/me/exports/favicon/favicon-180.png?url';
+
+interface Props {
+  title?: string;
+  description?: string;
+}
+
+const {
+  title = 'Frontend Atlas — A field guide to frontend engineering',
+  description = 'A carefully curated, open-source handbook for understanding modern frontend engineering.',
+} = Astro.props;
+
+const themeBootstrap = createThemeScript();
+const entries = await getCollection('questions');
+const knownIds = assertValidQuestionGraph(entries).map((question) => question.id);
+if (knownIds.length > MAX_QUESTION_COUNT)
+  throw new Error(`Frontend Atlas cannot exceed ${MAX_QUESTION_COUNT} questions`);
+if (
+  QUESTION_MANIFEST.length !== knownIds.length ||
+  new Set(QUESTION_MANIFEST).size !== QUESTION_MANIFEST.length ||
+  QUESTION_MANIFEST.some((id) => !knownIds.includes(id))
+) {
+  throw new Error(
+    'Question manifest must contain every current question exactly once; append new IDs without reordering existing slots.',
+  );
+}
+---
+
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="description" content={description} />
+    <meta name="theme-color" content="#fafaf8" />
+    <meta name="color-scheme" content="light dark" />
+    <link rel="icon" type="image/svg+xml" href={faviconSvg} />
+    <link rel="icon" type="image/x-icon" href={faviconIco} />
+    <link rel="icon" type="image/png" sizes="16x16" href={favicon16} />
+    <link rel="icon" type="image/png" sizes="32x32" href={favicon32} />
+    <link rel="icon" type="image/png" sizes="192x192" href={favicon192} />
+    <link rel="apple-touch-icon" sizes="180x180" href={appleTouchIcon} />
+    <meta property="og:site_name" content="Frontend Atlas" />
+    <meta name="twitter:card" content="summary" />
+    <meta property="og:type" content="website" />
+    <meta property="og:title" content={title} />
+    <meta property="og:description" content={description} />
+    <title>{title}</title>
+    <script is:inline set:html={themeBootstrap} />
+    <ClientRouter />
+    <script is:inline>
+      if (!window.__frontendAtlasRouterLifecycleInstalled) {
+        window.__frontendAtlasRouterLifecycleInstalled = true;
+
+        document.addEventListener(
+          'click',
+          (event) => {
+            if (!(event instanceof MouseEvent) || event.defaultPrevented) return;
+            if (
+              event.button !== 0 ||
+              event.metaKey ||
+              event.ctrlKey ||
+              event.shiftKey ||
+              event.altKey
+            ) {
+              return;
+            }
+
+            const target = event.target;
+            if (!(target instanceof Element)) return;
+            const link = target.closest('a[href]');
+            if (!(link instanceof HTMLAnchorElement)) return;
+            if (
+              link.hasAttribute('download') ||
+              link.hasAttribute('data-astro-reload') ||
+              (link.target && link.target !== '_self')
+            ) {
+              return;
+            }
+            if (link.relList.contains('external')) return;
+
+            const destination = new URL(link.href, window.location.href);
+            const current = new URL(window.location.href);
+            if (
+              destination.origin === current.origin &&
+              destination.pathname === current.pathname &&
+              destination.search === current.search &&
+              destination.hash === current.hash
+            ) {
+              event.preventDefault();
+            }
+          },
+          true,
+        );
+
+        document.addEventListener('astro:before-swap', (event) => {
+          const currentThemeIsDark = document.documentElement.classList.contains('dark');
+          event.newDocument.documentElement.classList.toggle('dark', currentThemeIsDark);
+        });
+
+        document.addEventListener('astro:before-preparation', (event) => {
+          const loader = document.getElementById('atlas-navigation-loader');
+          const originalLoader = event.loader;
+
+          event.loader = async () => {
+            const revealTimer = window.setTimeout(() => {
+              if (loader) {
+                loader.dataset.visible = 'true';
+                loader.setAttribute('aria-hidden', 'false');
+              }
+            }, 120);
+
+            try {
+              await originalLoader();
+            } finally {
+              window.clearTimeout(revealTimer);
+              if (loader) {
+                delete loader.dataset.visible;
+                loader.setAttribute('aria-hidden', 'true');
+              }
+            }
+          };
+        });
+
+        document.addEventListener('astro:page-load', () => {
+          const loader = document.getElementById('atlas-navigation-loader');
+          if (loader) {
+            delete loader.dataset.visible;
+            loader.setAttribute('aria-hidden', 'true');
+          }
+        });
+      }
+    </script>
+  </head>
+  <body>
+    <div
+      id="atlas-navigation-loader"
+      class="pointer-events-none invisible fixed left-1/2 top-3 z-[100] inline-flex -translate-x-1/2 items-center gap-2 rounded-full border border-border bg-background/95 px-3 py-2 text-xs font-medium text-muted-foreground opacity-0 shadow-sm backdrop-blur-sm transition-opacity duration-150 data-[visible=true]:visible data-[visible=true]:opacity-100 motion-reduce:transition-none"
+      role="status"
+      aria-live="polite"
+      aria-atomic="true"
+      aria-hidden="true"
+    >
+      <span
+        class="size-3.5 animate-spin rounded-full border-2 border-primary border-r-transparent motion-reduce:animate-none"
+        aria-hidden="true"></span>
+      Loading
+    </div>
+    <div class="mx-auto flex min-h-svh w-full max-w-6xl flex-col px-4 sm:px-6">
+      <AtlasHeader client:load />
+      <div class="sticky top-[5.25rem] z-40 -mb-2">
+        <ProgressOverview
+          client:load
+          knownIds={knownIds}
+          questionManifest={[...QUESTION_MANIFEST]}
+        />
+      </div>
+      <main class="min-h-0 flex-1 py-12 sm:py-16">
+        <slot />
+      </main>
+      <AtlasFooter />
+      <ProgressCardIndicators client:load />
+      <AtlasToaster client:load />
+    </div>
+  </body>
+</html>

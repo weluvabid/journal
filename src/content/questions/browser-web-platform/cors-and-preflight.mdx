@@ -1,0 +1,50 @@
+---
+id: 'cors-and-preflight'
+title: 'What problem does CORS solve, and when does a preflight happen?'
+domain: 'browser-web-platform'
+summary: 'Separate same-origin policy, server permission, preflight negotiation, and credentialed requests.'
+difficulty: 'intermediate'
+minutes: 11
+tags: ['cors', 'security', 'http']
+prerequisites: ['http-caching-and-validation']
+related: ['csrf-and-cookie-security']
+featured: true
+---
+
+## Short answer
+
+CORS is a browser-enforced mechanism that lets a server opt in to cross-origin script access. For requests that are not safelisted, the browser sends an OPTIONS preflight to ask whether the method and headers are permitted.
+
+## Reason from first principles
+
+CORS is not authentication and does not prevent a non-browser client from sending a request. A simple cross-origin request may reach the server even if JavaScript cannot read the response. Credentialed requests require explicit origin permission and `Access-Control-Allow-Credentials: true`; wildcard origin is invalid with credentials.
+
+## A concrete example
+
+```http
+Access-Control-Allow-Origin: https://app.example
+Access-Control-Allow-Credentials: true
+Vary: Origin
+```
+
+## Boundary cases to reason through
+
+Preflight responses can be cached with `Access-Control-Max-Age`, subject to browser limits. Redirects, credentials, custom headers, and authorization headers can change the request path. CORS is enforced by browsers, so a command-line client succeeding does not prove browser access is configured correctly. The server must still authenticate and authorize every operation.
+
+## Common misconception
+
+CORS errors do not prove that the server never received the request.
+
+## Why this matters in production
+
+Treat CORS as browser response-sharing policy. Enforce authorization and CSRF protections on the server independently.
+
+## Interviewer follow-ups
+
+- Which headers trigger preflight?
+- Why does `Vary: Origin` matter behind a CDN?
+
+## Further reading
+
+- [Cross-Origin Resource Sharing (CORS)](https://developer.mozilla.org/en-US/docs/Web/HTTP/CORS) — primary or authoritative documentation for the underlying behavior.
+- [MDN Web Docs](https://developer.mozilla.org/) — use the relevant API reference for adjacent browser details.

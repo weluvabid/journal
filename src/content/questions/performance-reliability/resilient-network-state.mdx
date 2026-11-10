@@ -1,0 +1,49 @@
+---
+id: 'resilient-network-state'
+title: 'How should a UI behave under slow, failing, or intermittent networks?'
+domain: 'performance-reliability'
+summary: 'Model loading, stale data, retryability, cancellation, and idempotency as explicit product states.'
+difficulty: 'advanced'
+minutes: 12
+tags: ['network', 'resilience', 'retries']
+prerequisites: []
+related: []
+featured: false
+searchTerms: ['network offline', 'connection recovery', 'retry backoff']
+---
+
+## Short answer
+
+A resilient UI communicates what is happening, preserves useful stale data when safe, retries only retryable operations, and prevents duplicate mutations. Reads and writes require different retry policies.
+
+## Reason from first principles
+
+Use exponential backoff with jitter for eligible retries, respect `Retry-After`, and cap attempts/time. Retrying a non-idempotent mutation can duplicate effects unless the server supports idempotency. Avoid retry storms and synchronize cancellation with navigation.
+
+## A concrete example
+
+```ts
+const delay = Math.min(maxDelay, baseDelay * 2 ** attempt) * (0.5 + Math.random());
+```
+
+## Boundary cases to reason through
+
+Use bounded retries with exponential backoff and jitter, honor `Retry-After`, and stop retrying when the user cancels or the request is no longer relevant. A timeout is not proof that the server did not commit a mutation. Reads are often safe to retry; writes require idempotency or a status-reconciliation endpoint before replay.
+
+## Common misconception
+
+“Retry on every error” can amplify outages and duplicate writes.
+
+## Why this matters in production
+
+Design explicit offline, timeout, rate-limit, conflict, and authentication-expired states. Preserve user input and make retry scope visible.
+
+## Interviewer follow-ups
+
+- Which status codes are retryable?
+- How should a client react to 429 and 503?
+
+## Further reading
+
+- [Retry-After header](https://developer.mozilla.org/en-US/docs/Web/HTTP/Reference/Headers/Retry-After) — primary or authoritative documentation for the underlying behavior.
+- [MDN Web Docs](https://developer.mozilla.org/) — use the relevant API reference for adjacent browser details.

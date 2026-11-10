@@ -1,0 +1,133 @@
+---
+id: 'request-lifecycle-and-race-conditions'
+title: 'How do you keep async UI consistent when requests race?'
+domain: 'ui-engineering'
+summary: 'Debounce, abort, sequence tokens, and latest-wins rules so the UI never shows stale data or fights itself.'
+difficulty: 'advanced'
+minutes: 15
+tags: ['async-ui', 'race-conditions', 'abortcontroller', 'request-lifecycle']
+prerequisites: ['abortcontroller-and-request-cancellation', 'event-loop-tasks-and-microtasks']
+related:
+  ['accessible-autocomplete-machine-coding', 'testing-async-ui-races', 'optimistic-ui-and-rollback']
+featured: false
+searchTerms: ['stale response', 'out of order requests', 'latest request wins']
+---
+
+## Short answer
+
+Treat every user-triggered request as part of a small lifecycle: schedule → maybe debounce → fire → possibly abort → apply only if still current. Debouncing reduces traffic. AbortController cancels work the browser can cancel. A sequence token (or request identity) is what actually protects the UI from applying a stale response. Latest-wins is the default policy for most interactive surfaces; some domains need more careful merge or conflict rules.
+
+## Why this shows up everywhere
+
+Almost every interactive frontend has the same shape:
+
+- User types, filters, or navigates.
+- A request is sent.
+- The user does something else before the response arrives.
+- An older response comes back and tries to update the screen.
+
+If you only think about “fetch and setState,” you will eventually show the wrong data, flash incorrect loading states, or overwrite newer results with older ones. This is not an edge case — it is the normal case for search, autocomplete, live filters, tabbed data, and many forms of progressive loading.
+
+## The pieces that actually matter
+
+**1. Debounce (or throttle) the trigger**  
+Useful when the user is typing or dragging. It cuts down how many requests you start. It does nothing about responses that are already in flight.
+
+**2. Abort the previous request**  
+`AbortController` lets you cancel the network work and any follow-on logic that checks `signal.aborted`. This is necessary but not sufficient. A response may already be in memory by the time you abort, or the abort may lose the race with the response handler.
+
+**3. Sequence token / request identity**  
+Keep a monotonically increasing counter (or a unique id per request). When a response arrives, compare its token to the current one. If it does not match, drop the result. This is the reliable “latest wins” guard.
+
+**4. Explicit status modelling**  
+Idle, loading, success, empty, and error are different states. Collapsing them into a single `data` + `isLoading` boolean usually creates awkward UI transitions and makes race handling harder to reason about.
+
+## Concrete pattern
+
+```ts
+let currentSequence = 0;
+let activeController: AbortController | undefined;
+
+async function load(query: string) {
+  const sequence = ++currentSequence;
+  activeController?.abort();
+
+  const controller = new AbortController();
+  activeController = controller;
+
+  if (!query.trim()) {
+    setStatus('idle');
+    setData([]);
+    return;
+  }
+
+  setStatus('loading');
+
+  try {
+    const result = await fetchResults(query, { signal: controller.signal });
+
+    // Stale — another request has already taken over
+    if (sequence !== currentSequence) return;
+
+    setData(result);
+    setStatus(result.length === 0 ? 'empty' : 'success');
+  } catch (error) {
+    if (controller.signal.aborted) return;
+    if (sequence !== currentSequence) return;
+    setStatus('error');
+  }
+}
+```
+
+A few details that separate a solid implementation from a fragile one:
+
+- Clear any debounce timer when the component unmounts or when the query is reset.
+- Do not report an expected abort as an application error.
+- Decide what happens to the previously shown data while a new request is in flight. Some UIs keep the old data visible; others clear it. Both are valid — just be deliberate.
+- If the same component can be driven by both user input and external updates (URL, parent props), make sure both paths go through the same lifecycle.
+
+## Boundary cases
+
+**Out-of-order responses without abort.**  
+Even with a sequence token, you should still abort when you can. It saves bandwidth and avoids unnecessary work on the server and in response parsing.
+
+**Component unmount while a request is in flight.**  
+The sequence check still protects you from calling `setState` on an unmounted component if you also clear or ignore the token on unmount. Combining abort + sequence is cleaner than relying on a lone `isMounted` flag.
+
+**Optimistic UI + racing requests.**  
+If you optimistically update and then a later request fails or returns conflicting data, you need a clear rollback or reconciliation rule. “Latest response wins” can erase a user’s optimistic change if you are not careful about which request owns the optimistic state.
+
+**Multiple independent queries on the same page.**  
+Search in the header and a filter on the main list should not share a single sequence counter. Scope the lifecycle to the interaction that owns it.
+
+**Caching layers.**  
+A cache can return a stale value that looks like a successful response. If you put a cache in front of the network, the sequence / identity rules still apply to whatever ends up calling `setData`.
+
+## Common misconceptions
+
+- “Debounce is enough.”  
+  It only limits how often you _start_ work. Responses can still arrive out of order.
+
+- “AbortController solves races.”  
+  It cancels work. It does not automatically ignore a response that already reached your code.
+
+- “I can just check `if (query === currentQuery)`.”  
+  That works only while the query string is the sole identity of the request. As soon as the same query can be requested for different reasons, or you have pagination / filters / sort order, a proper sequence or request id is safer.
+
+## Why this matters in production
+
+Users notice when a list flickers back to old results or when a search box briefly shows the wrong set of matches. These bugs are often intermittent and hard to reproduce, which makes them expensive. Building the lifecycle once, correctly, removes a whole class of issues from every feature that talks to the network in response to user input.
+
+It also makes testing easier. You can mock slow responses, assert that older ones are ignored, and verify that abort paths do not surface as errors.
+
+## Interviewer follow-ups
+
+- How would you adapt this for a paginated infinite list where the user can change filters while pages are loading?
+- What changes if two different parts of the UI can trigger the same underlying query?
+- How do you test that a slow response for query A does not overwrite results for query B?
+- When would “latest wins” be the wrong policy?
+
+## Further reading
+
+- [AbortController on MDN](https://developer.mozilla.org/en-US/docs/Web/API/AbortController) — the cancellation primitive.
+- [Race conditions in UI](https://blog.uxdesign.cc/race-conditions-in-ui-8f4b4b4b4b4b) — useful framing even if the examples are not React-specific (search for recent practical write-ups on request identity patterns).

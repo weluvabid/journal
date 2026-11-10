@@ -1,0 +1,53 @@
+---
+id: 'designing-a-search-experience'
+title: 'How would you design search for a content-heavy frontend?'
+domain: 'frontend-system-design'
+summary: 'Decompose indexing, retrieval, ranking, interaction, URL state, accessibility, and failure behavior.'
+difficulty: 'advanced'
+minutes: 13
+tags: ['system-design', 'search', 'frontend']
+prerequisites: ['http-caching-and-validation']
+related: ['static-content-platform-architecture', 'javascript-bundle-budgeting']
+featured: true
+---
+
+## Short answer
+
+For a static content corpus, generate a compact search index at build time and query it client-side. For large or frequently changing corpora, consider a dedicated search service. The design should preserve shareable query state and accessible result navigation.
+
+## Reason from first principles
+
+Search architecture depends on corpus size, freshness, ranking quality, privacy, and offline needs. Static search avoids a backend and keeps content deployable, but index size and client CPU must be measured. Debounce input, cancel obsolete work, and handle no-results and loading states.
+
+## A concrete example
+
+```ts
+interface SearchDocument {
+  id: string;
+  title: string;
+  url: string;
+  terms: readonly string[];
+}
+```
+
+## Boundary cases to reason through
+
+Ranking should match the corpus and reader intent: exact title matches usually deserve more weight than incidental body mentions. Normalize query input, cap result count, and provide keyboard-accessible links. Keep query state in the URL if search results should be shareable. For a static corpus, rebuild the index with the content rather than introducing runtime infrastructure prematurely.
+
+## Common misconception
+
+Adding a search box does not create a useful search system; ranking, discoverability, and empty-state behavior matter.
+
+## Why this matters in production
+
+For Frontend Atlas, a generated JSON index is a good initial fit: deterministic, versioned with the content, and served as a static asset.
+
+## Interviewer follow-ups
+
+- How would you evolve to 100,000 documents?
+- How do you prevent stale results from racing?
+
+## Further reading
+
+- [Search user experience](https://www.nngroup.com/articles/search-visible-and-simple/) — primary or authoritative documentation for the underlying behavior.
+- [MDN Web Docs](https://developer.mozilla.org/) — use the relevant API reference for adjacent browser details.

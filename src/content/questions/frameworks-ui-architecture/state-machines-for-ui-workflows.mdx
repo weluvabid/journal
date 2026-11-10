@@ -1,0 +1,52 @@
+---
+id: 'state-machines-for-ui-workflows'
+title: 'When should a UI workflow be modeled as a state machine?'
+domain: 'frameworks-ui-architecture'
+summary: 'Use explicit states and transitions when async workflows have mutually exclusive phases and guarded actions.'
+difficulty: 'advanced'
+minutes: 12
+tags: ['state-machines', 'async', 'reliability']
+prerequisites: ['derived-state-and-single-source-of-truth']
+related: ['multi-step-workflow-architecture', 'file-upload-resilience']
+featured: false
+---
+
+## Short answer
+
+A state machine is useful when a workflow has meaningful states, events, and transition rules that are difficult to express safely with unrelated booleans. It makes valid transitions explicit and impossible combinations harder to represent.
+
+## Reason from first principles
+
+Three booleans such as `isLoading`, `hasError`, and `isComplete` allow contradictory combinations. A discriminated union can model the same invariant at the type level.
+
+## A concrete example
+
+```ts
+type UploadState =
+  | { status: 'idle' }
+  | { status: 'uploading'; progress: number }
+  | { status: 'failed'; message: string }
+  | { status: 'complete'; fileId: string };
+```
+
+## Boundary cases to reason through
+
+Transitions should define guards and side effects separately. A delayed response from a previous state must not move the workflow backward after cancellation or restart. Model retry as a transition with an attempt count and a terminal policy. Test invalid events explicitly; an impossible transition should be rejected or logged rather than silently ignored.
+
+## Common misconception
+
+Not every toggle needs a formal state-machine library.
+
+## Why this matters in production
+
+Use explicit transitions for checkout, uploads, auth, multi-step forms, and retry workflows. Include cancellation, stale events, and unexpected transition tests.
+
+## Interviewer follow-ups
+
+- How do you model retries?
+- What should happen if a completion event arrives after cancellation?
+
+## Further reading
+
+- [Stately state machines](https://stately.ai/docs) — primary or authoritative documentation for the underlying behavior.
+- [MDN Web Docs](https://developer.mozilla.org/) — use the relevant API reference for adjacent browser details.

@@ -1,0 +1,50 @@
+---
+id: 'file-upload-resilience'
+title: 'How do you build a resilient file-upload experience?'
+domain: 'ui-engineering'
+summary: 'Cover validation, progress, cancellation, retries, resumability, server verification, and duplicate submission.'
+difficulty: 'advanced'
+minutes: 12
+tags: ['uploads', 'reliability', 'forms']
+prerequisites: []
+related: []
+featured: false
+---
+
+## Short answer
+
+Validate file metadata for user feedback, but enforce type, size, authorization, and content safety on the server. Model upload lifecycle explicitly and make retry/cancel behavior clear.
+
+## Reason from first principles
+
+The browser-provided MIME type and filename are untrusted. Large uploads may need multipart/resumable protocols, checksums, and server-side assembly. A retry must not accidentally create duplicate resources; use an upload session or idempotency key.
+
+## A concrete example
+
+```js
+const form = new FormData();
+form.append('file', file, file.name);
+await fetch('/uploads', { method: 'POST', body: form, signal });
+```
+
+## Boundary cases to reason through
+
+A robust upload flow distinguishes selection, validation, transfer, server processing, completion, and failure. A successful transfer may still be followed by virus scanning or media processing. For multipart uploads, persist the upload session and part state, verify checksums, and ensure abandoned sessions are eventually cleaned up server-side.
+
+## Common misconception
+
+An `<input accept>` attribute is a picker hint, not validation or security.
+
+## Why this matters in production
+
+Plan for network loss, tab closure, expired sessions, duplicate clicks, storage limits, and server cleanup of abandoned multipart uploads.
+
+## Interviewer follow-ups
+
+- How would you resume after a tab reload?
+- How do you verify the file contents server-side?
+
+## Further reading
+
+- [Using files from web applications](https://developer.mozilla.org/en-US/docs/Web/API/File_API/Using_files_from_web_applications) — primary or authoritative documentation for the underlying behavior.
+- [MDN Web Docs](https://developer.mozilla.org/) — use the relevant API reference for adjacent browser details.

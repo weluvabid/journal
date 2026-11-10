@@ -1,0 +1,52 @@
+---
+id: 'dom-event-propagation'
+title: 'How does DOM event propagation work?'
+domain: 'browser-web-platform'
+summary: 'Explain capture, target, bubble, composed paths, and delegation—including where propagation can be stopped.'
+difficulty: 'foundation'
+minutes: 9
+tags: ['dom', 'events', 'event-delegation']
+prerequisites: []
+related: []
+featured: false
+---
+
+## Short answer
+
+An event travels through a propagation path: capture ancestors, reach the target, then bubble through ancestors when the event bubbles. Listeners can be registered for capture or bubble; not every event bubbles or is composed.
+
+## Reason from first principles
+
+`event.target` is the originating target (subject to shadow-DOM retargeting); `event.currentTarget` is the node whose listener is executing. `stopPropagation` stops further traversal, while `preventDefault` cancels a cancelable default action.
+
+## A concrete example
+
+```js
+list.addEventListener('click', (event) => {
+  const button = event.target.closest('button[data-action]');
+  if (!button || !list.contains(button)) return;
+  handleAction(button.dataset.action);
+});
+```
+
+## Boundary cases to reason through
+
+Delegation must account for nested interactive elements: `event.target` may be an icon or span inside the intended button, so resolve the nearest actionable ancestor and verify it belongs to the delegated container. Shadow DOM introduces retargeting; use `composedPath()` when the actual propagation path is relevant. Some events, such as `focus`, do not bubble in the same way as `focusin`.
+
+## Common misconception
+
+Stopping propagation does not cancel a link’s default navigation; preventing default does not stop propagation.
+
+## Why this matters in production
+
+Delegation reduces listener count for dynamic lists, but requires careful target validation and keyboard semantics.
+
+## Interviewer follow-ups
+
+- What changes with `stopImmediatePropagation`?
+- How do shadow roots affect `composedPath()`?
+
+## Further reading
+
+- [Event bubbling and capture](https://developer.mozilla.org/en-US/docs/Learn_web_development/Core/Scripting/Event_bubbling) — primary or authoritative documentation for the underlying behavior.
+- [MDN Web Docs](https://developer.mozilla.org/) — use the relevant API reference for adjacent browser details.
