@@ -14,7 +14,13 @@ test('journal schema accepts optional external resource links', async () => {
 
 test('article action component uses the existing Simple Icons exports', async () => {
   const component = await read('src/components/article/ArticleActions.svelte');
+  assert.match(component, /import \{ Button \} from '@weluvabid\/iris\/components'/);
   assert.match(component, /SiGit, SiStackblitz, SiMermaid/);
+  assert.equal((component.match(/<Button\.Root/g) ?? []).length, 3);
+  assert.equal((component.match(/variant="ghost"/g) ?? []).length, 3);
+  assert.equal((component.match(/size="icon"/g) ?? []).length, 3);
+  assert.equal((component.match(/class="rounded-full hover:bg-muted hover:text-foreground"/g) ?? []).length, 3);
+  assert.doesNotMatch(component, /border border-border|rounded-md/);
   assert.equal((component.match(/target="_blank"/g) ?? []).length, 3);
   assert.equal((component.match(/rel="noopener noreferrer"/g) ?? []).length, 3);
   assert.equal((component.match(/aria-label=/g) ?? []).length, 4);

@@ -1,5 +1,5 @@
 <script lang="ts">
-  import { onDestroy } from 'svelte';
+  import { onDestroy, untrack } from 'svelte';
   import { InfiniteLoader, LoaderState } from 'svelte-infinite';
   import JournalEntryCard from '@components/cards/JournalEntryCard.svelte';
   import { JOURNAL_PAGE_SIZE } from '@lib/journal-pagination';
@@ -28,11 +28,19 @@
 
   let { initialEntries, nextPageUrl: initialNextPageUrl, ariaLabel }: Props = $props();
 
-  let entries = $state<JournalEntry[]>([...initialEntries]);
-  let nextPageUrl = $state<string | null>(initialNextPageUrl);
+  // These props seed the client-side pagination state once; later prop updates
+  // must not reset entries already appended by the infinite loader.
+  const initialState = untrack(() => ({
+    entries: [...initialEntries],
+    nextPageUrl: initialNextPageUrl,
+    seenIds: new Set(initialEntries.map((entry) => entry.id)),
+  }));
+
+  let entries = $state<JournalEntry[]>(initialState.entries);
+  let nextPageUrl = $state<string | null>(initialState.nextPageUrl);
   let requestInFlight = false;
   const loaderState = new LoaderState();
-  const seenIds = new Set(initialEntries.map((entry) => entry.id));
+  const seenIds = initialState.seenIds;
   const requestedPageUrls = new Set<string>();
   let destroyed = false;
 
