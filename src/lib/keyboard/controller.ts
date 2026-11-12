@@ -230,6 +230,18 @@ export function installKeyboardController(callbacks: KeyboardControllerCallbacks
         armNavigationTimeout();
         break;
       }
+      case '[':
+        if (activateShortcutTarget('a[data-article-previous]')) {
+          event.preventDefault();
+        }
+
+        break;
+      case ']':
+        if (activateShortcutTarget('a[data-article-next]')) {
+          event.preventDefault();
+        }
+
+        break;
     }
   }
 

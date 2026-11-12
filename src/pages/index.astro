@@ -3,16 +3,17 @@ import { getCollection } from 'astro:content';
 import BaseLayout from '@layouts/BaseLayout.astro';
 import { Card, Badge, Button } from '@weluvabid/iris/components';
 import { withBase, entryHref } from '@lib/journal';
+import { Cpu, Monitor, Package, BrainCircuit } from '@weluvabid/iris/lucide';
 
 const allEntries = await getCollection('journal', ({ data }) => !data.draft);
 const entries = [...allEntries].sort((a, b) => b.data.date.valueOf() - a.data.date.valueOf());
 const featured = entries.filter((entry) => entry.data.featured).slice(0, 4);
 const projects = (await getCollection('projects')).sort((a, b) => a.data.order - b.data.order);
 const categories = [
-  { id: 'systems-engineering', name: 'Rust & Systems', description: 'Systems programming, storage, concurrency and performance.' },
-  { id: 'frontend-engineering', name: 'Frontend Engineering', description: 'Browser mechanics, interface architecture and accessible experiences.' },
-  { id: 'product-engineering', name: 'Product Engineering', description: 'Turning useful ideas into focused, working software.' },
-  { id: 'engineering-thinking', name: 'Engineering Thinking', description: 'Mathematical reasoning, decomposition and engineering trade-offs.' },
+  { id: 'systems-engineering', name: 'Rust & Systems', description: 'Systems programming, storage, concurrency and performance.', Icon: Cpu },
+  { id: 'frontend-engineering', name: 'Frontend Engineering', description: 'Browser mechanics, interface architecture and accessible experiences.', Icon: Monitor },
+  { id: 'product-engineering', name: 'Product Engineering', description: 'Turning useful ideas into focused, working software.', Icon: Package },
+  { id: 'engineering-thinking', name: 'Engineering Thinking', description: 'Mathematical reasoning, decomposition and engineering trade-offs.', Icon: BrainCircuit },
 ];
 ---
 <BaseLayout title="Journal — How I think. What I build." description="Engineering notes, experiments, project write-ups and technical deep dives.">
@@ -39,7 +40,7 @@ const categories = [
         return <a href={withBase(`/journal/category/${category.id}/`)} data-card-navigation class="block h-full rounded-2xl no-underline focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-ring">
           <Card.Root class="h-full rounded-2xl border border-border transition-colors hover:ring-ring/50 [--card-spacing:--spacing(5)]">
             <Card.Header class="flex h-full flex-col">
-              <div class="mb-3 flex items-center justify-between gap-2"><span class="text-xs font-medium tabular-nums text-muted-foreground">{String(index + 1).padStart(2, '0')}</span><Badge.Badge variant="outline">{count} entries</Badge.Badge></div>
+              <div class="mb-3 flex items-center justify-between gap-2"><span class="text-xs font-medium tabular-nums text-muted-foreground">{String(index + 1).padStart(2, '0')}</span><category.Icon class="size-5 text-muted-foreground" aria-hidden="true" /></div>
               <Card.Title>{category.name}</Card.Title><Card.Description>{category.description}</Card.Description>
             </Card.Header>
           </Card.Root>

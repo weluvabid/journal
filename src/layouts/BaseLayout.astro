@@ -2,6 +2,7 @@
 import JournalFooter from '@components/site/JournalFooter.svelte';
 import JournalHeader from '@components/site/JournalHeader.svelte';
 import JournalToaster from '@components/site/JournalToaster.svelte';
+import CardNavigationPrompt from '@components/site/CardNavigationPrompt.svelte';
 import { ClientRouter } from 'astro:transitions';
 import { createThemeScript } from '@weluvabid/iris/theme';
 import '@styles/global.css';
@@ -152,13 +153,14 @@ const themeBootstrap = createThemeScript();
         aria-hidden="true"></span>
       Loading
     </div>
-    <div class="mx-auto flex min-h-svh w-full max-w-6xl flex-col px-4 sm:px-6">
+    <div class="mx-auto flex min-h-svh w-full max-w-6xl flex-col px-4 pb-24 sm:px-6 sm:pb-0">
       <JournalHeader client:load />
       <main id="main-content" tabindex="-1" class="min-h-0 flex-1 scroll-mt-28 py-12 sm:py-16">
         <slot />
       </main>
       <JournalFooter />
       <JournalToaster client:load />
+      <CardNavigationPrompt client:load />
     </div>
   </body>
 </html>

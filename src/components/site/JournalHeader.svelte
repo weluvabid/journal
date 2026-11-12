@@ -1,7 +1,7 @@
 <script lang="ts">
   import { onMount } from 'svelte';
   import { SiteHeader, Button, Tooltip } from '@weluvabid/iris/components';
-  import { BookSearch, Moon, Sun, Search, CircleHelp } from '@weluvabid/iris/lucide';
+  import { BookSearch, FolderKanban, Moon, Sun, Search, CircleHelp } from '@weluvabid/iris/lucide';
   import { SiGithub } from '@weluvabid/iris/simple-icons';
   import { getInitialTheme, toggleTheme } from '@weluvabid/iris/theme';
   import SearchPanel from '@components/search/SearchPanel.svelte';
@@ -61,15 +61,25 @@
         <Tooltip.Content>Browse writing</Tooltip.Content>
       </Tooltip.Root>
 
-      <a
-        href={withBase('/about/')}
-        class="inline-flex min-h-9 items-center rounded-full px-3 text-sm font-medium text-muted-foreground no-underline transition-colors hover:bg-muted hover:text-foreground focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring"
-      >About</a>
-
-      <a
-        href={withBase('/projects/')}
-        class="inline-flex min-h-9 items-center rounded-full px-3 text-sm font-medium text-muted-foreground no-underline transition-colors hover:bg-muted hover:text-foreground focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring"
-      >Projects</a>
+      <div class="hidden sm:block">
+        <Tooltip.Root>
+          <Tooltip.Trigger>
+            {#snippet child({ props })}
+              <Button.Root
+                {...props}
+                variant="ghost"
+                size="icon"
+                class="rounded-full"
+                href={withBase('/projects/')}
+                aria-label="Projects"
+              >
+                <FolderKanban aria-hidden="true" />
+              </Button.Root>
+            {/snippet}
+          </Tooltip.Trigger>
+          <Tooltip.Content>Projects</Tooltip.Content>
+        </Tooltip.Root>
+      </div>
 
       <Tooltip.Root>
         <Tooltip.Trigger>

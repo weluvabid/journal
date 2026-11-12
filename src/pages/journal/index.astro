@@ -2,6 +2,8 @@
 import { getCollection } from 'astro:content';
 import BaseLayout from '@layouts/BaseLayout.astro';
 import { Card, Badge } from '@weluvabid/iris/components';
+import CategorySelect from '@components/journal/CategorySelect.svelte';
+import { categories } from '@data/categories';
 import { withBase, entryHref } from '@lib/journal';
 const entries = (await getCollection('journal', ({ data }) => !data.draft)).sort((a,b) => b.data.date.valueOf()-a.data.date.valueOf());
 const visible = entries;
@@ -12,9 +14,8 @@ const visible = entries;
     <h1 class="mt-3 text-4xl font-semibold tracking-tight">Writing & notes</h1>
     <p class="mt-4 text-base leading-8 text-muted-foreground">An evolving record of experiments, implementation decisions, technical explorations and lessons from building software.</p>
   </header>
-  <div class="mb-6 flex flex-wrap gap-2">
-    <a class="rounded-full border border-border px-3 py-1.5 text-sm no-underline hover:bg-muted" href={withBase('/journal/')}>All entries</a>
-    {['systems-engineering','frontend-engineering','product-engineering','engineering-thinking'].map((id) => <a class="rounded-full border border-border px-3 py-1.5 text-sm no-underline hover:bg-muted" href={withBase(`/journal/category/${id}/`)}>{id.replaceAll('-', ' ')}</a>)}
+  <div class="mb-6 max-w-xs">
+    <CategorySelect client:load categories={categories} base={import.meta.env.BASE_URL} />
   </div>
   <p class="mb-5 text-xs text-muted-foreground">{visible.length} {visible.length === 1 ? 'entry' : 'entries'}</p>
   <ol class="space-y-3" data-keyboard-navigation="primary" aria-label="Journal entries">

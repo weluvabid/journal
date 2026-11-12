@@ -43,6 +43,10 @@
             </dd>
           </div>
           <div class="flex items-center justify-between gap-4">
+            <dt class="text-muted-foreground">Previous / next article</dt>
+            <dd class="flex items-center gap-1"><Kbd.Kbd>[</Kbd.Kbd><span class="text-muted-foreground">/</span><Kbd.Kbd>]</Kbd.Kbd></dd>
+          </div>
+          <div class="flex items-center justify-between gap-4">
             <dt class="text-muted-foreground">Open selected card</dt>
             <dd><Kbd.Kbd>Enter</Kbd.Kbd></dd>
           </div>
