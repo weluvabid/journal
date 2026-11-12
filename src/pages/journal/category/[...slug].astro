@@ -51,7 +51,8 @@ const nextPageUrl =
   >
   <h1 class="sr-only">{category.name}</h1>
   <p class="mb-4 text-xs font-semibold uppercase tracking-[0.18em] text-muted-foreground">
-    {entries.length} {entries.length === 1 ? 'entry' : 'entries'}
+    {entries.length}
+    {entries.length === 1 ? 'entry' : 'entries'}
   </p>
   <div class="mb-6 min-w-0 max-w-full">
     <CategorySelect

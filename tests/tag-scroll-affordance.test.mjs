@@ -17,7 +17,10 @@ test('card tag shadows independently indicate content before and after the viewp
   const source = await read('src/components/cards/TagList.svelte');
 
   assert.match(source, /canScrollLeft = maxScrollLeft > 1 && viewport\.scrollLeft > 1/);
-  assert.match(source, /canScrollRight = maxScrollLeft > 1 && viewport\.scrollLeft < maxScrollLeft - 1/);
+  assert.match(
+    source,
+    /canScrollRight = maxScrollLeft > 1 && viewport\.scrollLeft < maxScrollLeft - 1/,
+  );
   assert.match(source, /shadow-\[inset_12px_0/);
   assert.match(source, /shadow-\[inset_-12px_0/);
   assert.match(source, /ResizeObserver/);

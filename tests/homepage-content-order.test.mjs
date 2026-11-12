@@ -7,7 +7,10 @@ const source = await readFile(new URL('../src/pages/index.astro', import.meta.ur
 const sectionIndex = (id) => source.indexOf(`aria-labelledby="${id}"`);
 
 test('homepage removes the topic directory and places selected projects before writing', () => {
-  assert.doesNotMatch(source, /Browse by topic|Journal categories|categories\.map|@data\/categories/);
+  assert.doesNotMatch(
+    source,
+    /Browse by topic|Journal categories|categories\.map|@data\/categories/,
+  );
   assert.ok(sectionIndex('projects-heading') >= 0);
   assert.ok(sectionIndex('featured-heading') > sectionIndex('projects-heading'));
 });
@@ -20,7 +23,10 @@ test('homepage shows the first four projects in curated project order', () => {
 });
 
 test('homepage shows the five newest journal entries using the archive list card variant', () => {
-  assert.match(source, /const entries = \[\.\.\.allEntries\]\.sort\(\(a, b\) => b\.data\.date\.valueOf\(\) - a\.data\.date\.valueOf\(\)\)/);
+  assert.match(
+    source,
+    /const entries = \[\.\.\.allEntries\]\.sort\(\(a, b\) => b\.data\.date\.valueOf\(\) - a\.data\.date\.valueOf\(\)\)/,
+  );
   assert.match(source, /const latestEntries = entries\.slice\(0, 5\)/);
   assert.match(source, /<ol class="space-y-3" aria-label="Recent journal entries">/);
   assert.match(source, /<JournalEntryCard[\s\S]*?index=\{index \+ selectedProjects\.length\}/);

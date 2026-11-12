@@ -31,18 +31,26 @@
   }
 
   function updateScrollAffordances() {
-    if (!viewport) return;
+    if (!viewport) {
+      return;
+    }
 
     const maxScrollLeft = Math.max(0, viewport.scrollWidth - viewport.clientWidth);
+
     canScrollLeft = maxScrollLeft > 1 && viewport.scrollLeft > 1;
     canScrollRight = maxScrollLeft > 1 && viewport.scrollLeft < maxScrollLeft - 1;
   }
 
   function revealCurrentCategory() {
-    if (!viewport) return;
+    if (!viewport) {
+      return;
+    }
 
     const active = viewport.querySelector<HTMLElement>('[aria-current="page"]');
-    if (!active) return;
+
+    if (!active) {
+      return;
+    }
 
     const viewportRect = viewport.getBoundingClientRect();
     const activeRect = active.getBoundingClientRect();
@@ -57,7 +65,6 @@
         (viewport.clientWidth - activeRect.width) / 2;
       const maxScrollLeft = Math.max(0, viewport.scrollWidth - viewport.clientWidth);
 
-      // Change only the horizontal scroll position of this control; never scroll the page.
       viewport.scrollLeft = Math.max(0, Math.min(centeredLeft, maxScrollLeft));
     }
 
@@ -65,13 +72,16 @@
   }
 
   onMount(() => {
-    if (!viewport || !track) return;
+    if (!viewport || !track) {
+      return;
+    }
 
     viewport.addEventListener('scroll', updateScrollAffordances, { passive: true });
     void tick().then(revealCurrentCategory);
 
     if (typeof ResizeObserver !== 'undefined') {
       const resizeObserver = new ResizeObserver(revealCurrentCategory);
+
       resizeObserver.observe(viewport);
       resizeObserver.observe(track);
       updateScrollAffordances();

@@ -15,20 +15,26 @@
   let canScrollRight = $state(false);
 
   function updateScrollAffordances() {
-    if (!viewport) return;
+    if (!viewport) {
+      return;
+    }
 
     const maxScrollLeft = Math.max(0, viewport.scrollWidth - viewport.clientWidth);
+
     canScrollLeft = maxScrollLeft > 1 && viewport.scrollLeft > 1;
     canScrollRight = maxScrollLeft > 1 && viewport.scrollLeft < maxScrollLeft - 1;
   }
 
   onMount(() => {
-    if (!viewport || !track) return;
+    if (!viewport || !track) {
+      return;
+    }
 
     viewport.addEventListener('scroll', updateScrollAffordances, { passive: true });
 
     if (typeof ResizeObserver !== 'undefined') {
       const resizeObserver = new ResizeObserver(updateScrollAffordances);
+
       resizeObserver.observe(viewport);
       resizeObserver.observe(track);
       updateScrollAffordances();

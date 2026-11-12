@@ -8,7 +8,9 @@ const source = await readFile(
 );
 
 test('journal tag archive uses Journal as the parent and #tag as the current breadcrumb', () => {
-  assert.ok(source.includes("<Breadcrumb.Link href={withBase('/journal/')}>Journal</Breadcrumb.Link>"));
+  assert.ok(
+    source.includes("<Breadcrumb.Link href={withBase('/journal/')}>Journal</Breadcrumb.Link>"),
+  );
   assert.ok(source.includes('<Breadcrumb.Page>#{label}</Breadcrumb.Page>'));
   assert.ok(!source.includes('Tag: {label}'));
 });

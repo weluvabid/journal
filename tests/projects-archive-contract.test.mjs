@@ -2,10 +2,16 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import { readFile } from 'node:fs/promises';
 
-const source = await readFile(new URL('../src/pages/projects/index.astro', import.meta.url), 'utf8');
+const source = await readFile(
+  new URL('../src/pages/projects/index.astro', import.meta.url),
+  'utf8',
+);
 
 test('Projects archive uses the same compact, non-linked breadcrumb presentation as Journal', () => {
-  assert.match(source, /import\s+\{\s*Breadcrumb\s*\}\s+from\s+['"]@weluvabid\/iris\/components['"]/);
+  assert.match(
+    source,
+    /import\s+\{\s*Breadcrumb\s*\}\s+from\s+['"]@weluvabid\/iris\/components['"]/,
+  );
   assert.match(source, /<Breadcrumb\.Root class="mb-8"/);
   assert.match(source, /<Breadcrumb\.Page>Projects<\/Breadcrumb\.Page>/);
   assert.doesNotMatch(source, /<Breadcrumb\.Link[^>]*>Projects<\/Breadcrumb\.Link>/);

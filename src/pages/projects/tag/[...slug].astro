@@ -34,7 +34,8 @@ const { label, projects } = Astro.props;
     ></Breadcrumb.Root
   >
   <p class="mb-10 text-xs font-semibold uppercase tracking-[0.18em] text-muted-foreground">
-    {projects.length} {projects.length === 1 ? 'project' : 'projects'}
+    {projects.length}
+    {projects.length === 1 ? 'project' : 'projects'}
   </p>
   <div class="grid items-stretch gap-3 sm:grid-cols-2">
     {

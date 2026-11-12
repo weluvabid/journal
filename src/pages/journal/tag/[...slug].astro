@@ -48,7 +48,8 @@ const nextPageUrl =
     ></Breadcrumb.Root
   >
   <p class="mb-10 text-xs font-semibold uppercase tracking-[0.18em] text-muted-foreground">
-    {entries.length} {entries.length === 1 ? 'entry' : 'entries'}
+    {entries.length}
+    {entries.length === 1 ? 'entry' : 'entries'}
   </p>
   <JournalEntryList
     client:load

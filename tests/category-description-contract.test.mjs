@@ -15,7 +15,11 @@ test('homepage omits the topic directory in favour of selected projects and rece
   const page = await read('src/pages/index.astro');
 
   assert.doesNotMatch(page, /Browse by topic|Journal categories|categories\.map|@data\/categories/);
-  assert.match(page, /Selected projects/);
+  assert.match(page, /aria-labelledby="projects-heading"/);
+  assert.match(page, /<h2 id="projects-heading"[^>]*>\s*Projects\s*<\/h2>/);
+  assert.match(page, /aria-labelledby="featured-heading"/);
+  assert.match(page, /<h2 id="featured-heading"[^>]*>\s*Writing\s*<\/h2>/);
+  assert.ok(page.indexOf('id="projects-heading"') < page.indexOf('id="featured-heading"'));
   assert.match(page, /const selectedProjects = projects\.slice\(0, 4\)/);
   assert.match(page, /const latestEntries = entries\.slice\(0, 5\)/);
 });

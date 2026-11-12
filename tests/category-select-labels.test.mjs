@@ -22,12 +22,14 @@ test('category navigation exposes independent left and right scroll shadows', as
   const component = await read('src/components/journal/CategorySelect.svelte');
 
   assert.match(component, /canScrollLeft = maxScrollLeft > 1 && viewport\.scrollLeft > 1/);
-  assert.match(component, /canScrollRight = maxScrollLeft > 1 && viewport\.scrollLeft < maxScrollLeft - 1/);
+  assert.match(
+    component,
+    /canScrollRight = maxScrollLeft > 1 && viewport\.scrollLeft < maxScrollLeft - 1/,
+  );
   assert.match(component, /ResizeObserver/);
   assert.match(component, /revealCurrentCategory/);
-  assert.match(component, /querySelector<HTMLElement>\('\[aria-current=\"page\"\]'\)/);
+  assert.match(component, /querySelector<HTMLElement>\('\[aria-current="page"\]'\)/);
   assert.match(component, /viewport\.scrollLeft = Math\.max/);
-  assert.match(component, /Change only the horizontal scroll position/);
   assert.match(component, /shadow-\[inset_12px_0/);
   assert.match(component, /shadow-\[inset_-12px_0/);
   assert.match(component, /motion-safe:transition-opacity/);
@@ -39,10 +41,10 @@ test('journal archive category controls can use the full available content width
     'src/pages/journal/category/[...slug].astro',
   ]) {
     const page = await read(path);
+
     assert.match(page, /class="mb-6 min-w-0 max-w-full"/);
   }
 });
-
 
 test('journal landing and category archives use the compact shared archive layout', async () => {
   const index = await read('src/pages/journal/index.astro');

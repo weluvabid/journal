@@ -102,7 +102,8 @@ test('homepage journal and project cards expose independent tag links', async ()
   assert.match(projectDetail, /collection="projects"/);
   assert.match(projectTagArchive, /groupProjectsByTag\(projects\)/);
   assert.match(projectTagArchive, /<ProjectCard\s+project=\{project\.data\}/);
-  assert.match(projectTagArchive, /Projects filed under/);
+  assert.match(projectTagArchive, /<Breadcrumb\.Page>#\{label\}<\/Breadcrumb\.Page>/);
+  assert.doesNotMatch(projectTagArchive, /Projects filed under/);
 });
 
 test('every project declares a non-empty semantic tag set', async () => {
