@@ -1,7 +1,7 @@
 <script lang="ts">
   import { onMount } from 'svelte';
   import { Command, Alert, Spinner, Kbd } from '@weluvabid/iris/components';
-  import { questionHref, rankSearchResults, type SearchDocument } from '@lib/atlas';
+  import { entryHref, rankSearchResults, type SearchDocument } from '@lib/journal';
   import { isAbortError, loadSearchIndex } from '@lib/search';
 
   interface Props {
@@ -44,14 +44,14 @@
 {#snippet commandContents()}
   <Command.Input
     bind:value={query}
-    placeholder="Search questions and concepts…"
+    placeholder="Search journal entries and projects…"
     class="text-base"
-    aria-label="Search questions and concepts"
+    aria-label="Search journal entries and projects"
   />
   <Command.List>
     {#if loading}
       <div class="flex items-center justify-center gap-2 px-4 py-8 text-sm text-muted-foreground">
-        <Spinner.Spinner /> Loading the handbook index…
+        <Spinner.Spinner /> Loading Journal index…
       </div>
     {:else if loadError}
       <div class="p-3">
@@ -62,14 +62,14 @@
         >
       </div>
     {:else if !normalizedQuery}
-      <Command.Empty>Start typing to search {documents.length} questions.</Command.Empty>
+      <Command.Empty>Start typing to search {documents.length} entries.</Command.Empty>
     {:else if results.length === 0}
       <Command.Empty>No results for “{normalizedQuery}”. Try a broader term.</Command.Empty>
     {:else}
-      <Command.Group heading="Questions">
+      <Command.Group heading="Journal & projects">
         {#each results as result (result.id)}
           <Command.LinkItem
-            href={questionHref(result.id)}
+            href={result.href ?? entryHref(result.id)}
             value={`${result.title} ${result.summary} ${result.tags.join(' ')}`}
           >
             <span class="min-w-0 flex-1">
@@ -78,7 +78,7 @@
                 >{result.summary}</span
               >
             </span>
-            <span class="shrink-0 text-xs text-muted-foreground">{result.minutes} min</span>
+            <span class="shrink-0 text-xs text-muted-foreground">{result.kind === 'project' ? 'Project' : 'Entry'}</span>
           </Command.LinkItem>
         {/each}
       </Command.Group>
@@ -88,7 +88,7 @@
     <div
       class="flex items-center justify-between border-t border-border px-3 py-2 text-xs text-muted-foreground"
     >
-      <span>{normalizedQuery ? `${results.length} matching questions` : 'Search the handbook'}</span
+      <span>{normalizedQuery ? `${results.length} matching entries` : 'Search Journal'}</span
       >
       <span><Kbd.Kbd>↑↓</Kbd.Kbd> Navigate <Kbd.Kbd class="ml-2">↵</Kbd.Kbd> Open</span>
     </div>
@@ -97,10 +97,10 @@
 
 <Command.Dialog
   bind:open
-  title="Search Frontend Atlas"
+  title="Search Journal"
   description={documents.length > 0
-    ? `Search ${documents.length} questions and concepts across the handbook.`
-    : 'Search questions and concepts across the handbook.'}
+    ? `Search ${documents.length} journal entries and projects across Journal.`
+    : 'Search journal entries and projects across Journal.'}
   shouldFilter={false}
 >
   {@render commandContents()}

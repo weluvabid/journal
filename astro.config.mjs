@@ -5,7 +5,6 @@ import tailwindcss from '@tailwindcss/vite';
 
 export default defineConfig({
   output: 'static',
-  site: 'https://weluvabid.github.io',
   base: process.env.ASTRO_BASE_PATH ?? '/',
   trailingSlash: 'always',
   integrations: [mdx(), svelte()],

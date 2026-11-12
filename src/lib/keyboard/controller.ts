@@ -20,7 +20,9 @@ function isEditableTarget(target: EventTarget | null): boolean {
 
 function hasBlockingOverlay(): boolean {
   return Array.from(
-    document.querySelectorAll<HTMLElement>('[role="dialog"], [role="menu"], [role="listbox"]'),
+    document.querySelectorAll<HTMLElement>(
+      '[role="dialog"], [role="alertdialog"], [role="menu"], [role="listbox"]',
+    ),
   ).some((overlay) => {
     if (overlay.hidden || overlay.getAttribute('aria-hidden') === 'true') {
       return false;
@@ -76,6 +78,7 @@ export function installKeyboardController(callbacks: KeyboardControllerCallbacks
     navigationSequence = '';
     navigationMode = false;
     navigationCollection = null;
+
     publishNavigationPrompt(false, '', message);
   }
 
@@ -145,7 +148,9 @@ export function installKeyboardController(callbacks: KeyboardControllerCallbacks
     if (navigationMode) {
       if (/^\d$/u.test(key) && !hasModifier && !event.shiftKey) {
         event.preventDefault();
+
         navigationSequence = appendNavigationDigit(navigationSequence, key);
+
         publishNavigationPrompt(true, navigationSequence);
         armNavigationTimeout();
 
@@ -168,7 +173,9 @@ export function installKeyboardController(callbacks: KeyboardControllerCallbacks
 
       if (key === 'Backspace' && !hasModifier) {
         event.preventDefault();
+
         navigationSequence = navigationSequence.slice(0, -1);
+
         publishNavigationPrompt(true, navigationSequence);
         armNavigationTimeout();
 
@@ -208,42 +215,21 @@ export function installKeyboardController(callbacks: KeyboardControllerCallbacks
     switch (key.toLowerCase()) {
       case 'g': {
         event.preventDefault();
+
         navigationSequence = '';
         navigationMode = true;
+
         const active = document.activeElement;
 
         navigationCollection =
           active instanceof Element
             ? active.closest<HTMLElement>('[data-keyboard-navigation]')
             : null;
+
         publishNavigationPrompt(true, '');
         armNavigationTimeout();
         break;
       }
-      case '[':
-        if (activateShortcutTarget('a[data-article-previous]')) {
-          event.preventDefault();
-        }
-
-        break;
-      case ']':
-        if (activateShortcutTarget('a[data-article-next]')) {
-          event.preventDefault();
-        }
-
-        break;
-      case 'm':
-        if (activateShortcutTarget('[data-completion-toggle]')) {
-          event.preventDefault();
-        }
-
-        break;
-      case 'p':
-        if (activateShortcutTarget('[data-progress-menu-trigger]')) {
-          event.preventDefault();
-        }
-
-        break;
     }
   }
 

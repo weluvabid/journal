@@ -55,7 +55,7 @@ const BOUNDARY_NOTICE_INTERVAL = 1400;
 
 function signalSwipeBoundary(article: HTMLElement, direction: ArticleSwipeDirection): void {
   const message =
-    direction === 'next' ? "You've reached the last question" : "You're at the first question";
+    direction === 'next' ? "You've reached the last entry" : "You're at the first entry";
   const now = Date.now();
   const previousNotice = boundaryNoticeTimes.get(direction) ?? 0;
 

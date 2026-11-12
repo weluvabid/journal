@@ -1,0 +1,29 @@
+---
+import { getCollection, render } from 'astro:content';
+import BaseLayout from '@layouts/BaseLayout.astro';
+import { Badge, Breadcrumb, Button } from '@weluvabid/iris/components';
+import { ArrowLeft } from '@weluvabid/iris/lucide';
+import { categoryById } from '@data/categories';
+import { withBase } from '@lib/journal';
+export async function getStaticPaths() {
+  const entries = await getCollection('journal', ({ data }) => !data.draft);
+  return entries.map((entry) => ({ params: { slug: entry.data.id }, props: { entry } }));
+}
+const { entry } = Astro.props;
+const { Content } = await render(entry);
+const category = categoryById.get(entry.data.category);
+if (!category) throw new Error(`Unknown journal category: ${entry.data.category}`);
+---
+<BaseLayout title={`${entry.data.title} — Journal`} description={entry.data.summary}>
+  <article class="mx-auto max-w-3xl">
+    <Breadcrumb.Root class="mb-8"><Breadcrumb.List><Breadcrumb.Item><Breadcrumb.Link href={withBase('/journal/')}>Journal</Breadcrumb.Link></Breadcrumb.Item><Breadcrumb.Separator /><Breadcrumb.Item><Breadcrumb.Page>{entry.data.title}</Breadcrumb.Page></Breadcrumb.Item></Breadcrumb.List></Breadcrumb.Root>
+    <header class="mb-10 border-b border-border pb-8">
+      <div class="flex flex-wrap items-center gap-2 text-xs text-muted-foreground"><Badge.Badge variant="secondary">{category.name}</Badge.Badge><Badge.Badge variant="outline" class="capitalize">{entry.data.type.replaceAll('-', ' ')}</Badge.Badge><time datetime={entry.data.date.toISOString()}>{entry.data.date.toLocaleDateString('en', { dateStyle: 'long' })}</time></div>
+      <h1 class="mt-4 text-balance text-3xl font-semibold tracking-tight sm:text-4xl">{entry.data.title}</h1>
+      <p class="mt-5 text-base leading-8 text-muted-foreground">{entry.data.summary}</p>
+      <div class="mt-5 flex flex-wrap gap-2">{entry.data.tags.map((tag) => <Badge.Badge variant="outline">{tag}</Badge.Badge>)}</div>
+    </header>
+    <div class="prose-journal"><Content /></div>
+    <div class="mt-10"><Button.Root variant="ghost" href={withBase('/journal/')}><ArrowLeft class="size-4" aria-hidden="true" />Back to Journal</Button.Root></div>
+  </article>
+</BaseLayout>

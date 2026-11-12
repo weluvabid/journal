@@ -28,7 +28,7 @@
   <Tooltip.Provider delayDuration={350}>
     <nav
       class="pointer-events-none fixed inset-0 z-30 hidden lg:block"
-      aria-label="Navigate between questions in this domain"
+      aria-label="Navigate between journal entries"
     >
       {#if previous}
         <div
@@ -45,7 +45,7 @@
                   href={previous.url}
                   data-article-previous
                   aria-keyshortcuts="["
-                  aria-label={`Previous question: ${previous.title}`}
+                  aria-label={`Previous entry: ${previous.title}`}
                 >
                   <ChevronLeft aria-hidden="true" />
                 </Button.Root>
@@ -71,7 +71,7 @@
                   href={next.url}
                   data-article-next
                   aria-keyshortcuts="]"
-                  aria-label={`Next question: ${next.title}`}
+                  aria-label={`Next entry: ${next.title}`}
                 >
                   <ChevronRight aria-hidden="true" />
                 </Button.Root>

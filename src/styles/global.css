@@ -1,38 +1,7 @@
 @import 'tailwindcss';
 @import '@weluvabid/iris/theme.css';
 
-.progress-indicator[data-progress-loading] {
-  visibility: visible !important;
-}
-
-.progress-indicator[data-progress-loading]::before {
-  display: block;
-  height: 1rem;
-  border-radius: 9999px;
-  background: var(--muted);
-  content: '';
-  animation: atlas-progress-skeleton 1.4s ease-in-out infinite;
-}
-
-.progress-indicator--question[data-progress-loading]::before {
-  width: 5.5rem;
-}
-
-.progress-indicator--domain[data-progress-loading]::before {
-  width: 10rem;
-}
-
-@keyframes atlas-progress-skeleton {
-  50% {
-    opacity: 0.45;
-  }
-}
-
-@media (prefers-reduced-motion: reduce) {
-  .progress-indicator[data-progress-loading]::before {
-    animation: none;
-  }
-}
+@custom-variant dark (&:where(.dark, .dark *));
 
 @layer base {
   * {
@@ -71,39 +40,58 @@
 /* Semantic typography for rendered MDX content. Descendant styles cannot be expressed
    cleanly at each Astro call site without duplicating selectors across content pages. */
 @layer components {
-  .prose-atlas {
+  .prose-journal {
     @apply text-[0.96rem] leading-8 text-foreground;
   }
 
-  .prose-atlas h2 {
+  .prose-journal h2 {
     @apply mb-4 mt-10 text-xl font-semibold tracking-tight;
   }
 
-  .prose-atlas p {
+  .prose-journal p {
     @apply mb-5 text-muted-foreground;
   }
 
-  .prose-atlas ul {
+  .prose-journal ul {
     @apply mb-6 list-disc space-y-2 pl-6 text-muted-foreground;
   }
 
-  .prose-atlas a {
+  .prose-journal a {
     @apply text-primary underline underline-offset-4;
   }
 
-  .prose-atlas pre {
+  .prose-journal pre {
     @apply my-6 overflow-x-auto rounded-xl border border-border bg-muted/60 p-4 text-sm leading-6;
   }
 
-  .prose-atlas code {
+  .prose-journal code {
     @apply rounded bg-muted px-1.5 py-0.5 text-[0.9em];
   }
 
-  .prose-atlas pre code {
+  .prose-journal pre code {
     @apply bg-transparent p-0;
   }
 
-  .prose-atlas blockquote {
+  .prose-journal blockquote {
     @apply my-6 border-l-2 border-primary pl-4 text-muted-foreground;
+  }
+}
+
+/* Keep Sonner's notification presentation aligned with Atlas without changing
+   the shared theme tokens. Sonner dims descriptions by default, which makes
+   otherwise valid secondary text unnecessarily faint in light mode. */
+@layer components {
+  [data-sonner-toaster] [data-sonner-toast] [data-description] {
+    color: var(--muted-foreground);
+    opacity: 1;
+  }
+
+  [data-sonner-toaster] [data-sonner-toast] [data-close-button] {
+    inset: 0.5rem 0.5rem auto auto;
+    transform: none;
+  }
+
+  [data-sonner-toaster] [data-sonner-toast] {
+    padding-inline-end: 2.75rem;
   }
 }

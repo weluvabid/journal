@@ -1,35 +1,17 @@
-# 0001 — Build the handbook as a static site
-
-- **Status:** Accepted
-- **Date:** 2026-11-07
+# 0001 — Keep the site static-first
 
 ## Context
 
-Frontend Atlas is mostly editorial content: questions, explanations, links, and metadata. The pages
-do not need per-request personalization or server-side data fetching. A runtime application server
-would add deployment and operational work without solving a current product problem.
+Journal is editorial content: writing, project descriptions, metadata and links. Most pages can be generated at build time and served directly from the edge.
 
 ## Decision
 
-Use Astro with `output: 'static'`. Generate pages and the search index at build time. Use Svelte
-islands for the interactions that need browser state, and leave the content pages as HTML.
+Use Astro static generation. Keep interactive behaviour in small, client-hydrated Svelte components where it provides real value.
 
 ## Consequences
 
-Good:
-
-- Hosting is simple and inexpensive.
-- Pages can be served from a static host/CDN.
-- Most content does not require client-side JavaScript to render.
-- Content and graph validation happen during the build.
-
-Trade-offs:
-
-- Content changes require a new build and deployment.
-- Features that need shared server state require a separate architectural decision.
-- Search downloads a generated index before ranking locally.
-
-## Why not a full-stack app?
-
-Because the problem is a handbook, not a collaborative workspace. Adding a backend before the
-product needs one would be a hobby project inside the hobby project.
+- No application server, database or account system is required.
+- Content is validated at build time.
+- Search data is generated as a static JSON index.
+- Cloudflare Pages can serve the complete site.
+- Dynamic infrastructure is introduced only when a concrete requirement justifies it.

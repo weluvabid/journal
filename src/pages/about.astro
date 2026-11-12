@@ -1,0 +1,19 @@
+---
+import BaseLayout from '@layouts/BaseLayout.astro';
+import { Card } from '@weluvabid/iris/components';
+import { withBase } from '@lib/journal';
+---
+<BaseLayout title="About — Journal" description="A little about the engineer behind Journal.">
+  <article class="mx-auto max-w-3xl">
+    <p class="text-xs font-semibold uppercase tracking-[0.18em] text-muted-foreground">About</p>
+    <h1 class="mt-3 text-4xl font-semibold tracking-tight">I like understanding how things work.</h1>
+    <div class="prose-journal mt-8">
+      <p>I am a software engineer interested in the mechanics beneath the abstractions: how systems behave, where their boundaries are, and what happens when assumptions stop holding.</p>
+      <p>I tend to build the smallest possible proof of concept before trusting a library or adopting an approach. I need to understand the why, not just the API. When a problem gets complicated, I break it down until each part can be reasoned about and tested.</p>
+      <p>This Journal is where I record that process. Some entries will be rough notes; others will become deeper technical explanations. The projects are the working evidence behind those ideas.</p>
+    </div>
+    <Card.Root class="mt-10 rounded-2xl border border-border bg-muted/40">
+      <Card.Header><Card.Title>Explore the work</Card.Title><Card.Description>Browse the projects or follow the reasoning behind them in the Journal.</Card.Description><div class="flex flex-wrap gap-3 pt-3"><a class="text-sm font-medium underline underline-offset-4" href={withBase('/projects/')}>Projects</a><a class="text-sm font-medium underline underline-offset-4" href={withBase('/journal/')}>Journal entries</a></div></Card.Header>
+    </Card.Root>
+  </article>
+</BaseLayout>

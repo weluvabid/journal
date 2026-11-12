@@ -1,0 +1,23 @@
+---
+import { getCollection } from 'astro:content';
+import BaseLayout from '@layouts/BaseLayout.astro';
+import { Card, Badge, Breadcrumb } from '@weluvabid/iris/components';
+import { categoryById } from '@data/categories';
+import { withBase, entryHref } from '@lib/journal';
+export async function getStaticPaths() {
+  return [...categoryById.values()].map((category) => ({
+    params: { slug: category.id },
+    props: { category },
+  }));
+}
+const { category } = Astro.props;
+const entries = (await getCollection('journal', ({ data }) => !data.draft && data.category === category.id))
+  .sort((a,b) => b.data.date.valueOf()-a.data.date.valueOf());
+---
+<BaseLayout title={`${category.name} — Journal`} description={category.description}>
+  <Breadcrumb.Root class="mb-8"><Breadcrumb.List><Breadcrumb.Item><Breadcrumb.Link href={withBase('/journal/')}>Journal</Breadcrumb.Link></Breadcrumb.Item><Breadcrumb.Separator /><Breadcrumb.Item><Breadcrumb.Page>{category.name}</Breadcrumb.Page></Breadcrumb.Item></Breadcrumb.List></Breadcrumb.Root>
+  <header class="mb-10 max-w-3xl"><p class="text-xs font-semibold uppercase tracking-[0.18em] text-muted-foreground">{entries.length} entries</p><h1 class="mt-3 text-4xl font-semibold tracking-tight">{category.name}</h1><p class="mt-4 text-base leading-8 text-muted-foreground">{category.description}</p></header>
+  <ol class="space-y-3" data-keyboard-navigation="primary" aria-label={`Entries in ${category.name}`}>
+    {entries.map((entry,index) => <li><a href={entryHref(entry.data.id)} data-card-navigation class="block rounded-2xl no-underline focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-ring"><Card.Root size="sm" class="rounded-2xl border border-border transition-colors hover:ring-ring/50"><Card.Content class="flex flex-col gap-3 p-4 sm:flex-row sm:items-start sm:justify-between"><div class="flex min-w-0 gap-4"><span class="pt-1 text-xs tabular-nums text-muted-foreground">{String(index+1).padStart(2,'0')}</span><div class="min-w-0"><h2 class="font-semibold tracking-tight">{entry.data.title}</h2><p class="mt-2 max-w-2xl text-sm leading-6 text-muted-foreground">{entry.data.summary}</p><div class="mt-3 flex flex-wrap gap-2">{entry.data.tags.map((tag)=><Badge.Badge variant="outline">{tag}</Badge.Badge>)}</div></div></div><time class="shrink-0 text-xs text-muted-foreground">{entry.data.date.toLocaleDateString('en',{dateStyle:'medium'})}</time></Card.Content></Card.Root></a></li>)}
+  </ol>
+</BaseLayout>

@@ -1,5 +1,5 @@
 import { parseSearchIndex } from './validation.ts';
-import { withBase, type SearchDocument } from '../atlas.ts';
+import { withBase, type SearchDocument } from '../journal.ts';
 
 export async function loadSearchIndex(
   signal: AbortSignal,

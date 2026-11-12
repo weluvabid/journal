@@ -2,18 +2,19 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import { loadSearchIndex } from '../src/lib/search/index.ts';
 import { isSearchDocument, parseSearchIndex } from '../src/lib/search/validation.ts';
-import { normalizeSearchText, rankSearchResults } from '../src/lib/atlas.ts';
+import { normalizeSearchText, rankSearchResults } from '../src/lib/journal.ts';
 
 function document(id, overrides = {}) {
   return {
     id,
     slug: id,
     title: `Question about ${id}`,
-    domain: 'javascript-typescript',
+    category: 'systems-engineering',
     summary: 'A sufficiently descriptive summary for this search document.',
     difficulty: 'foundation',
     minutes: 8,
     tags: ['runtime'],
+    searchTerms: [],
     prerequisites: [],
     related: [],
     featured: false,
@@ -25,7 +26,7 @@ function document(id, overrides = {}) {
 test('search document guard validates the complete indexed shape', () => {
   assert.equal(isSearchDocument(document('event-loop')), true);
   assert.equal(isSearchDocument({ ...document('event-loop'), minutes: 1.5 }), false);
-  assert.equal(isSearchDocument({ ...document('event-loop'), domain: 'unknown' }), false);
+  assert.equal(isSearchDocument({ ...document('event-loop'), category: 'systems-engineering' }), true);
   assert.equal(isSearchDocument({ ...document('event-loop'), searchTerms: ['valid alias'] }), true);
   assert.equal(isSearchDocument({ ...document('event-loop'), searchTerms: [42] }), false);
   assert.equal(
@@ -37,19 +38,12 @@ test('search document guard validates the complete indexed shape', () => {
   );
 });
 
-test('search index parser validates payload shape and question relationships', () => {
+test('search index parser validates payload shape and entry documents', () => {
   assert.deepEqual(parseSearchIndex({ version: 1, documents: [document('event-loop')] }), [
     document('event-loop'),
   ]);
   assert.throws(() => parseSearchIndex({ version: 2, documents: [] }), /unsupported or invalid/u);
-  assert.throws(
-    () =>
-      parseSearchIndex({
-        version: 1,
-        documents: [document('event-loop', { related: ['missing'] })],
-      }),
-    /unknown question/u,
-  );
+  assert.throws(() => parseSearchIndex({ version: 1, documents: [{ invalid: true }] }), /invalid document/u);
 });
 
 test('search loader passes its abort signal and reports HTTP failures', async () => {

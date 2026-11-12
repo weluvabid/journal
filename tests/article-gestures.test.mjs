@@ -2,11 +2,11 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import { resolveArticleSwipeDestination } from '../src/lib/navigation/article-gestures.ts';
 
-const targets = { previousUrl: '/questions/previous/', nextUrl: '/questions/next/' };
+const targets = { previousUrl: '/journal/previous/', nextUrl: '/journal/next/' };
 
 test('horizontal swipe resolves previous and next destinations', () => {
-  assert.equal(resolveArticleSwipeDestination(-100, 10, targets), '/questions/next/');
-  assert.equal(resolveArticleSwipeDestination(100, 10, targets), '/questions/previous/');
+  assert.equal(resolveArticleSwipeDestination(-100, 10, targets), '/journal/next/');
+  assert.equal(resolveArticleSwipeDestination(100, 10, targets), '/journal/previous/');
 });
 
 test('vertical, short and diagonal gestures do not navigate', () => {

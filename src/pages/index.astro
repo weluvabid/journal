@@ -2,136 +2,67 @@
 import { getCollection } from 'astro:content';
 import BaseLayout from '@layouts/BaseLayout.astro';
 import { Card, Badge, Button } from '@weluvabid/iris/components';
-import { domains, featuredQuestionIds } from '@data/domains';
-import { assertValidQuestionGraph } from '@lib/content';
-import { questionHref, withBase } from '@lib/atlas';
+import { withBase, entryHref } from '@lib/journal';
 
-const entries = await getCollection('questions');
-const questions = assertValidQuestionGraph(entries);
-const questionById = new Map(questions.map((question) => [question.id, question]));
-const featured = featuredQuestionIds.map((id) => {
-  const question = questionById.get(id);
-  if (!question || !question.featured)
-    throw new Error(`Featured question ${id} is missing or not marked featured`);
-  return question;
-});
+const allEntries = await getCollection('journal', ({ data }) => !data.draft);
+const entries = [...allEntries].sort((a, b) => b.data.date.valueOf() - a.data.date.valueOf());
+const featured = entries.filter((entry) => entry.data.featured).slice(0, 4);
+const projects = (await getCollection('projects')).sort((a, b) => a.data.order - b.data.order);
+const categories = [
+  { id: 'systems-engineering', name: 'Rust & Systems', description: 'Systems programming, storage, concurrency and performance.' },
+  { id: 'frontend-engineering', name: 'Frontend Engineering', description: 'Browser mechanics, interface architecture and accessible experiences.' },
+  { id: 'product-engineering', name: 'Product Engineering', description: 'Turning useful ideas into focused, working software.' },
+  { id: 'engineering-thinking', name: 'Engineering Thinking', description: 'Mathematical reasoning, decomposition and engineering trade-offs.' },
+];
 ---
-
-<BaseLayout>
+<BaseLayout title="Journal — How I think. What I build." description="Engineering notes, experiments, project write-ups and technical deep dives.">
   <section class="mx-auto max-w-3xl py-10 sm:py-14">
-    <h1 class="text-balance text-3xl font-semibold tracking-tight sm:text-5xl">
-      Frontend engineering, explained.
-    </h1>
+    <p class="text-xs font-semibold uppercase tracking-[0.18em] text-muted-foreground">An engineering journal</p>
+    <h1 class="mt-4 text-balance text-3xl font-semibold tracking-tight sm:text-5xl">How I think. What I build.</h1>
     <p class="mt-5 max-w-2xl text-pretty text-base leading-8 text-muted-foreground sm:text-lg">
-      A curated field guide to the ideas, browser mechanics, and engineering decisions behind modern
-      frontend development. Built for understanding, not memorising answers.
+      Notes from working through engineering problems: the experiments, decisions, dead ends and ideas behind the software I build.
     </p>
+    <div class="mt-7 flex flex-wrap gap-3">
+      <Button.Root href={withBase('/journal/')} variant="default">Read the journal</Button.Root>
+      <Button.Root href={withBase('/projects/')} variant="outline">Explore projects</Button.Root>
+    </div>
   </section>
 
-  <section id="domains" class="mx-auto max-w-5xl scroll-mt-8 py-14 sm:py-16">
-    <div class="mb-8 flex flex-col gap-2 sm:mb-10">
+  <section class="mx-auto max-w-5xl py-10 sm:py-14" aria-labelledby="areas-heading">
+    <div class="mb-8">
       <p class="text-xs font-semibold uppercase tracking-[0.18em] text-muted-foreground">The map</p>
-      <h2 class="text-2xl font-semibold tracking-tight sm:text-3xl">
-        Eight areas of frontend craft
-      </h2>
-      <p class="max-w-2xl text-sm leading-7 text-muted-foreground">
-        Forty-two questions connect foundational concepts to practical engineering decisions.
-      </p>
+      <h2 id="areas-heading" class="mt-2 text-2xl font-semibold tracking-tight sm:text-3xl">Browse by area</h2>
     </div>
-    <div
-      class="grid items-stretch gap-3 sm:grid-cols-2"
-      data-keyboard-navigation="primary"
-      role="group"
-      aria-label="Numbered domain cards"
-    >
-      {
-        domains.map((domain, index) => {
-          const count = questions.filter((question) => question.domain === domain.id).length;
-          return (
-            <a
-              href={withBase(`/domains/${domain.id}/`)}
-              data-card-navigation
-              class="block h-full rounded-2xl no-underline focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-ring"
-            >
-              <Card.Root class="h-full rounded-2xl border border-border transition-colors hover:ring-ring/50 [--card-spacing:--spacing(5)]">
-                <Card.Header class="flex h-full flex-col">
-                  <div class="mb-3 flex items-center justify-between gap-2">
-                    <span class="text-xs font-medium tabular-nums text-muted-foreground">
-                      {String(index + 1).padStart(2, '0')}
-                    </span>
-                    <Badge.Badge variant="outline">{count} questions</Badge.Badge>
-                  </div>
-                  <Card.Title>{domain.name}</Card.Title>
-                  <Card.Description>{domain.description}</Card.Description>
-                  <span
-                    data-domain-progress
-                    data-question-ids={questions
-                      .filter((question) => question.domain === domain.id)
-                      .map((question) => question.id)
-                      .join(',')}
-                    data-progress-loading
-                    aria-hidden="true"
-                    class="progress-indicator progress-indicator--domain mt-auto block min-h-6 pt-3 text-xs font-medium tabular-nums text-muted-foreground"
-                  />
-                </Card.Header>
-              </Card.Root>
-            </a>
-          );
-        })
-      }
+    <div class="grid items-stretch gap-3 sm:grid-cols-2" data-keyboard-navigation="primary" role="group" aria-label="Journal categories">
+      {categories.map((category, index) => {
+        const count = entries.filter((entry) => entry.data.category === category.id).length;
+        return <a href={withBase(`/journal/category/${category.id}/`)} data-card-navigation class="block h-full rounded-2xl no-underline focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-ring">
+          <Card.Root class="h-full rounded-2xl border border-border transition-colors hover:ring-ring/50 [--card-spacing:--spacing(5)]">
+            <Card.Header class="flex h-full flex-col">
+              <div class="mb-3 flex items-center justify-between gap-2"><span class="text-xs font-medium tabular-nums text-muted-foreground">{String(index + 1).padStart(2, '0')}</span><Badge.Badge variant="outline">{count} entries</Badge.Badge></div>
+              <Card.Title>{category.name}</Card.Title><Card.Description>{category.description}</Card.Description>
+            </Card.Header>
+          </Card.Root>
+        </a>;
+      })}
     </div>
   </section>
 
-  <section class="mx-auto mt-4 max-w-5xl pb-8">
-    <div class="mb-8 flex items-end justify-between gap-4">
-      <div>
-        <p class="text-xs font-semibold uppercase tracking-[0.18em] text-muted-foreground">
-          A good place to start
-        </p><h2 class="mt-2 text-2xl font-semibold tracking-tight">Featured questions</h2>
-      </div>
-      <Button.Root variant="link" href={withBase('/domains/')}>All questions</Button.Root>
-    </div>
+  <section class="mx-auto mt-4 max-w-5xl pb-8" aria-labelledby="featured-heading">
+    <div class="mb-8 flex items-end justify-between gap-4"><div><p class="text-xs font-semibold uppercase tracking-[0.18em] text-muted-foreground">Selected writing</p><h2 id="featured-heading" class="mt-2 text-2xl font-semibold tracking-tight">Featured entries</h2></div><Button.Root variant="link" href={withBase('/journal/')}>All entries</Button.Root></div>
     <div class="grid items-stretch gap-3 sm:grid-cols-2">
-      {
-        featured.map((question) => (
-          <a
-            href={questionHref(question.id)}
-            class="block h-full rounded-2xl no-underline focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-ring"
-          >
-            <Card.Root class="h-full rounded-2xl border border-border transition-colors hover:ring-ring/50 [--card-spacing:--spacing(5)]">
-              <Card.Header class="flex h-full flex-col">
-                <Card.Title>{question.title}</Card.Title>
-                <Card.Description>{question.summary}</Card.Description>
-                <span
-                  data-question-progress={question.id}
-                  data-featured-progress
-                  data-progress-loading
-                  aria-hidden="true"
-                  class="progress-indicator progress-indicator--question mt-auto inline-flex min-h-6 w-fit items-center rounded-full border border-border px-2.5 py-1 text-xs font-medium text-muted-foreground"
-                />
-              </Card.Header>
-            </Card.Root>
-          </a>
-        ))
-      }
+      {featured.map((entry) => <a href={entryHref(entry.data.id)} class="block h-full rounded-2xl no-underline focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-ring">
+        <Card.Root class="h-full rounded-2xl border border-border transition-colors hover:ring-ring/50 [--card-spacing:--spacing(5)]"><Card.Header class="flex h-full flex-col">
+          <div class="mb-2 flex items-center gap-2"><Badge.Badge variant="secondary">{entry.data.type.replaceAll('-', ' ')}</Badge.Badge></div>
+          <Card.Title>{entry.data.title}</Card.Title><Card.Description>{entry.data.summary}</Card.Description>
+          <span class="mt-auto pt-4 text-xs text-muted-foreground">{entry.data.date.toLocaleDateString('en', { dateStyle: 'medium' })}</span>
+        </Card.Header></Card.Root>
+      </a>)}
     </div>
   </section>
 
-  <section class="mx-auto mt-10 max-w-5xl sm:mt-16">
-    <Card.Root size="sm" class="rounded-2xl border border-border bg-muted/40 sm:p-4">
-      <Card.Header>
-        <p class="text-xs font-semibold uppercase tracking-[0.18em] text-muted-foreground">
-          Editorial principle
-        </p>
-        <Card.Title class="mt-2 max-w-2xl text-2xl sm:text-3xl"
-          >Fewer questions. Better explanations.</Card.Title
-        >
-        <Card.Description class="mt-2 max-w-2xl leading-7"
-          >Every entry should explain why something works, where it breaks, and how the underlying
-          idea applies in real software. The handbook is open source; content quality is reviewed
-          through pull requests.</Card.Description
-        >
-      </Card.Header>
-    </Card.Root>
+  <section class="mx-auto mt-10 max-w-5xl sm:mt-16" aria-labelledby="projects-heading">
+    <div class="mb-8 flex items-end justify-between gap-4"><div><p class="text-xs font-semibold uppercase tracking-[0.18em] text-muted-foreground">Proof in the code</p><h2 id="projects-heading" class="mt-2 text-2xl font-semibold tracking-tight">Selected projects</h2></div><Button.Root variant="link" href={withBase('/projects/')}>All projects</Button.Root></div>
+    <div class="grid gap-3 sm:grid-cols-2">{projects.filter((project) => project.data.featured).map((project) => <a href={withBase(`/projects/${project.data.id}/`)} class="block h-full rounded-2xl no-underline focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-ring"><Card.Root class="h-full rounded-2xl border border-border transition-colors hover:ring-ring/50 [--card-spacing:--spacing(5)]"><Card.Header><Card.Title>{project.data.title}</Card.Title><Card.Description>{project.data.summary}</Card.Description><div class="flex flex-wrap gap-2 pt-3">{project.data.stack.map((item) => <Badge.Badge variant="outline">{item}</Badge.Badge>)}</div></Card.Header></Card.Root></a>)}</div>
   </section>
 </BaseLayout>

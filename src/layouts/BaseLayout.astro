@@ -1,13 +1,8 @@
 ---
-import AtlasFooter from '@components/site/AtlasFooter.svelte';
-import AtlasHeader from '@components/site/AtlasHeader.svelte';
-import ProgressOverview from '@components/progress/ProgressOverview.svelte';
-import ProgressCardIndicators from '@components/progress/ProgressCardIndicators.svelte';
-import AtlasToaster from '@components/site/AtlasToaster.svelte';
-import { getCollection } from 'astro:content';
+import JournalFooter from '@components/site/JournalFooter.svelte';
+import JournalHeader from '@components/site/JournalHeader.svelte';
+import JournalToaster from '@components/site/JournalToaster.svelte';
 import { ClientRouter } from 'astro:transitions';
-import { assertValidQuestionGraph } from '@lib/content';
-import { QUESTION_MANIFEST, MAX_QUESTION_COUNT } from '@data/question-manifest';
 import { createThemeScript } from '@weluvabid/iris/theme';
 import '@styles/global.css';
 
@@ -24,24 +19,11 @@ interface Props {
 }
 
 const {
-  title = 'Frontend Atlas — A field guide to frontend engineering',
-  description = 'A carefully curated, open-source handbook for understanding modern frontend engineering.',
+  title = 'Journal — How I think. What I build.',
+  description = 'Thoughts, experiments, build logs and technical writing about how software gets made.',
 } = Astro.props;
 
 const themeBootstrap = createThemeScript();
-const entries = await getCollection('questions');
-const knownIds = assertValidQuestionGraph(entries).map((question) => question.id);
-if (knownIds.length > MAX_QUESTION_COUNT)
-  throw new Error(`Frontend Atlas cannot exceed ${MAX_QUESTION_COUNT} questions`);
-if (
-  QUESTION_MANIFEST.length !== knownIds.length ||
-  new Set(QUESTION_MANIFEST).size !== QUESTION_MANIFEST.length ||
-  QUESTION_MANIFEST.some((id) => !knownIds.includes(id))
-) {
-  throw new Error(
-    'Question manifest must contain every current question exactly once; append new IDs without reordering existing slots.',
-  );
-}
 ---
 
 <!doctype html>
@@ -58,7 +40,7 @@ if (
     <link rel="icon" type="image/png" sizes="32x32" href={favicon32} />
     <link rel="icon" type="image/png" sizes="192x192" href={favicon192} />
     <link rel="apple-touch-icon" sizes="180x180" href={appleTouchIcon} />
-    <meta property="og:site_name" content="Frontend Atlas" />
+    <meta property="og:site_name" content="Journal" />
     <meta name="twitter:card" content="summary" />
     <meta property="og:type" content="website" />
     <meta property="og:title" content={title} />
@@ -67,8 +49,8 @@ if (
     <script is:inline set:html={themeBootstrap} />
     <ClientRouter />
     <script is:inline>
-      if (!window.__frontendAtlasRouterLifecycleInstalled) {
-        window.__frontendAtlasRouterLifecycleInstalled = true;
+      if (!window.__journalRouterLifecycleInstalled) {
+        window.__journalRouterLifecycleInstalled = true;
 
         document.addEventListener(
           'click',
@@ -117,7 +99,7 @@ if (
         });
 
         document.addEventListener('astro:before-preparation', (event) => {
-          const loader = document.getElementById('atlas-navigation-loader');
+          const loader = document.getElementById('journal-navigation-loader');
           const originalLoader = event.loader;
 
           event.loader = async () => {
@@ -126,7 +108,7 @@ if (
                 loader.dataset.visible = 'true';
                 loader.setAttribute('aria-hidden', 'false');
               }
-            }, 120);
+            }, 200);
 
             try {
               await originalLoader();
@@ -141,7 +123,7 @@ if (
         });
 
         document.addEventListener('astro:page-load', () => {
-          const loader = document.getElementById('atlas-navigation-loader');
+          const loader = document.getElementById('journal-navigation-loader');
           if (loader) {
             delete loader.dataset.visible;
             loader.setAttribute('aria-hidden', 'true');
@@ -151,8 +133,14 @@ if (
     </script>
   </head>
   <body>
+    <a
+      href="#main-content"
+      class="fixed left-4 top-4 z-[110] -translate-y-[calc(100%+1rem)] rounded-lg border border-border bg-background px-4 py-2 text-sm font-medium text-foreground shadow-md transition-transform focus:translate-y-0 focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-ring motion-reduce:transition-none"
+    >
+      Skip to content
+    </a>
     <div
-      id="atlas-navigation-loader"
+      id="journal-navigation-loader"
       class="pointer-events-none invisible fixed left-1/2 top-3 z-[100] inline-flex -translate-x-1/2 items-center gap-2 rounded-full border border-border bg-background/95 px-3 py-2 text-xs font-medium text-muted-foreground opacity-0 shadow-sm backdrop-blur-sm transition-opacity duration-150 data-[visible=true]:visible data-[visible=true]:opacity-100 motion-reduce:transition-none"
       role="status"
       aria-live="polite"
@@ -165,20 +153,12 @@ if (
       Loading
     </div>
     <div class="mx-auto flex min-h-svh w-full max-w-6xl flex-col px-4 sm:px-6">
-      <AtlasHeader client:load />
-      <div class="sticky top-[5.25rem] z-40 -mb-2">
-        <ProgressOverview
-          client:load
-          knownIds={knownIds}
-          questionManifest={[...QUESTION_MANIFEST]}
-        />
-      </div>
-      <main class="min-h-0 flex-1 py-12 sm:py-16">
+      <JournalHeader client:load />
+      <main id="main-content" tabindex="-1" class="min-h-0 flex-1 scroll-mt-28 py-12 sm:py-16">
         <slot />
       </main>
-      <AtlasFooter />
-      <ProgressCardIndicators client:load />
-      <AtlasToaster client:load />
+      <JournalFooter />
+      <JournalToaster client:load />
     </div>
   </body>
 </html>

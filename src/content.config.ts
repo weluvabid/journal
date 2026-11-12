@@ -2,30 +2,37 @@ import { defineCollection } from 'astro:content';
 import { z } from 'astro/zod';
 import { glob } from 'astro/loaders';
 
-const questions = defineCollection({
-  loader: glob({ pattern: '**/*.mdx', base: './src/content/questions' }),
+const journal = defineCollection({
+  loader: glob({ pattern: '**/*.mdx', base: './src/content/journal' }),
   schema: z.object({
     id: z.string().regex(/^[a-z0-9]+(?:-[a-z0-9]+)*$/),
-    title: z.string().min(12).max(120),
-    domain: z.enum([
-      'javascript-typescript',
-      'browser-web-platform',
-      'css-rendering',
-      'frameworks-ui-architecture',
-      'ui-engineering',
-      'performance-reliability',
-      'frontend-system-design',
-      'accessibility-security-testing',
-    ]),
-    summary: z.string().min(40).max(240),
-    difficulty: z.enum(['foundation', 'intermediate', 'advanced']),
-    minutes: z.number().int().min(3).max(45),
+    title: z.string().min(8).max(120),
+    type: z.enum(['engineering-note', 'build-log', 'deep-dive', 'retrospective']),
+    category: z.enum(['systems-engineering', 'frontend-engineering', 'product-engineering', 'engineering-thinking']),
+    summary: z.string().min(30).max(240),
+    date: z.coerce.date(),
+    project: z.string().optional(),
     tags: z.array(z.string().min(2)).min(1).max(8),
     searchTerms: z.array(z.string().min(2).max(80)).max(12).default([]),
-    prerequisites: z.array(z.string()).default([]),
-    related: z.array(z.string()).default([]),
     featured: z.boolean().default(false),
+    draft: z.boolean().default(false),
   }),
 });
 
-export const collections = { questions };
+
+const projects = defineCollection({
+  loader: glob({ pattern: '**/*.md', base: './src/content/projects' }),
+  schema: z.object({
+    id: z.string().regex(/^[a-z0-9]+(?:-[a-z0-9]+)*$/),
+    title: z.string().min(3).max(100),
+    summary: z.string().min(30).max(240),
+    status: z.enum(['active', 'released', 'experimental']),
+    stack: z.array(z.string().min(1)).min(1).max(12),
+    github: z.string().url().optional(),
+    demo: z.string().url().optional(),
+    featured: z.boolean().default(false),
+    order: z.number().int().nonnegative(),
+  }),
+});
+
+export const collections = { journal, projects };

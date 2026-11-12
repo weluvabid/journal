@@ -12,7 +12,7 @@ export interface NotificationMessage {
   options?: NotificationOptions;
 }
 
-const NOTIFICATION_EVENT = 'frontend-atlas:notification';
+const NOTIFICATION_EVENT = 'journal:notification';
 
 /** Dispatch a notification to the application-level toaster Astro island. */
 export function notify(
@@ -55,7 +55,7 @@ export function subscribeToNotifications(
       !['success', 'error', 'warning', 'info'].includes(detail.kind) ||
       typeof detail.message !== 'string'
     ) {
-      throw new TypeError('Received an invalid Frontend Atlas notification event.');
+      throw new TypeError('Received an invalid Journal notification event.');
     }
 
     callback(detail as NotificationMessage);
