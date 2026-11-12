@@ -1,6 +1,7 @@
 ---
 import { getCollection } from 'astro:content';
 import BaseLayout from '@layouts/BaseLayout.astro';
+import { Breadcrumb } from '@weluvabid/iris/components';
 import CategorySelect from '@components/journal/CategorySelect.svelte';
 import JournalEntryList from '@components/journal/JournalEntryList.svelte';
 import JournalEntryCard from '@components/cards/JournalEntryCard.svelte';
@@ -31,10 +32,14 @@ const nextPageUrl = nextPage === null ? null : withBase(`/journal/data/all/${nex
   title="Journal — Writing and engineering notes"
   description="Engineering notes, build logs, deep dives and retrospectives."
 >
+  <Breadcrumb.Root class="mb-8"
+    ><Breadcrumb.List
+      ><Breadcrumb.Item><Breadcrumb.Page>Journal</Breadcrumb.Page></Breadcrumb.Item></Breadcrumb.List
+    ></Breadcrumb.Root
+  >
   <h1 class="sr-only">Journal</h1>
   <p class="mb-4 text-xs font-semibold uppercase tracking-[0.18em] text-muted-foreground">
-    {entries.length}
-    {entries.length === 1 ? 'entry' : 'entries'}
+    {entries.length}{' '}{entries.length === 1 ? 'entry' : 'entries'}
   </p>
   <div class="mb-6 min-w-0 max-w-full">
     <CategorySelect client:load categories={categories} base={import.meta.env.BASE_URL} />
