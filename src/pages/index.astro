@@ -19,18 +19,18 @@ const selectedProjects = projects.slice(0, 4);
 >
   <section class="mx-auto max-w-3xl py-10 sm:py-14">
     <p class="text-xs font-semibold uppercase tracking-[0.18em] text-muted-foreground">
-      An engineering journal
+      Engineering Notes
     </p>
     <h1 class="mt-4 text-balance text-3xl font-semibold tracking-tight sm:text-5xl">
       How I think. What I build.
     </h1>
     <p class="mt-5 max-w-2xl text-pretty text-base leading-8 text-muted-foreground sm:text-lg">
-      Notes from working through engineering problems: the experiments, decisions, dead ends and
-      ideas behind the software I build.
+      Notes from building software: the projects, experiments, engineering decisions,
+      dead ends and ideas that shape my work.
     </p>
     <div class="mt-7 flex flex-wrap gap-3">
       <Button.Root href={withBase('/journal/')} variant="default">Read the journal</Button.Root>
-      <Button.Root href={withBase('/projects/')} variant="outline">Explore projects</Button.Root>
+      <Button.Root href={withBase('/projects/')} variant="outline">View projects</Button.Root>
     </div>
   </section>
 
@@ -42,7 +42,7 @@ const selectedProjects = projects.slice(0, 4);
             The work
           </p>
           <h2 id="projects-heading" class="mt-2 text-2xl font-semibold tracking-tight">
-            Selected projects
+            Projects
           </h2>
         </div>
         <Button.Root variant="link" href={withBase('/projects/')}>All projects</Button.Root>
@@ -68,7 +68,7 @@ const selectedProjects = projects.slice(0, 4);
             The journal
           </p>
           <h2 id="featured-heading" class="mt-2 text-2xl font-semibold tracking-tight">
-            Featured writing
+            Writing
           </h2>
         </div>
         <Button.Root variant="link" href={withBase('/journal/')}>All entries</Button.Root>
