@@ -29,7 +29,7 @@ const { Content } = await render(entry);
     <header class="mb-10 border-b border-border pb-8">
       <div class="flex flex-wrap items-center gap-2 text-xs text-muted-foreground">
         <Badge.Badge variant="outline" class="capitalize">{entry.data.status}</Badge.Badge>
-      </div><div class="pointer-events-auto mt-3 inline-block min-w-0 max-w-full">
+      </div><div class="pointer-events-auto mt-3 block w-full min-w-0 max-w-full">
         <TagList tags={entry.data.tags} label={entry.data.title} collection="projects" />
       </div><h1 class="mt-4 text-balance text-3xl font-semibold tracking-tight sm:text-4xl">
         {entry.data.title}

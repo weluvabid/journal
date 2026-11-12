@@ -29,7 +29,7 @@ test('tags remain independent links above the stretched card link', async () => 
   const tags = await read('../src/components/cards/TagList.svelte');
 
   assert.match(card, /<ContentCard href=\{entry\.href\}/);
-  assert.match(card, /pointer-events-auto inline-block/);
+  assert.match(card, /pointer-events-auto block w-full min-w-0 max-w-full/);
   assert.match(tags, /<a\s+href=\{tagHref\(tag, collection\)\}/);
   assert.doesNotMatch(tags, /data-card-navigation/);
   const contentCard = await read('../src/components/cards/ContentCard.svelte');
@@ -96,7 +96,7 @@ test('featured journal and project cards expose independent tag links', async ()
     projectCard,
     /<TagList tags=\{project\.tags} label=\{project\.title} collection="projects" \/>/,
   );
-  assert.match(projectCard, /pointer-events-auto mt-auto inline-block[^"]*self-start/);
+  assert.match(projectCard, /pointer-events-auto mt-auto block w-full min-w-0 max-w-full/);
   assert.match(projects, /<ProjectCard\s+project=\{project\.data\}/);
   assert.match(projectDetail, /collection="projects"/);
   assert.match(projectTagArchive, /groupProjectsByTag\(projects\)/);
@@ -155,19 +155,19 @@ test('project cards share the journal card interaction and layout contract', asy
 
   assert.match(projectCard, /<ContentCard \{href\} label=\{`View project \$\{project\.title\}`\}/);
   assert.match(projectCard, /pointer-events-none flex h-full min-w-0 flex-col/);
-  assert.match(projectCard, /pointer-events-auto mt-auto inline-block[^"]*self-start/);
+  assert.match(projectCard, /pointer-events-auto mt-auto block w-full min-w-0 max-w-full/);
   assert.match(projectCard, /<Badge\.Badge variant="outline"/);
   assert.match(projectCard, /collection="projects"/);
   assert.match(journalCard, /pointer-events-none flex min-w-0 flex-col/);
   assert.match(contentCard, /absolute inset-0/);
 });
 
-test('tag lists are width-constrained scrollports on mobile and wrap on larger screens', async () => {
+test('tag lists remain width-constrained scrollports at every breakpoint', async () => {
   const tags = await read('../src/components/cards/TagList.svelte');
 
   assert.match(tags, /min-w-0 max-w-full/);
-  assert.match(tags, /flex-nowrap[^"]*overflow-x-auto/);
-  assert.match(tags, /sm:flex-wrap sm:overflow-visible/);
+  assert.match(tags, /touch-pan-x[^"]*overflow-x-auto/);
+  assert.match(tags, /flex-nowrap/);
   assert.match(tags, /shrink-0/);
 });
 
@@ -179,11 +179,11 @@ test('every card and detail-page tag wrapper is constrained to its available wid
   const journalDetail = await read('../src/pages/journal/[...slug].astro');
 
   for (const source of [journalCard, projectCard, projectDetail, journalDetail]) {
-    assert.match(source, /inline-block[^"]*max-w-full/);
+    assert.match(source, /block w-full min-w-0 max-w-full/);
   }
 
   assert.match(home, /<JournalEntryCard[\s\S]*variant="featured"/);
-  assert.match(projectCard, /max-w-full[^"]*self-start/);
+  assert.match(projectCard, /mt-auto block w-full min-w-0 max-w-full/);
   assert.match(journalDetail, /<TagList tags=\{entry\.data\.tags}/);
   assert.doesNotMatch(journalDetail, /entry\.data\.tags\.map/);
 });

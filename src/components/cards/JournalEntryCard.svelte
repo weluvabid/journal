@@ -38,7 +38,7 @@
         <h2 class="font-medium tracking-tight">{entry.title}</h2>
         <p class="mt-2 text-sm leading-6 text-muted-foreground">{entry.summary}</p>
       </div>
-      <div class="pointer-events-auto inline-block min-w-0 max-w-full self-start">
+      <div class="pointer-events-auto block w-full min-w-0 max-w-full">
         <TagList tags={entry.tags} label={entry.title} />
       </div>
       <time class="mt-auto pt-4 text-xs text-muted-foreground" datetime={entry.date}
@@ -54,7 +54,7 @@
         <div class="min-w-0">
           <h2 class="font-semibold tracking-tight">{entry.title}</h2>
           <p class="mt-2 max-w-2xl text-sm leading-6 text-muted-foreground">{entry.summary}</p>
-          <div class="pointer-events-auto inline-block min-w-0 max-w-full">
+          <div class="pointer-events-auto block w-full min-w-0 max-w-full">
             <TagList tags={entry.tags} label={entry.title} />
           </div>
         </div>
