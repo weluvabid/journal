@@ -3,8 +3,7 @@
   import { FileText, FolderKanban } from '@weluvabid/iris/lucide';
   import { SiGithub } from '@weluvabid/iris/simple-icons';
   import { withBase } from '@lib/journal';
-  import ghostMark from '../../../brand/me/brand/mark.svg?url';
-  import ghostMarkLight from '../../../brand/me/brand/mark-dark.svg?url';
+  import GhostMark from '@components/brand/GhostMark.svelte';
 </script>
 
 <Tooltip.Provider delayDuration={300}>
@@ -39,26 +38,11 @@
 
   <SiteFooter>
     <a
-      class="font-semibold tracking-tight text-foreground no-underline"
+      class="ghost-link inline-flex size-10 items-center justify-center text-foreground no-underline"
       href={withBase('/')}
       aria-label="Journal home"
     >
-      <img
-        src={ghostMarkLight}
-        alt=""
-        aria-hidden="true"
-        width="35"
-        height="32"
-        class="block h-8 w-auto dark:hidden"
-      />
-      <img
-        src={ghostMark}
-        alt=""
-        aria-hidden="true"
-        width="35"
-        height="32"
-        class="hidden h-8 w-auto dark:block"
-      />
+      <GhostMark class="h-7 w-auto" gradientId="footer-ghost-fill" />
     </a>
     <Tooltip.Root>
       <Tooltip.Trigger>
@@ -73,7 +57,7 @@
             rel="noopener noreferrer"
             aria-label="Journal on GitHub (opens in a new tab)"
           >
-            <SiGithub aria-hidden="true" />
+            <SiGithub class="size-6" aria-hidden="true" />
           </Button.Root>
         {/snippet}
       </Tooltip.Trigger>

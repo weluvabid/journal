@@ -8,8 +8,7 @@
   import HelpDialog from '@components/site/HelpDialog.svelte';
   import { installKeyboardController } from '@lib/keyboard/controller';
   import { withBase } from '@lib/journal';
-  import ghostMark from '../../../brand/me/brand/mark.svg?url';
-  import ghostMarkLight from '../../../brand/me/brand/mark-dark.svg?url';
+  import GhostMark from '@components/brand/GhostMark.svelte';
 
   let theme = $state<'light' | 'dark'>('light');
   let searchOpen = $state(false);
@@ -37,26 +36,11 @@
 <Tooltip.Provider delayDuration={300}>
   <SiteHeader>
     <a
-      class="inline-flex min-h-10 shrink-0 items-center rounded-full font-semibold tracking-tight text-foreground no-underline"
+      class="ghost-link inline-flex min-h-10 shrink-0 items-center rounded-full font-semibold tracking-tight text-foreground no-underline"
       href={withBase('/')}
       aria-label="Journal home"
     >
-      <img
-        src={ghostMarkLight}
-        alt=""
-        aria-hidden="true"
-        width="35"
-        height="32"
-        class="block h-8 w-auto dark:hidden"
-      />
-      <img
-        src={ghostMark}
-        alt=""
-        aria-hidden="true"
-        width="35"
-        height="32"
-        class="hidden h-8 w-auto dark:block"
-      />
+      <GhostMark class="h-8 w-[34.56px]" gradientId="header-ghost-fill" />
     </a>
 
     <nav class="flex shrink-0 items-center gap-1" aria-label="Primary navigation">

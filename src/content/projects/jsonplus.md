@@ -6,6 +6,7 @@ status: released
 tags: [typescript, json, developer-tools]
 stack: [TypeScript, Developer tools]
 github: "https://github.com/weluvabid/jsonplus"
+stackblitz: "https://stackblitz.com/edit/jsonplus?file=index.js"
 featured: false
 order: 7
 ---
