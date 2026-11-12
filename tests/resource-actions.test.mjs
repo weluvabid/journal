@@ -7,10 +7,10 @@ const read = (path) => readFile(new URL(`../${path}`, import.meta.url), 'utf8');
 test('journal schema accepts optional external resource links', async () => {
   const schema = await read('src/content.config.ts');
 
-  assert.match(schema, /links:\s*z\.object\(/);
+  assert.match(schema, /links:\s*z\s*\.object\(/);
 
   for (const key of ['git', 'stackblitz', 'mermaid']) {
-    assert.match(schema, new RegExp(`${key}: z\\.string\\(\\)\\.url\\(\\)\\.optional\\(\\)`));
+    assert.match(schema, new RegExp(`${key}: z\\.url\\(\\)\\.optional\\(\\)`));
   }
 });
 
@@ -51,7 +51,7 @@ test('article page renders resource actions only when frontmatter supplies links
   );
   assert.match(
     page,
-    /entry\.data\.links && <ResourceActions client:load links=\{entry\.data\.links\}/,
+    /entry\.data\.links && \([\s\S]*?<ResourceActions client:load links=\{entry\.data\.links}/,
   );
 });
 
@@ -65,5 +65,5 @@ test('StackBlitz and Mermaid test links are attached to relevant articles', asyn
     /stackblitz: https:\/\/stackblitz\.com\/edit\/jsonplus\?file=index\.js/,
   );
   assert.match(platformArticle, /git: https:\/\/github\.com\/weluvabid\/frontend-atlas/);
-  assert.match(platformArticle, /mermaid: "https:\/\/mermaid\.live\/edit#pako:/);
+  assert.match(platformArticle, /mermaid:\s*['"]https:\/\/mermaid\.live\/edit#pako:/);
 });

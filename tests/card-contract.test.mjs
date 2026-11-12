@@ -19,7 +19,7 @@ test('shared content card owns the stretched native link', async () => {
   const source = await read('../src/components/cards/ContentCard.svelte');
 
   assert.match(source, /<article/);
-  assert.match(source, /<a href=\{href\}/);
+  assert.match(source, /<a\s+(?:href=\{href\}|\{href\})/);
   assert.match(source, /absolute inset-0/);
   assert.match(source, /focus-visible:outline/);
 });
@@ -30,11 +30,11 @@ test('tags remain independent links above the stretched card link', async () => 
 
   assert.match(card, /<ContentCard href=\{entry\.href\}/);
   assert.match(card, /pointer-events-auto inline-block/);
-  assert.match(tags, /<a href=\{tagHref\(tag, collection\)\}/);
+  assert.match(tags, /<a\s+href=\{tagHref\(tag, collection\)\}/);
   assert.doesNotMatch(tags, /data-card-navigation/);
   const contentCard = await read('../src/components/cards/ContentCard.svelte');
 
-  assert.match(contentCard, /<a href=\{href\}[^>]*data-card-navigation/);
+  assert.match(contentCard, /<a\s+(?:href=\{href\}|\{href\})[\s\S]*?data-card-navigation/);
 });
 
 test('homepage and project archive use the shared card foundation', async () => {
@@ -43,7 +43,7 @@ test('homepage and project archive use the shared card foundation', async () => 
 
   assert.match(home, /import ContentCard from '@components\/cards\/ContentCard\.svelte'/);
   assert.match(projects, /import ProjectCard from '@components\/cards\/ProjectCard\.svelte'/);
-  assert.match(projects, /<ProjectCard project=\{project\.data\}/);
+  assert.match(projects, /<ProjectCard\s+project=\{project\.data\}/);
   assert.doesNotMatch(projects, /<a href=\{withBase\(`\/projects\//);
 });
 
@@ -91,16 +91,16 @@ test('featured journal and project cards expose independent tag links', async ()
   const projectCard = await read('../src/components/cards/ProjectCard.svelte');
 
   assert.match(home, /<JournalEntryCard[\s\S]*variant="featured"/);
-  assert.match(home, /<ProjectCard project=\{project\.data}/);
+  assert.match(home, /<ProjectCard\s+project=\{project\.data}/);
   assert.match(
     projectCard,
     /<TagList tags=\{project\.tags} label=\{project\.title} collection="projects" \/>/,
   );
   assert.match(projectCard, /pointer-events-auto mt-auto inline-block[^"]*self-start/);
-  assert.match(projects, /<ProjectCard project=\{project\.data\}/);
+  assert.match(projects, /<ProjectCard\s+project=\{project\.data\}/);
   assert.match(projectDetail, /collection="projects"/);
   assert.match(projectTagArchive, /groupProjectsByTag\(projects\)/);
-  assert.match(projectTagArchive, /<ProjectCard project=\{project\.data\}/);
+  assert.match(projectTagArchive, /<ProjectCard\s+project=\{project\.data\}/);
   assert.match(projectTagArchive, /Projects filed under/);
 });
 
@@ -129,8 +129,8 @@ test('project tags have one schema default and consumers use the normalized coll
     /const projects = defineCollection\([\s\S]*?tags: z\.array\(z\.string\(\)\.min\(2\)\)\.max\(12\)\.default\(\[\]\)/,
   );
   assert.match(tagList, /tags = \[\]/);
-  assert.match(searchIndex, /const tags = project\.data\.tags;/);
-  assert.match(searchIndex, /searchTerms: \[\.\.\.project\.data\.stack, \.\.\.tags\]/);
+  assert.match(searchIndex, /const tags = stringArray\(project\.data\.tags\);/);
+  assert.match(searchIndex, /searchTerms: \[\.\.\.stack, \.\.\.tags\]/);
   assert.match(tagUtilities, /for \(const label of entry\.data\.tags\)/);
 });
 
@@ -144,8 +144,8 @@ test('homepage featured project cards display the same status badge as the proje
     projectCard,
     /<Badge\.Badge variant="outline" class="capitalize">\{project\.status\}<\/Badge\.Badge>/,
   );
-  assert.match(home, /<ProjectCard project=\{project\.data\}/);
-  assert.match(projects, /<ProjectCard project=\{project\.data\}/);
+  assert.match(home, /<ProjectCard\s+project=\{project\.data\}/);
+  assert.match(projects, /<ProjectCard\s+project=\{project\.data\}/);
 });
 
 test('project cards share the journal card interaction and layout contract', async () => {

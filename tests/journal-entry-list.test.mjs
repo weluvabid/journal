@@ -11,7 +11,7 @@ test('journal pagination intentionally snapshots initial props without Svelte ca
   assert.match(component, /const initialState = untrack\(\(\) => \(/);
   assert.match(component, /entries: \[\.\.\.initialEntries\]/);
   assert.match(component, /nextPageUrl: initialNextPageUrl/);
-  assert.match(component, /seenIds: new Set\(initialEntries\.map/);
+  assert.match(component, /seenIds: new SvelteSet\(initialEntries\.map/);
   assert.match(component, /let entries = \$state<JournalEntry\[]>\(initialState\.entries\)/);
   assert.match(component, /let nextPageUrl = \$state<string \| null>\(initialState\.nextPageUrl\)/);
   assert.match(component, /const seenIds = initialState\.seenIds/);
