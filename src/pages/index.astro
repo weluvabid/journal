@@ -60,7 +60,7 @@ const categories = [
         <Card.Root class="h-full rounded-2xl border-0 shadow-none [--card-spacing:--spacing(5)]"><Card.Header class="flex h-full flex-col">
           <div class="mb-2 flex items-center gap-2"><span class="text-xs font-medium tabular-nums text-muted-foreground">{String(index + categories.length + 1).padStart(2, '0')}</span><Badge.Badge variant="secondary">{entry.data.type.replaceAll('-', ' ')}</Badge.Badge></div>
           <Card.Title>{entry.data.title}</Card.Title><Card.Description>{entry.data.summary}</Card.Description>
-          <div class="pointer-events-auto inline-block"><TagList tags={entry.data.tags} label={entry.data.title} /></div>
+          <div class="pointer-events-auto inline-block min-w-0 max-w-full"><TagList tags={entry.data.tags} label={entry.data.title} /></div>
           <span class="mt-auto pt-4 text-xs text-muted-foreground">{entry.data.date.toLocaleDateString('en', { dateStyle: 'medium' })}</span>
         </Card.Header></Card.Root>
       </ContentCard>)}

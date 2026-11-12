@@ -14,7 +14,7 @@ test('journal schema accepts optional external resource links', async () => {
 
 test('article action component uses the existing Simple Icons exports', async () => {
   const component = await read('src/components/article/ArticleActions.svelte');
-  assert.match(component, /import \{ Button \} from '@weluvabid\/iris\/components'/);
+  assert.match(component, /import \{ Button, Tooltip \} from '@weluvabid\/iris\/components'/);
   assert.match(component, /SiGit, SiStackblitz, SiMermaid/);
   assert.equal((component.match(/<Button\.Root/g) ?? []).length, 3);
   assert.equal((component.match(/variant="ghost"/g) ?? []).length, 3);
@@ -24,6 +24,10 @@ test('article action component uses the existing Simple Icons exports', async ()
   assert.equal((component.match(/target="_blank"/g) ?? []).length, 3);
   assert.equal((component.match(/rel="noopener noreferrer"/g) ?? []).length, 3);
   assert.equal((component.match(/aria-label=/g) ?? []).length, 4);
+  assert.equal((component.match(/<Tooltip\.Root>/g) ?? []).length, 3);
+  assert.equal((component.match(/<Tooltip\.Content>/g) ?? []).length, 3);
+  assert.match(component, /<Tooltip\.Provider delayDuration=\{300\}>/);
+  assert.doesNotMatch(component, /title="(?:Source repository|Open in StackBlitz|Open Mermaid diagram)"/);
   assert.match(component, /\{#if links\.git\}/);
   assert.match(component, /\{#if links\.stackblitz\}/);
   assert.match(component, /\{#if links\.mermaid\}/);

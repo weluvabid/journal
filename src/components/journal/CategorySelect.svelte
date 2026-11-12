@@ -1,8 +1,26 @@
 <script lang="ts">
   import { Select } from '@weluvabid/iris/components';
 
-  interface CategoryOption { readonly id: string; readonly name: string; }
-  let { categories, current = 'all', base = '/' }: { categories: readonly CategoryOption[]; current?: string; base?: string } = $props();
+  interface CategoryOption {
+    readonly id: string;
+    readonly name: string;
+  }
+
+  let {
+    categories,
+    current = 'all',
+    base = '/',
+  }: {
+    categories: readonly CategoryOption[];
+    current?: string;
+    base?: string;
+  } = $props();
+
+  const currentLabel = $derived(
+    current === 'all'
+      ? 'All entries'
+      : (categories.find((category) => category.id === current)?.name ?? 'All entries'),
+  );
 
   function navigate(value: string): void {
     const prefix = `/${base.replace(/^\/+|\/+$/gu, '')}`.replace(/^\/$/u, '');
@@ -13,7 +31,7 @@
 
 <Select.Root type="single" value={current} onValueChange={(value) => value && navigate(value)}>
   <Select.Trigger class="w-full sm:w-64" aria-label="Filter journal entries by category">
-    <Select.Value placeholder="Browse all entries" />
+    <Select.Value>{currentLabel}</Select.Value>
   </Select.Trigger>
   <Select.Content>
     <Select.Item value="all">All entries</Select.Item>

@@ -77,7 +77,7 @@ test('featured journal and project cards expose independent tag links', async ()
   assert.match(home, /<TagList tags=\{entry\.data\.tags\} label=\{entry\.data\.title\} \/>/);
   assert.match(home, /<ProjectCard project=\{project\.data\}/);
   assert.match(projectCard, /<TagList tags=\{project\.tags \?\? \[\]\} label=\{project\.title\} collection="projects" \/>/);
-  assert.match(projectCard, /pointer-events-auto mt-auto inline-block self-start/);
+  assert.match(projectCard, /pointer-events-auto mt-auto inline-block[^"]*self-start/);
   assert.match(projects, /<ProjectCard project=\{project\.data\}/);
   assert.match(projectDetail, /collection="projects"/);
   assert.match(projectTagArchive, /groupProjectsByTag\(projects\)/);
@@ -130,10 +130,34 @@ test('project cards share the journal card interaction and layout contract', asy
   const contentCard = await read('../src/components/cards/ContentCard.svelte');
 
   assert.match(projectCard, /<ContentCard \{href\} label=\{`View project \$\{project\.title\}`\}/);
-  assert.match(projectCard, /pointer-events-none flex h-full flex-col/);
-  assert.match(projectCard, /pointer-events-auto mt-auto inline-block self-start/);
+  assert.match(projectCard, /pointer-events-none flex h-full min-w-0 flex-col/);
+  assert.match(projectCard, /pointer-events-auto mt-auto inline-block[^"]*self-start/);
   assert.match(projectCard, /<Badge\.Badge variant="outline"/);
   assert.match(projectCard, /collection="projects"/);
-  assert.match(journalCard, /pointer-events-none flex flex-col/);
+  assert.match(journalCard, /pointer-events-none flex min-w-0 flex-col/);
   assert.match(contentCard, /absolute inset-0/);
+});
+
+
+test('tag lists are width-constrained scrollports on mobile and wrap on larger screens', async () => {
+  const tags = await read('../src/components/cards/TagList.svelte');
+  assert.match(tags, /min-w-0 max-w-full/);
+  assert.match(tags, /flex-nowrap[^"]*overflow-x-auto/);
+  assert.match(tags, /sm:flex-wrap sm:overflow-visible/);
+  assert.match(tags, /shrink-0/);
+});
+
+test('every card and detail-page tag wrapper is constrained to its available width', async () => {
+  const journalCard = await read('../src/components/cards/JournalEntryCard.svelte');
+  const projectCard = await read('../src/components/cards/ProjectCard.svelte');
+  const home = await read('../src/pages/index.astro');
+  const projectDetail = await read('../src/pages/projects/[...slug].astro');
+  const journalDetail = await read('../src/pages/journal/[...slug].astro');
+
+  for (const source of [journalCard, projectCard, home, projectDetail, journalDetail]) {
+    assert.match(source, /inline-block[^"]*max-w-full/);
+  }
+  assert.match(projectCard, /max-w-full[^"]*self-start/);
+  assert.match(journalDetail, /<TagList tags=\{entry\.data\.tags\}/);
+  assert.doesNotMatch(journalDetail, /entry\.data\.tags\.map/);
 });
