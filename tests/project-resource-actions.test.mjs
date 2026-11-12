@@ -12,8 +12,8 @@ test('project schema supports optional StackBlitz and Mermaid resources', async 
 
 test('project detail reuses the shared icon-only resource actions', async () => {
   const page = await read('src/pages/projects/[...slug].astro');
-  assert.match(page, /import ArticleActions from '@components\/article\/ArticleActions\.svelte'/);
-  assert.match(page, /ArticleActions client:load links=\{\{ git: entry\.data\.github, stackblitz: entry\.data\.stackblitz, mermaid: entry\.data\.mermaid \}\}/);
+  assert.match(page, /import ResourceActions from '@components\/resources\/ResourceActions\.svelte'/);
+  assert.match(page, /ResourceActions client:load links=\{\{ git: entry\.data\.github, stackblitz: entry\.data\.stackblitz, mermaid: entry\.data\.mermaid \}\}/);
   assert.doesNotMatch(page, /GitHub <ExternalLink/);
 });
 

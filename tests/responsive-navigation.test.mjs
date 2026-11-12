@@ -30,5 +30,5 @@ test('mobile bottom navigation contains Writing, Projects and Resume in order', 
 
   assert.ok(writing !== -1 && writing < projects && projects < resume);
   assert.match(footer, /sm:hidden/);
-  assert.match(footer, /BookSearch/);
+  assert.match(footer, /NotebookText/);
 });

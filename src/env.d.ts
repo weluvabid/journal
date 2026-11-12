@@ -1,5 +1,5 @@
 /// <reference types="astro/client" />
 
 interface Window {
-  __frontendAtlasRouterLifecycleInstalled?: boolean;
+  __journalRouterLifecycleInstalled?: boolean;
 }

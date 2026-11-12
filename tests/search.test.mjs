@@ -2,31 +2,35 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import { loadSearchIndex } from '../src/lib/search/index.ts';
 import { isSearchDocument, parseSearchIndex } from '../src/lib/search/validation.ts';
-import { normalizeSearchText, rankSearchResults } from '../src/lib/journal.ts';
+import { normalizeSearchText, rankSearchResults } from '../src/lib/search/ranking.ts';
 
 function document(id, overrides = {}) {
   return {
     id,
-    slug: id,
     title: `Question about ${id}`,
-    category: 'systems-engineering',
     summary: 'A sufficiently descriptive summary for this search document.',
-    difficulty: 'foundation',
-    minutes: 8,
     tags: ['runtime'],
     searchTerms: [],
-    prerequisites: [],
-    related: [],
-    featured: false,
+    href: `/journal/${id}/`,
+    kind: 'entry',
     searchableText: 'runtime execution',
     ...overrides,
   };
 }
 
+test('search documents contain only the fields consumed by Journal search', () => {
+  const item = document('event-loop');
+  assert.deepEqual(Object.keys(item).sort(), [
+    'href', 'id', 'kind', 'searchTerms', 'searchableText', 'summary', 'tags', 'title',
+  ]);
+  assert.equal(isSearchDocument({ ...item, href: '//external.example/path' }), false);
+  assert.equal(isSearchDocument({ ...item, minutes: 5 }), false);
+});
+
 test('search document guard validates the complete indexed shape', () => {
   assert.equal(isSearchDocument(document('event-loop')), true);
-  assert.equal(isSearchDocument({ ...document('event-loop'), minutes: 1.5 }), false);
-  assert.equal(isSearchDocument({ ...document('event-loop'), category: 'systems-engineering' }), true);
+  assert.equal(isSearchDocument({ ...document('event-loop'), href: 'javascript:alert(1)' }), false);
+  assert.equal(isSearchDocument({ ...document('event-loop'), kind: 'entry' }), true);
   assert.equal(isSearchDocument({ ...document('event-loop'), searchTerms: ['valid alias'] }), true);
   assert.equal(isSearchDocument({ ...document('event-loop'), searchTerms: [42] }), false);
   assert.equal(
@@ -39,11 +43,12 @@ test('search document guard validates the complete indexed shape', () => {
 });
 
 test('search index parser validates payload shape and entry documents', () => {
-  assert.deepEqual(parseSearchIndex({ version: 1, documents: [document('event-loop')] }), [
+  assert.deepEqual(parseSearchIndex({ version: 2, documents: [document('event-loop')] }), [
     document('event-loop'),
   ]);
-  assert.throws(() => parseSearchIndex({ version: 2, documents: [] }), /unsupported or invalid/u);
-  assert.throws(() => parseSearchIndex({ version: 1, documents: [{ invalid: true }] }), /invalid document/u);
+  assert.throws(() => parseSearchIndex({ version: 1, documents: [] }), /unsupported or invalid/u);
+  assert.throws(() => parseSearchIndex({ version: 3, documents: [] }), /unsupported or invalid/u);
+  assert.throws(() => parseSearchIndex({ version: 2, documents: [{ invalid: true }] }), /invalid document/u);
 });
 
 test('search loader passes its abort signal and reports HTTP failures', async () => {
@@ -54,7 +59,7 @@ test('search loader passes its abort signal and reports HTTP failures', async ()
     requestedUrl = url;
     requestedSignal = options.signal;
 
-    return new Response(JSON.stringify({ version: 1, documents: [document('event-loop')] }), {
+    return new Response(JSON.stringify({ version: 2, documents: [document('event-loop')] }), {
       status: 200,
       headers: { 'content-type': 'application/json' },
     });
@@ -62,7 +67,7 @@ test('search loader passes its abort signal and reports HTTP failures', async ()
 
   const documents = await loadSearchIndex(controller.signal, fetcher);
 
-  assert.equal(requestedUrl, '/search-index.json');
+  assert.equal(requestedUrl, '/search-index.v2.json');
   assert.equal(requestedSignal, controller.signal);
   assert.equal(documents[0].id, 'event-loop');
   await assert.rejects(
@@ -133,4 +138,13 @@ test('ranking returns no results for empty queries and validates limits', () => 
 
   assert.deepEqual(rankSearchResults([item], '   '), []);
   assert.throws(() => rankSearchResults([item], 'event', 0), /positive safe integer/u);
+});
+
+test('search index array normalization tolerates missing optional collection metadata', async () => {
+  const { stringArray } = await import('../src/lib/search/arrays.ts');
+
+  assert.deepEqual(stringArray(undefined), []);
+  assert.deepEqual(stringArray(null), []);
+  assert.deepEqual(stringArray('not-an-array'), []);
+  assert.deepEqual(stringArray(['rust', 42, 'systems']), ['rust', 'systems']);
 });

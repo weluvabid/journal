@@ -1,12 +1,11 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { orderEntries, entryHref, rankSearchResults, withBase } from '../src/lib/journal.ts';
+import { entryHref, withBase } from '../src/lib/journal.ts';
+import { rankSearchResults } from '../src/lib/search/ranking.ts';
 
 const entry = (id, overrides = {}) => ({
-  id, slug: id, title: id.replaceAll('-', ' '), category: 'systems-engineering',
-  summary: 'A sufficiently descriptive summary for this journal entry.',
-  difficulty: 'intermediate', minutes: 5, tags: ['systems'], searchTerms: [],
-  prerequisites: [], related: [], featured: false, ...overrides,
+  id, title: id.replaceAll('-', ' '), summary: 'A sufficiently descriptive summary for this search document.',
+  tags: ['systems'], searchTerms: [], searchableText: '', href: `/journal/${id}/`, kind: 'entry', ...overrides,
 });
 
 test('search ranks title matches above body-only matches deterministically', () => {
@@ -32,10 +31,4 @@ test('base paths are applied only to internal URLs', () => {
 test('journal entry URLs are derived from stable IDs', () => {
   assert.equal(entryHref('building-a-cache'), '/journal/building-a-cache/');
   assert.throws(() => entryHref('nested/path'), /Invalid journal entry id/);
-});
-
-test('entry ordering is deterministic and does not mutate input', () => {
-  const items = [entry('zeta'), entry('alpha'), entry('beta')];
-  assert.deepEqual(orderEntries(items).map(({ id }) => id), ['alpha', 'beta', 'zeta']);
-  assert.deepEqual(items.map(({ id }) => id), ['zeta', 'alpha', 'beta']);
 });

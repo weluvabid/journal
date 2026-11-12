@@ -9,7 +9,7 @@
     readonly summary: string;
     readonly status: string;
     readonly order: number;
-    readonly tags?: readonly string[];
+    readonly tags: readonly string[];
   }
 
   interface Props {
@@ -33,7 +33,7 @@
       <p class="mt-2 text-sm leading-6 text-muted-foreground">{project.summary}</p>
     </div>
     <div class="pointer-events-auto mt-auto inline-block min-w-0 max-w-full self-start pt-1">
-      <TagList tags={project.tags ?? []} label={project.title} collection="projects" />
+      <TagList tags={project.tags} label={project.title} collection="projects" />
     </div>
   </div>
 </ContentCard>

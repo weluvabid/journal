@@ -54,7 +54,7 @@ test('no-JavaScript journal fallbacks reuse the same journal entry card', async 
 
 test('homepage card numbering continues across topics, writing, and projects', async () => {
   const home = await read('../src/pages/index.astro');
-  assert.match(home, /String\(index \+ categories\.length \+ 1\)\.padStart\(2, '0'\)/);
+  assert.match(home, /index=\{index \+ categories\.length\}/);
   assert.match(home, /number=\{categories\.length \+ featured\.length \+ index \+ 1\}/);
 });
 
@@ -63,7 +63,7 @@ test('homepage keyboard navigation treats topics, writing, and projects as one c
   const home = await read('../src/pages/index.astro');
   assert.equal((home.match(/data-keyboard-navigation="primary"/g) ?? []).length, 1);
   assert.match(home, /<div data-keyboard-navigation="primary">[\s\S]*aria-labelledby="areas-heading"[\s\S]*aria-labelledby="featured-heading"[\s\S]*aria-labelledby="projects-heading"[\s\S]*<\/div>\s*<\/BaseLayout>/);
-  assert.match(home, /href=\{entryHref\(entry\.data\.id\)\}/);
+  assert.match(home, /<JournalEntryCard[\s\S]*entry=\{\{/);
   assert.match(home, /href=\{withBase\(`\/projects\/\$\{project\.data\.id\}\/`\)\}/);
 });
 
@@ -74,9 +74,9 @@ test('featured journal and project cards expose independent tag links', async ()
   const projectTagArchive = await read('../src/pages/projects/tag/[...slug].astro');
   const projectCard = await read('../src/components/cards/ProjectCard.svelte');
 
-  assert.match(home, /<TagList tags=\{entry\.data\.tags\} label=\{entry\.data\.title\} \/>/);
+  assert.match(home, /<JournalEntryCard[\s\S]*variant=\"featured\"/);
   assert.match(home, /<ProjectCard project=\{project\.data\}/);
-  assert.match(projectCard, /<TagList tags=\{project\.tags \?\? \[\]\} label=\{project\.title\} collection="projects" \/>/);
+  assert.match(projectCard, /<TagList tags=\{project\.tags\} label=\{project\.title\} collection="projects" \/>/);
   assert.match(projectCard, /pointer-events-auto mt-auto inline-block[^"]*self-start/);
   assert.match(projects, /<ProjectCard project=\{project\.data\}/);
   assert.match(projectDetail, /collection="projects"/);
@@ -99,17 +99,17 @@ test('every project declares a non-empty semantic tag set', async () => {
 });
 
 
-test('project tags safely default when legacy or incomplete content omits them', async () => {
+test('project tags have one schema default and consumers use the normalized collection value', async () => {
   const schema = await read('../src/content.config.ts');
   const tagList = await read('../src/components/cards/TagList.svelte');
-  const searchIndex = await read('../src/pages/search-index.json.ts');
+  const searchIndex = await read('../src/pages/search-index.v2.json.ts');
   const tagUtilities = await read('../src/lib/journal-tags.ts');
 
   assert.match(schema, /const projects = defineCollection\([\s\S]*?tags: z\.array\(z\.string\(\)\.min\(2\)\)\.max\(12\)\.default\(\[\]\)/);
   assert.match(tagList, /tags = \[\]/);
-  assert.match(searchIndex, /const tags = project\.data\.tags \?\? \[\]/);
+  assert.match(searchIndex, /const tags = project\.data\.tags;/);
   assert.match(searchIndex, /searchTerms: \[\.\.\.project\.data\.stack, \.\.\.tags\]/);
-  assert.match(tagUtilities, /for \(const label of entry\.data\.tags \?\? \[\]\)/);
+  assert.match(tagUtilities, /for \(const label of entry\.data\.tags\)/);
 });
 
 
@@ -154,10 +154,20 @@ test('every card and detail-page tag wrapper is constrained to its available wid
   const projectDetail = await read('../src/pages/projects/[...slug].astro');
   const journalDetail = await read('../src/pages/journal/[...slug].astro');
 
-  for (const source of [journalCard, projectCard, home, projectDetail, journalDetail]) {
+  for (const source of [journalCard, projectCard, projectDetail, journalDetail]) {
     assert.match(source, /inline-block[^"]*max-w-full/);
   }
+  assert.match(home, /<JournalEntryCard[\s\S]*variant=\"featured\"/);
   assert.match(projectCard, /max-w-full[^"]*self-start/);
   assert.match(journalDetail, /<TagList tags=\{entry\.data\.tags\}/);
   assert.doesNotMatch(journalDetail, /entry\.data\.tags\.map/);
+});
+
+
+test('homepage featured writing uses the shared journal card and canonical categories', async () => {
+  const home = await read('../src/pages/index.astro');
+  assert.match(home, /import JournalEntryCard from '@components\/cards\/JournalEntryCard\.svelte'/);
+  assert.match(home, /import \{ categories \} from '@data\/categories'/);
+  assert.match(home, /variant="featured"/);
+  assert.doesNotMatch(home, /import TagList from/);
 });

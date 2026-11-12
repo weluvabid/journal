@@ -1,7 +1,8 @@
 <script lang="ts">
   import { onMount } from 'svelte';
   import { Command, Alert, Spinner, Kbd } from '@weluvabid/iris/components';
-  import { entryHref, rankSearchResults, type SearchDocument } from '@lib/journal';
+  import type { SearchDocument } from '@lib/search/types';
+  import { rankSearchResults } from '@lib/search/ranking';
   import { isAbortError, loadSearchIndex } from '@lib/search';
 
   interface Props {
@@ -69,7 +70,7 @@
       <Command.Group heading="Journal & projects">
         {#each results as result (result.id)}
           <Command.LinkItem
-            href={result.href ?? entryHref(result.id)}
+            href={result.href}
             value={`${result.title} ${result.summary} ${result.tags.join(' ')}`}
           >
             <span class="min-w-0 flex-1">

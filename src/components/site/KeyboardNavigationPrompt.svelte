@@ -17,9 +17,9 @@
   }
 
   onMount(() => {
-    window.addEventListener('atlas:card-navigation-prompt', handlePrompt);
+    window.addEventListener('journal:card-navigation-prompt', handlePrompt);
     return () => {
-      window.removeEventListener('atlas:card-navigation-prompt', handlePrompt);
+      window.removeEventListener('journal:card-navigation-prompt', handlePrompt);
       if (messageTimer) clearTimeout(messageTimer);
     };
   });

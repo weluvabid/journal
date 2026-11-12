@@ -1,15 +1,14 @@
 # Accessibility
 
-Journal retains the accessibility implementation inherited from Frontend Atlas.
+Accessibility is treated as part of the Journal component and page contracts.
 
-- Semantic landmarks and heading hierarchy.
+- Semantic landmarks and a logical heading hierarchy.
 - Skip-to-content link targeting `main#main-content`.
-- `scroll-mt-28` offset so the target is not hidden beneath the sticky site header.
+- Sticky-header scroll offset so focused content is not obscured.
 - Keyboard-operable navigation, search and dialogs.
-- Visible focus indicators.
-- Accessible names for icon-only controls.
+- Visible focus indicators and accessible names for icon-only controls.
 - Decorative icons hidden from assistive technology.
-- Reduced-motion support.
-- Responsive layouts and readable content widths.
+- Reduced-motion support for transitions and the animated brand mark.
+- Responsive layouts, readable content widths and independently operable tag links.
 
-The keyboard help dialog is the source of truth for currently supported shortcuts. Do not document removed progress/completion shortcuts.
+The keyboard help dialog is the source of truth for supported shortcuts. Keep this document aligned with the shortcuts implemented in the keyboard controller and help dialog.

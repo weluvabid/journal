@@ -20,8 +20,14 @@ test('initial portfolio contains the selected eight projects and excludes Fulfil
   assert.equal(files.some((file) => file.toLowerCase().includes('fulfillment')), false);
 });
 
-test('progress tracking runtime has been removed', async () => {
-  await assert.rejects(access(new URL('../src/lib/progress/', import.meta.url)));
-  await assert.rejects(access(new URL('../src/components/progress/', import.meta.url)));
-  await assert.rejects(access(new URL('../src/data/question-manifest.ts', import.meta.url)));
+test('Atlas runtime and question content have been removed', async () => {
+  for (const path of [
+    '../src/pages/domains/', '../src/pages/questions/', '../src/content/questions/',
+    '../src/lib/atlas.ts', '../src/lib/content.ts', '../src/lib/progress/',
+    '../src/data/domains.ts', '../src/data/question-manifest.ts',
+    '../src/components/site/AtlasHeader.svelte', '../src/components/site/AtlasFooter.svelte',
+    '../src/components/site/AtlasToaster.svelte',
+  ]) {
+    await assert.rejects(access(new URL(path, import.meta.url)));
+  }
 });

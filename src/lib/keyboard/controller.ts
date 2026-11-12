@@ -5,7 +5,7 @@ export interface KeyboardControllerCallbacks {
   readonly onHelp: () => void;
 }
 
-const promptEventName = 'atlas:card-navigation-prompt';
+const promptEventName = 'journal:card-navigation-prompt';
 
 function isEditableTarget(target: EventTarget | null): boolean {
   if (!(target instanceof HTMLElement)) {

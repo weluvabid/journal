@@ -13,7 +13,7 @@ test('journal schema accepts optional external resource links', async () => {
 });
 
 test('article action component uses the existing Simple Icons exports', async () => {
-  const component = await read('src/components/article/ArticleActions.svelte');
+  const component = await read('src/components/resources/ResourceActions.svelte');
   assert.match(component, /import \{ Button, Tooltip \} from '@weluvabid\/iris\/components'/);
   assert.match(component, /SiGit, SiStackblitz, SiMermaid/);
   assert.equal((component.match(/<Button\.Root/g) ?? []).length, 3);
@@ -35,8 +35,8 @@ test('article action component uses the existing Simple Icons exports', async ()
 
 test('article page renders resource actions only when frontmatter supplies links', async () => {
   const page = await read('src/pages/journal/[...slug].astro');
-  assert.match(page, /import ArticleActions from '@components\/article\/ArticleActions\.svelte'/);
-  assert.match(page, /entry\.data\.links && <ArticleActions client:load links=\{entry\.data\.links\}/);
+  assert.match(page, /import ResourceActions from '@components\/resources\/ResourceActions\.svelte'/);
+  assert.match(page, /entry\.data\.links && <ResourceActions client:load links=\{entry\.data\.links\}/);
 });
 
 test('StackBlitz and Mermaid test links are attached to relevant articles', async () => {

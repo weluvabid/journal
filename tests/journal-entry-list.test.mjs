@@ -16,3 +16,12 @@ test('journal pagination intentionally snapshots initial props without Svelte ca
   assert.match(component, /let nextPageUrl = \$state<string \| null>\(initialState\.nextPageUrl\)/);
   assert.match(component, /const seenIds = initialState\.seenIds/);
 });
+
+test('journal pagination aborts an active request when its component is destroyed', async () => {
+  const component = await read('src/components/journal/JournalEntryList.svelte');
+
+  assert.match(component, /let activeRequest: AbortController \| undefined/);
+  assert.match(component, /activeRequest\?\.abort\(\)/);
+  assert.match(component, /signal: controller\.signal/);
+  assert.match(component, /window\.clearTimeout\(timeoutId\)/);
+});

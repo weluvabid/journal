@@ -5,19 +5,15 @@ import { Card, Badge, Button } from '@weluvabid/iris/components';
 import { withBase, entryHref } from '@lib/journal';
 import ContentCard from '@components/cards/ContentCard.svelte';
 import ProjectCard from '@components/cards/ProjectCard.svelte';
-import TagList from '@components/cards/TagList.svelte';
+import JournalEntryCard from '@components/cards/JournalEntryCard.svelte';
+import { categories } from '@data/categories';
 
 const allEntries = await getCollection('journal', ({ data }) => !data.draft);
 const entries = [...allEntries].sort((a, b) => b.data.date.valueOf() - a.data.date.valueOf());
 const featured = entries.filter((entry) => entry.data.featured).slice(0, 4);
 const projects = (await getCollection('projects')).sort((a, b) => a.data.order - b.data.order);
 const featuredProjects = projects.filter((project) => project.data.featured);
-const categories = [
-  { id: 'systems-engineering', name: 'Rust & Systems', description: 'Systems programming, storage, concurrency and performance.' },
-  { id: 'frontend-engineering', name: 'Frontend Engineering', description: 'Browser mechanics, interface architecture and accessible experiences.' },
-  { id: 'product-engineering', name: 'Product Engineering', description: 'Turning useful ideas into focused, working software.' },
-  { id: 'engineering-thinking', name: 'Engineering Thinking', description: 'Mathematical reasoning, decomposition and engineering trade-offs.' },
-];
+
 ---
 <BaseLayout title="Journal — How I think. What I build." description="Engineering notes, experiments, project write-ups and technical deep dives.">
   <section class="mx-auto max-w-3xl py-10 sm:py-14">
@@ -56,14 +52,21 @@ const categories = [
   <section class="mx-auto mt-4 max-w-5xl pb-8" aria-labelledby="featured-heading">
     <div class="mb-8 flex items-end justify-between gap-4"><div><p class="text-xs font-semibold uppercase tracking-[0.18em] text-muted-foreground">The journal</p><h2 id="featured-heading" class="mt-2 text-2xl font-semibold tracking-tight">Featured writing</h2></div><Button.Root variant="link" href={withBase('/journal/')}>All entries</Button.Root></div>
     <div class="grid items-stretch gap-3 sm:grid-cols-2">
-      {featured.map((entry, index) => <ContentCard href={entryHref(entry.data.id)} label={`Read ${entry.data.title}`} class="h-full">
-        <Card.Root class="h-full rounded-2xl border-0 shadow-none [--card-spacing:--spacing(5)]"><Card.Header class="flex h-full flex-col">
-          <div class="mb-2 flex items-center gap-2"><span class="text-xs font-medium tabular-nums text-muted-foreground">{String(index + categories.length + 1).padStart(2, '0')}</span><Badge.Badge variant="secondary">{entry.data.type.replaceAll('-', ' ')}</Badge.Badge></div>
-          <Card.Title>{entry.data.title}</Card.Title><Card.Description>{entry.data.summary}</Card.Description>
-          <div class="pointer-events-auto inline-block min-w-0 max-w-full"><TagList tags={entry.data.tags} label={entry.data.title} /></div>
-          <span class="mt-auto pt-4 text-xs text-muted-foreground">{entry.data.date.toLocaleDateString('en', { dateStyle: 'medium' })}</span>
-        </Card.Header></Card.Root>
-      </ContentCard>)}
+      {featured.map((entry, index) => <JournalEntryCard
+        entry={{
+          id: entry.data.id,
+          title: entry.data.title,
+          summary: entry.data.summary,
+          type: entry.data.type,
+          date: entry.data.date.toISOString(),
+          dateLabel: entry.data.date.toLocaleDateString('en', { dateStyle: 'medium', timeZone: 'UTC' }),
+          tags: entry.data.tags,
+          href: entryHref(entry.data.id),
+        }}
+        index={index + categories.length}
+        variant="featured"
+        class="h-full"
+      />)}
     </div>
   </section>
 

@@ -40,7 +40,7 @@ export function groupContentByTag<T extends { readonly data: { readonly tags: re
   for (const entry of entries) {
     const seenForEntry = new Set<string>();
 
-    for (const label of entry.data.tags ?? []) {
+    for (const label of entry.data.tags) {
       const slug = tagToSlug(label);
       if (seenForEntry.has(slug)) continue;
       seenForEntry.add(slug);

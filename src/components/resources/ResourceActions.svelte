@@ -2,13 +2,13 @@
   import { Button, Tooltip } from '@weluvabid/iris/components';
   import { SiGit, SiStackblitz, SiMermaid } from '@weluvabid/iris/simple-icons';
 
-  type ArticleLinks = {
+  type ResourceLinks = {
     git?: string;
     stackblitz?: string;
     mermaid?: string;
   };
 
-  let { links, title }: { links: ArticleLinks; title: string } = $props();
+  let { links, title }: { links: ResourceLinks; title: string } = $props();
 </script>
 
 <Tooltip.Provider delayDuration={300}>

@@ -43,9 +43,11 @@
   const seenIds = initialState.seenIds;
   const requestedPageUrls = new Set<string>();
   let destroyed = false;
+  let activeRequest: AbortController | undefined;
 
   onDestroy(() => {
     destroyed = true;
+    activeRequest?.abort();
   });
 
   function isPageResponse(value: unknown): value is PageResponse {
@@ -78,6 +80,9 @@
     if (requestInFlight || !nextPageUrl || destroyed) return;
 
     requestInFlight = true;
+    const controller = new AbortController();
+    activeRequest = controller;
+    const timeoutId = window.setTimeout(() => controller.abort(), 15_000);
 
     try {
       const requestUrl = new URL(nextPageUrl, window.location.href);
@@ -91,7 +96,7 @@
       const response = await fetch(requestUrl, {
         headers: { Accept: 'application/json' },
         cache: 'default',
-        signal: AbortSignal.timeout(15_000),
+        signal: controller.signal,
       });
 
       if (!response.ok) {
@@ -141,10 +146,14 @@
       }
     } catch (error) {
       if (!destroyed) {
-        console.error('Unable to load more journal entries.', error);
+        if (!(error instanceof DOMException && error.name === 'AbortError')) {
+          console.error('Unable to load more journal entries.', error);
+        }
         loaderState.error();
       }
     } finally {
+      window.clearTimeout(timeoutId);
+      if (activeRequest === controller) activeRequest = undefined;
       requestInFlight = false;
     }
   }

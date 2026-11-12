@@ -2,7 +2,7 @@
 import JournalFooter from '@components/site/JournalFooter.svelte';
 import JournalHeader from '@components/site/JournalHeader.svelte';
 import JournalToaster from '@components/site/JournalToaster.svelte';
-import CardNavigationPrompt from '@components/site/CardNavigationPrompt.svelte';
+import KeyboardNavigationPrompt from '@components/site/KeyboardNavigationPrompt.svelte';
 import { ClientRouter } from 'astro:transitions';
 import { createThemeScript } from '@weluvabid/iris/theme';
 import '@styles/global.css';
@@ -160,7 +160,7 @@ const themeBootstrap = createThemeScript();
       </main>
       <JournalFooter />
       <JournalToaster client:load />
-      <CardNavigationPrompt client:load />
+      <KeyboardNavigationPrompt client:load />
     </div>
   </body>
 </html>
