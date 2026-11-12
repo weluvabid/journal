@@ -115,6 +115,9 @@ importers:
       svelte:
         specifier: ^5.0.0
         version: 5.57.3(@typescript-eslint/types@8.46.0)
+      svelte-infinite:
+        specifier: 0.6.0
+        version: 0.6.0(svelte@5.57.3(@typescript-eslint/types@8.46.0))
     devDependencies:
       '@astrojs/check':
         specifier: 0.9.12
@@ -2449,10 +2452,6 @@ packages:
   pure-rand@6.1.0:
     resolution: {integrity: sha512-bVWawvoZoBYpp6yIoQtQXHZjmz35RSVHnUOTefl8Vcjr8snTPY1wnpSPMWekcFwbxI6gtmT7rSYPFvz71ldiOA==}
 
-  qr@0.7.2:
-    resolution: {integrity: sha512-yovYRuacJBJkG9fWSwcB2bKZhr58c04DpOXguDU+rAAoJZdi6/J3DtlomkKqdd1MutIptIK+kigWmT7LKz8y7A==}
-    engines: {node: '>= 20.19.0'}
-
   queue-microtask@1.2.3:
     resolution: {integrity: sha512-NuaNSa6flKT5JaSYQzJok04JzTL1CA6aGhv5rfLW3PgqA+M2ChpZQnAC8h8i4ZFkBS8X5RqkDBHA7r4hej3K9A==}
 
@@ -2671,6 +2670,11 @@ packages:
     peerDependenciesMeta:
       svelte:
         optional: true
+
+  svelte-infinite@0.6.0:
+    resolution: {integrity: sha512-k+4ikWF3ZXaoLD9rP9abdO2j1iFot2COY6BJWd+FoG7k/Dixhi/jDB2KRl2ey6nPtVJHrs8xxrNI7vqr0wfgmQ==}
+    peerDependencies:
+      svelte: ^5.0.0
 
   svelte-sonner@1.2.3:
     resolution: {integrity: sha512-SjQaDI/k6L/ordD2w84XOkGv3kaZwyGRsJzR+lHW097/aJCaydvp63VblMTFsrakm58BxRjUSySK/BWH9jdY1Q==}
@@ -5503,8 +5507,6 @@ snapshots:
   pure-rand@6.1.0:
     optional: true
 
-  qr@0.7.2: {}
-
   queue-microtask@1.2.3: {}
 
   radix3@1.1.2: {}
@@ -5769,6 +5771,10 @@ snapshots:
       postcss-selector-parser: 7.2.0
       semver: 7.8.6
     optionalDependencies:
+      svelte: 5.57.3(@typescript-eslint/types@8.46.0)
+
+  svelte-infinite@0.6.0(svelte@5.57.3(@typescript-eslint/types@8.46.0)):
+    dependencies:
       svelte: 5.57.3(@typescript-eslint/types@8.46.0)
 
   svelte-sonner@1.2.3(svelte@5.57.3(@typescript-eslint/types@8.46.0)):
@@ -6239,4 +6245,3 @@ snapshots:
   zod@4.6.7: {}
 
   zwitch@2.0.4: {}
-

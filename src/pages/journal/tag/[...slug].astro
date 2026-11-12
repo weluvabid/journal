@@ -1,0 +1,73 @@
+---
+import { getCollection } from 'astro:content';
+import BaseLayout from '@layouts/BaseLayout.astro';
+import { Breadcrumb } from '@weluvabid/iris/components';
+import JournalEntryList from '@components/journal/JournalEntryList.svelte';
+import { entryHref, withBase } from '@lib/journal';
+import { groupEntriesByTag, tagHref } from '@lib/journal-tags';
+import { JOURNAL_PAGE_SIZE, paginateItems } from '@lib/journal-pagination';
+
+export async function getStaticPaths() {
+  const entries = (await getCollection('journal', ({ data }) => !data.draft)).sort(
+    (left, right) =>
+      right.data.date.valueOf() - left.data.date.valueOf() ||
+      left.data.id.localeCompare(right.data.id),
+  );
+
+  return [...groupEntriesByTag(entries).entries()].map(([slug, group]) => ({
+    params: { slug },
+    props: { slug, label: group.label, entries: group.entries },
+  }));
+}
+
+const { slug, label, entries } = Astro.props;
+const { items: firstPage, nextPage } = paginateItems(entries, 1);
+const initialEntries = firstPage.map((entry) => ({
+  id: entry.data.id,
+  title: entry.data.title,
+  summary: entry.data.summary,
+  type: entry.data.type,
+  date: entry.data.date.toISOString(),
+  dateLabel: entry.data.date.toLocaleDateString('en', { dateStyle: 'medium', timeZone: 'UTC' }),
+  tags: entry.data.tags,
+  href: entryHref(entry.data.id),
+}));
+const nextPageUrl = nextPage === null ? null : withBase(`/journal/data/tag/${slug}/${nextPage}.json`);
+---
+<BaseLayout title={`Tagged “${label}” — Journal`} description={`Journal entries tagged ${label}.`}>
+  <Breadcrumb.Root class="mb-8"><Breadcrumb.List><Breadcrumb.Item><Breadcrumb.Link href={withBase('/journal/')}>Journal</Breadcrumb.Link></Breadcrumb.Item><Breadcrumb.Separator /><Breadcrumb.Item><Breadcrumb.Page>Tag: {label}</Breadcrumb.Page></Breadcrumb.Item></Breadcrumb.List></Breadcrumb.Root>
+  <header class="mb-10 max-w-3xl">
+    <p class="text-xs font-semibold uppercase tracking-[0.18em] text-muted-foreground">{entries.length} {entries.length === 1 ? 'entry' : 'entries'}</p>
+    <h1 class="mt-3 text-4xl font-semibold tracking-tight">#{label}</h1>
+    <p class="mt-4 text-base leading-8 text-muted-foreground">Writing filed under {label}.</p>
+  </header>
+  <JournalEntryList
+    client:load
+    initialEntries={initialEntries}
+    nextPageUrl={nextPageUrl}
+    ariaLabel={`Journal entries tagged ${label}`}
+  />
+  <noscript>
+    <ol class="mt-3 space-y-3" aria-label={`Entries tagged ${label}`}>
+      {entries.slice(JOURNAL_PAGE_SIZE).map((entry, index) => (
+        <li>
+          <article class="rounded-2xl border border-border p-4">
+            <div class="flex items-start justify-between gap-4">
+              <div class="flex min-w-0 gap-4">
+                <span class="pt-1 text-xs tabular-nums text-muted-foreground">{String(index + JOURNAL_PAGE_SIZE + 1).padStart(2, '0')}</span>
+                <div class="min-w-0">
+                  <h2 class="font-semibold tracking-tight"><a href={entryHref(entry.data.id)} class="no-underline hover:underline">{entry.data.title}</a></h2>
+                  <p class="mt-2 max-w-2xl text-sm leading-6 text-muted-foreground">{entry.data.summary}</p>
+                  <nav class="mt-3 flex max-w-full flex-nowrap gap-2 overflow-x-auto pb-1 sm:flex-wrap sm:overflow-visible" aria-label={`Tags for ${entry.data.title}`}>
+                    {entry.data.tags.map((tag) => <a href={tagHref(tag)} class="shrink-0 rounded-full border border-border px-2.5 py-1 text-xs no-underline">{tag}</a>)}
+                  </nav>
+                </div>
+              </div>
+              <time class="shrink-0 text-xs text-muted-foreground">{entry.data.date.toLocaleDateString('en', { dateStyle: 'medium', timeZone: 'UTC' })}</time>
+            </div>
+          </article>
+        </li>
+      ))}
+    </ol>
+  </noscript>
+</BaseLayout>

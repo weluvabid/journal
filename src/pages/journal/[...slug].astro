@@ -6,6 +6,7 @@ import { ArrowLeft } from '@weluvabid/iris/lucide';
 import ArticleNavigation from '@components/article/ArticleNavigation.svelte';
 import { categoryById } from '@data/categories';
 import { withBase, entryHref } from '@lib/journal';
+import { tagHref } from '@lib/journal-tags';
 export async function getStaticPaths() {
   const entries = await getCollection('journal', ({ data }) => !data.draft);
   return entries.map((entry) => ({ params: { slug: entry.data.id }, props: { entry } }));
@@ -28,7 +29,7 @@ const nextEntry = groupedEntries[currentIndex + 1];
       <div class="flex flex-wrap items-center gap-2 text-xs text-muted-foreground"><Badge.Badge variant="secondary">{category.name}</Badge.Badge><Badge.Badge variant="outline" class="capitalize">{entry.data.type.replaceAll('-', ' ')}</Badge.Badge><time datetime={entry.data.date.toISOString()}>{entry.data.date.toLocaleDateString('en', { dateStyle: 'long' })}</time></div>
       <h1 class="mt-4 text-balance text-3xl font-semibold tracking-tight sm:text-4xl">{entry.data.title}</h1>
       <p class="mt-5 text-base leading-8 text-muted-foreground">{entry.data.summary}</p>
-      <div class="mt-5 flex flex-wrap gap-2">{entry.data.tags.map((tag) => <Badge.Badge variant="outline">{tag}</Badge.Badge>)}</div>
+      <nav class="mt-5 flex max-w-full flex-nowrap gap-2 overflow-x-auto pb-1 sm:flex-wrap sm:overflow-visible sm:pb-0" aria-label="Article tags">{entry.data.tags.map((tag) => <a href={tagHref(tag)} class="shrink-0 rounded-full border border-border px-2.5 py-1 text-xs text-foreground no-underline transition-colors hover:bg-muted focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring">{tag}</a>)}</nav>
     </header>
     <div class="prose-journal"><Content /></div>
     <div class="mt-10"><Button.Root variant="ghost" href={withBase(`/journal/category/${category.id}/`)}><ArrowLeft class="size-4" aria-hidden="true" />Back to {category.name}</Button.Root></div>
