@@ -11,10 +11,11 @@ test('category landing pages keep the category description out of visible conten
   assert.doesNotMatch(page, /<p[^>]*>\s*\{category\.description\}\s*<\/p>/);
 });
 
-test('homepage category cards show the category name and count without redundant explanations', async () => {
+test('homepage omits the topic directory in favour of selected projects and recent writing', async () => {
   const page = await read('src/pages/index.astro');
 
-  assert.match(page, /<Card\.Title>\{category\.name\}<\/Card\.Title>/);
-  assert.match(page, /\{count\} \{count === 1 \? ' entry' : ' entries'\}/);
-  assert.doesNotMatch(page, /<Card\.Description>\{category\.description\}<\/Card\.Description>/);
+  assert.doesNotMatch(page, /Browse by topic|Journal categories|categories\.map|@data\/categories/);
+  assert.match(page, /Selected projects/);
+  assert.match(page, /const selectedProjects = projects\.slice\(0, 4\)/);
+  assert.match(page, /const latestEntries = entries\.slice\(0, 5\)/);
 });

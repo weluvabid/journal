@@ -41,7 +41,8 @@ test('homepage and project archive use the shared card foundation', async () => 
   const home = await read('../src/pages/index.astro');
   const projects = await read('../src/pages/projects/index.astro');
 
-  assert.match(home, /import ContentCard from '@components\/cards\/ContentCard\.svelte'/);
+  assert.match(home, /import ProjectCard from '@components\/cards\/ProjectCard\.svelte'/);
+  assert.match(home, /import JournalEntryCard from '@components\/cards\/JournalEntryCard\.svelte'/);
   assert.match(projects, /import ProjectCard from '@components\/cards\/ProjectCard\.svelte'/);
   assert.match(projects, /<ProjectCard\s+project=\{project\.data\}/);
   assert.doesNotMatch(projects, /<a href=\{withBase\(`\/projects\//);
@@ -64,33 +65,33 @@ test('no-JavaScript journal fallbacks reuse the same journal entry card', async 
   }
 });
 
-test('homepage card numbering continues across topics, writing, and projects', async () => {
+test('homepage card numbering runs from the four projects into the five journal entries', async () => {
   const home = await read('../src/pages/index.astro');
 
-  assert.match(home, /index=\{index \+ categories\.length\}/);
-  assert.match(home, /number=\{categories\.length \+ featured\.length \+ index \+ 1\}/);
+  assert.match(home, /number=\{index \+ 1\}/);
+  assert.match(home, /index=\{index \+ selectedProjects\.length\}/);
 });
 
-test('homepage keyboard navigation treats topics, writing, and projects as one collection', async () => {
+test('homepage keyboard navigation treats projects and writing as one collection in display order', async () => {
   const home = await read('../src/pages/index.astro');
 
   assert.equal((home.match(/data-keyboard-navigation="primary"/g) ?? []).length, 1);
   assert.match(
     home,
-    /<div data-keyboard-navigation="primary">[\s\S]*aria-labelledby="areas-heading"[\s\S]*aria-labelledby="featured-heading"[\s\S]*aria-labelledby="projects-heading"[\s\S]*<\/div>\s*<\/BaseLayout>/,
+    /<div data-keyboard-navigation="primary">[\s\S]*aria-labelledby="projects-heading"[\s\S]*aria-labelledby="featured-heading"[\s\S]*<\/div>\s*<\/BaseLayout>/,
   );
   assert.match(home, /<JournalEntryCard[\s\S]*entry=\{\{/);
   assert.match(home, /href=\{withBase\(`\/projects\/\$\{project\.data\.id\}\/`\)\}/);
 });
 
-test('featured journal and project cards expose independent tag links', async () => {
+test('homepage journal and project cards expose independent tag links', async () => {
   const home = await read('../src/pages/index.astro');
   const projects = await read('../src/pages/projects/index.astro');
   const projectDetail = await read('../src/pages/projects/[...slug].astro');
   const projectTagArchive = await read('../src/pages/projects/tag/[...slug].astro');
   const projectCard = await read('../src/components/cards/ProjectCard.svelte');
 
-  assert.match(home, /<JournalEntryCard[\s\S]*variant="featured"/);
+  assert.match(home, /<JournalEntryCard[\s\S]*index=\{index \+ selectedProjects\.length\}/);
   assert.match(home, /<ProjectCard\s+project=\{project\.data}/);
   assert.match(
     projectCard,
@@ -182,17 +183,17 @@ test('every card and detail-page tag wrapper is constrained to its available wid
     assert.match(source, /block w-full min-w-0 max-w-full/);
   }
 
-  assert.match(home, /<JournalEntryCard[\s\S]*variant="featured"/);
+  assert.match(home, /<JournalEntryCard[\s\S]*index=\{index \+ selectedProjects\.length\}/);
   assert.match(projectCard, /mt-auto block w-full min-w-0 max-w-full/);
   assert.match(journalDetail, /<TagList tags=\{entry\.data\.tags}/);
   assert.doesNotMatch(journalDetail, /entry\.data\.tags\.map/);
 });
 
-test('homepage featured writing uses the shared journal card and canonical categories', async () => {
+test('homepage recent writing uses the shared journal card without duplicating tag markup', async () => {
   const home = await read('../src/pages/index.astro');
 
   assert.match(home, /import JournalEntryCard from '@components\/cards\/JournalEntryCard\.svelte'/);
-  assert.match(home, /import \{ categories \} from '@data\/categories'/);
-  assert.match(home, /variant="featured"/);
+  assert.match(home, /const latestEntries = entries\.slice\(0, 5\)/);
+  assert.match(home, /<ol class="space-y-3"/);
   assert.doesNotMatch(home, /import TagList from/);
 });
