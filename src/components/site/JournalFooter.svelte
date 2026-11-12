@@ -1,6 +1,6 @@
 <script lang="ts">
   import { SiteFooter, Button, Tooltip } from '@weluvabid/iris/components';
-  import { FileText, FolderKanban } from '@weluvabid/iris/lucide';
+  import { BookSearch, FileText, FolderKanban } from '@weluvabid/iris/lucide';
   import { SiGithub } from '@weluvabid/iris/simple-icons';
   import { withBase } from '@lib/journal';
   import GhostMark from '@components/brand/GhostMark.svelte';
@@ -16,8 +16,17 @@
     >
       <Button.Root
         variant="ghost"
+        href={withBase('/journal/')}
+        class="h-auto min-h-14 min-w-20 flex-col gap-1 rounded-xl px-3 py-2 text-muted-foreground hover:text-foreground"
+        aria-label="Writing"
+      >
+        <BookSearch class="size-5" aria-hidden="true" />
+        <span class="text-xs leading-none">Writing</span>
+      </Button.Root>
+      <Button.Root
+        variant="ghost"
         href={withBase('/projects/')}
-        class="h-auto min-h-14 min-w-24 flex-col gap-1 rounded-xl px-5 py-2 text-muted-foreground hover:text-foreground"
+        class="h-auto min-h-14 min-w-20 flex-col gap-1 rounded-xl px-3 py-2 text-muted-foreground hover:text-foreground"
       >
         <FolderKanban class="size-5" aria-hidden="true" />
         <span class="text-xs leading-none">Projects</span>
@@ -27,7 +36,7 @@
         href="https://example.com/resume"
         target="_blank"
         rel="noopener noreferrer"
-        class="h-auto min-h-14 min-w-24 flex-col gap-1 rounded-xl px-5 py-2 text-muted-foreground hover:text-foreground"
+        class="h-auto min-h-14 min-w-20 flex-col gap-1 rounded-xl px-3 py-2 text-muted-foreground hover:text-foreground"
         aria-label="Resume (opens in a new tab)"
       >
         <FileText class="size-5" aria-hidden="true" />
