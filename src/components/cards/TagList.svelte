@@ -11,46 +11,46 @@
   let { tags = [], label, collection = 'journal' }: Props = $props();
   let viewport: HTMLElement;
   let track: HTMLDivElement;
+  let canScrollLeft = $state(false);
   let canScrollRight = $state(false);
 
-  function updateScrollAffordance() {
+  function updateScrollAffordances() {
     if (!viewport) return;
 
-    const maxScrollLeft = viewport.scrollWidth - viewport.clientWidth;
+    const maxScrollLeft = Math.max(0, viewport.scrollWidth - viewport.clientWidth);
+    canScrollLeft = maxScrollLeft > 1 && viewport.scrollLeft > 1;
     canScrollRight = maxScrollLeft > 1 && viewport.scrollLeft < maxScrollLeft - 1;
   }
 
   onMount(() => {
     if (!viewport || !track) return;
 
-    viewport.addEventListener('scroll', updateScrollAffordance, { passive: true });
+    viewport.addEventListener('scroll', updateScrollAffordances, { passive: true });
 
     if (typeof ResizeObserver !== 'undefined') {
-      const resizeObserver = new ResizeObserver(updateScrollAffordance);
+      const resizeObserver = new ResizeObserver(updateScrollAffordances);
       resizeObserver.observe(viewport);
       resizeObserver.observe(track);
-
-      updateScrollAffordance();
+      updateScrollAffordances();
 
       return () => {
-        viewport.removeEventListener('scroll', updateScrollAffordance);
+        viewport.removeEventListener('scroll', updateScrollAffordances);
         resizeObserver.disconnect();
       };
     }
 
-    window.addEventListener('resize', updateScrollAffordance);
-    updateScrollAffordance();
+    window.addEventListener('resize', updateScrollAffordances);
+    updateScrollAffordances();
 
     return () => {
-      viewport.removeEventListener('scroll', updateScrollAffordance);
-      window.removeEventListener('resize', updateScrollAffordance);
+      viewport.removeEventListener('scroll', updateScrollAffordances);
+      window.removeEventListener('resize', updateScrollAffordances);
     };
   });
 
   $effect(() => {
-    const currentTags = tags;
-    void currentTags;
-    void tick().then(updateScrollAffordance);
+    void tags;
+    void tick().then(updateScrollAffordances);
   });
 </script>
 
@@ -74,7 +74,13 @@
       </div>
     </div>
     <span
-      class="pointer-events-none absolute inset-y-0 right-0 z-10 w-8 bg-gradient-to-l from-background via-background/80 to-transparent motion-safe:transition-opacity"
+      class="pointer-events-none absolute inset-y-0 left-0 z-10 w-3 shadow-[inset_12px_0_16px_-14px_rgba(255,255,255,0.18)] motion-safe:transition-opacity"
+      class:opacity-100={canScrollLeft}
+      class:opacity-0={!canScrollLeft}
+      aria-hidden="true"
+    ></span>
+    <span
+      class="pointer-events-none absolute inset-y-0 right-0 z-10 w-3 shadow-[inset_-12px_0_16px_-14px_rgba(255,255,255,0.18)] motion-safe:transition-opacity"
       class:opacity-100={canScrollRight}
       class:opacity-0={!canScrollRight}
       aria-hidden="true"

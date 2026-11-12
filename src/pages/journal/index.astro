@@ -31,23 +31,14 @@ const nextPageUrl = nextPage === null ? null : withBase(`/journal/data/all/${nex
   title="Journal — Writing and engineering notes"
   description="Engineering notes, build logs, deep dives and retrospectives."
 >
-  <header class="mb-10 max-w-3xl">
-    <p class="text-xs font-semibold uppercase tracking-[0.18em] text-muted-foreground">
-      The journal
-    </p>
-    <h1 class="mt-3 text-4xl font-semibold tracking-tight">Writing & notes</h1>
-    <p class="mt-4 text-base leading-8 text-muted-foreground">
-      An evolving record of experiments, implementation decisions, technical explorations and
-      lessons from building software.
-    </p>
-  </header>
-  <div class="mb-6 max-w-xs">
-    <CategorySelect client:load categories={categories} base={import.meta.env.BASE_URL} />
-  </div>
-  <p class="mb-5 text-xs text-muted-foreground">
+  <h1 class="sr-only">Journal</h1>
+  <p class="mb-4 text-xs font-semibold uppercase tracking-[0.18em] text-muted-foreground">
     {entries.length}
     {entries.length === 1 ? 'entry' : 'entries'}
   </p>
+  <div class="mb-6 min-w-0 max-w-full">
+    <CategorySelect client:load categories={categories} base={import.meta.env.BASE_URL} />
+  </div>
   <JournalEntryList
     client:load
     initialEntries={initialEntries}

@@ -49,14 +49,11 @@ const nextPageUrl =
       ></Breadcrumb.List
     ></Breadcrumb.Root
   >
-  <header class="mb-10 max-w-3xl">
-    <p class="text-xs font-semibold uppercase tracking-[0.18em] text-muted-foreground">
-      {entries.length} entries
-    </p>
-    <h1 class="mt-3 text-4xl font-semibold tracking-tight">{category.name}</h1>
-    <p class="mt-4 text-base leading-8 text-muted-foreground">{category.description}</p>
-  </header>
-  <div class="mb-6 max-w-xs">
+  <h1 class="sr-only">{category.name}</h1>
+  <p class="mb-4 text-xs font-semibold uppercase tracking-[0.18em] text-muted-foreground">
+    {entries.length} {entries.length === 1 ? 'entry' : 'entries'}
+  </p>
+  <div class="mb-6 min-w-0 max-w-full">
     <CategorySelect
       client:load
       categories={categories}
