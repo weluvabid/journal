@@ -3,6 +3,8 @@
   import { FileText, FolderKanban } from '@weluvabid/iris/lucide';
   import { SiGithub } from '@weluvabid/iris/simple-icons';
   import { withBase } from '@lib/journal';
+  import ghostMark from '../../../brand/me/brand/mark.svg?url';
+  import ghostMarkLight from '../../../brand/me/brand/mark-dark.svg?url';
 </script>
 
 <Tooltip.Provider delayDuration={300}>
@@ -41,7 +43,22 @@
       href={withBase('/')}
       aria-label="Journal home"
     >
-      fa
+      <img
+        src={ghostMarkLight}
+        alt=""
+        aria-hidden="true"
+        width="35"
+        height="32"
+        class="block h-8 w-auto dark:hidden"
+      />
+      <img
+        src={ghostMark}
+        alt=""
+        aria-hidden="true"
+        width="35"
+        height="32"
+        class="hidden h-8 w-auto dark:block"
+      />
     </a>
     <Tooltip.Root>
       <Tooltip.Trigger>

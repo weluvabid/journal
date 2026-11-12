@@ -8,6 +8,8 @@
   import HelpDialog from '@components/site/HelpDialog.svelte';
   import { installKeyboardController } from '@lib/keyboard/controller';
   import { withBase } from '@lib/journal';
+  import ghostMark from '../../../brand/me/brand/mark.svg?url';
+  import ghostMarkLight from '../../../brand/me/brand/mark-dark.svg?url';
 
   let theme = $state<'light' | 'dark'>('light');
   let searchOpen = $state(false);
@@ -39,7 +41,22 @@
       href={withBase('/')}
       aria-label="Journal home"
     >
-      fa
+      <img
+        src={ghostMarkLight}
+        alt=""
+        aria-hidden="true"
+        width="35"
+        height="32"
+        class="block h-8 w-auto dark:hidden"
+      />
+      <img
+        src={ghostMark}
+        alt=""
+        aria-hidden="true"
+        width="35"
+        height="32"
+        class="hidden h-8 w-auto dark:block"
+      />
     </a>
 
     <nav class="flex shrink-0 items-center gap-1" aria-label="Primary navigation">
