@@ -36,7 +36,7 @@ test('article action component uses the existing Simple Icons exports', async ()
 test('article page renders resource actions only when frontmatter supplies links', async () => {
   const page = await read('src/pages/journal/[...slug].astro');
   assert.match(page, /import ArticleActions from '@components\/article\/ArticleActions\.svelte'/);
-  assert.match(page, /entry\.data\.links && <ArticleActions links=\{entry\.data\.links\}/);
+  assert.match(page, /entry\.data\.links && <ArticleActions client:load links=\{entry\.data\.links\}/);
 });
 
 test('StackBlitz and Mermaid test links are attached to relevant articles', async () => {

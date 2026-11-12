@@ -1,6 +1,6 @@
 <script lang="ts">
   import { SiteFooter, Button, Tooltip } from '@weluvabid/iris/components';
-  import { BookSearch, FileText, FolderKanban } from '@weluvabid/iris/lucide';
+  import { NotebookText, FileText, FolderKanban } from '@weluvabid/iris/lucide';
   import { SiGithub } from '@weluvabid/iris/simple-icons';
   import { withBase } from '@lib/journal';
   import GhostMark from '@components/brand/GhostMark.svelte';
@@ -20,7 +20,7 @@
         class="h-auto min-h-14 min-w-20 flex-col gap-1 rounded-xl px-3 py-2 text-muted-foreground hover:text-foreground"
         aria-label="Writing"
       >
-        <BookSearch class="size-5" aria-hidden="true" />
+        <NotebookText class="size-5" aria-hidden="true" />
         <span class="text-xs leading-none">Writing</span>
       </Button.Root>
       <Button.Root

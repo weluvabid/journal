@@ -31,7 +31,7 @@ const nextEntry = groupedEntries[currentIndex + 1];
       <h1 class="mt-4 text-balance text-3xl font-semibold tracking-tight sm:text-4xl">{entry.data.title}</h1>
       <p class="mt-5 text-base leading-8 text-muted-foreground">{entry.data.summary}</p>
       <div class="inline-block min-w-0 max-w-full"><TagList tags={entry.data.tags} label={entry.data.title} /></div>
-      {entry.data.links && <ArticleActions links={entry.data.links} title={entry.data.title} />}
+      {entry.data.links && <ArticleActions client:load links={entry.data.links} title={entry.data.title} />}
     </header>
     <div class="prose-journal"><Content /></div>
     <div class="mt-10"><Button.Root variant="ghost" href={withBase(`/journal/category/${category.id}/`)}><ArrowLeft class="size-4" aria-hidden="true" />Back to {category.name}</Button.Root></div>
