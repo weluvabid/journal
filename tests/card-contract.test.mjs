@@ -77,7 +77,7 @@ test('featured journal and project cards expose independent tag links', async ()
   assert.match(home, /<TagList tags=\{entry\.data\.tags\} label=\{entry\.data\.title\} \/>/);
   assert.match(home, /<ProjectCard project=\{project\.data\}/);
   assert.match(projectCard, /<TagList tags=\{project\.tags \?\? \[\]\} label=\{project\.title\} collection="projects" \/>/);
-  assert.match(projectCard, /pointer-events-auto mt-auto inline-block/);
+  assert.match(projectCard, /pointer-events-auto mt-auto inline-block self-start/);
   assert.match(projects, /<ProjectCard project=\{project\.data\}/);
   assert.match(projectDetail, /collection="projects"/);
   assert.match(projectTagArchive, /groupProjectsByTag\(projects\)/);
@@ -131,7 +131,7 @@ test('project cards share the journal card interaction and layout contract', asy
 
   assert.match(projectCard, /<ContentCard \{href\} label=\{`View project \$\{project\.title\}`\}/);
   assert.match(projectCard, /pointer-events-none flex h-full flex-col/);
-  assert.match(projectCard, /pointer-events-auto mt-auto inline-block/);
+  assert.match(projectCard, /pointer-events-auto mt-auto inline-block self-start/);
   assert.match(projectCard, /<Badge\.Badge variant="outline"/);
   assert.match(projectCard, /collection="projects"/);
   assert.match(journalCard, /pointer-events-none flex flex-col/);
