@@ -3,6 +3,7 @@ id: jsonplus
 title: "JSONPlus"
 summary: "A developer utility focused on making JSON workflows easier to inspect and work with."
 status: released
+tags: [typescript, json, developer-tools]
 stack: [TypeScript, Developer tools]
 github: "https://github.com/weluvabid/jsonplus"
 featured: false

@@ -3,6 +3,7 @@ id: frontend-atlas
 title: "Frontend Atlas"
 summary: "A carefully structured field guide to frontend engineering, browser mechanics and the reasoning behind interface systems."
 status: released
+tags: [astro, svelte, typescript, frontend, accessibility]
 stack: [Astro, Svelte, TypeScript]
 github: "https://github.com/weluvabid/frontend-atlas"
 featured: true

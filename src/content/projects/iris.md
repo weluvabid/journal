@@ -3,6 +3,7 @@ id: iris
 title: "Iris"
 summary: "A reusable UI foundation built around accessible primitives, consistent interaction patterns and practical component composition."
 status: released
+tags: [svelte, typescript, tailwind-css, design-systems, accessibility]
 stack: [Svelte, TypeScript, Tailwind CSS]
 github: "https://github.com/weluvabid/iris"
 featured: true

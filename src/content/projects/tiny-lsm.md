@@ -3,6 +3,7 @@ id: tiny-lsm
 title: "Tiny-LSM"
 summary: "A small exploration of log-structured merge-tree storage concepts and the mechanics behind write-optimized storage."
 status: experimental
+tags: [rust, storage-engines, algorithms, databases]
 stack: [Rust, Storage engines, Algorithms]
 github: "https://github.com/weluvabid/tiny-lsm"
 featured: true

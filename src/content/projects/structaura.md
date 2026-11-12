@@ -3,6 +3,7 @@ id: structaura
 title: "Structaura"
 summary: "An engineering project exploring structured data and deliberate software boundaries."
 status: experimental
+tags: [typescript, architecture, structured-data]
 stack: [TypeScript, Architecture]
 github: "https://github.com/weluvabid/structaura"
 featured: false

@@ -3,6 +3,7 @@ id: pulse
 title: "Pulse"
 summary: "A focused web experience built with reusable interface patterns and a deliberately restrained visual system."
 status: released
+tags: [svelte, typescript, frontend, interface-design]
 stack: [Svelte, TypeScript]
 github: "https://github.com/weluvabid/pulse"
 featured: false

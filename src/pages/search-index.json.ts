@@ -23,6 +23,7 @@ export const GET: APIRoute = async () => {
   }));
   const projects = await getCollection('projects');
   for (const project of projects) {
+    const tags = project.data.tags ?? [];
     documents.push({
       id: `project-${project.data.id}`,
       slug: project.data.id,
@@ -31,12 +32,12 @@ export const GET: APIRoute = async () => {
       summary: project.data.summary,
       difficulty: 'intermediate',
       minutes: 0,
-      tags: project.data.stack,
-      searchTerms: project.data.stack,
+      tags,
+      searchTerms: [...project.data.stack, ...tags],
       prerequisites: [],
       related: [],
       featured: project.data.featured,
-      searchableText: normalizeSearchText([project.data.title, project.data.summary, entryBody(project.body), ...project.data.stack].join(' ')),
+      searchableText: normalizeSearchText([project.data.title, project.data.summary, entryBody(project.body), ...project.data.stack, ...tags].join(' ')),
       href: withBase(`/projects/${project.data.id}/`),
       kind: 'project',
     });

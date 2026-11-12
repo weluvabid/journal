@@ -1,0 +1,30 @@
+---
+import { getCollection } from 'astro:content';
+import BaseLayout from '@layouts/BaseLayout.astro';
+import { Breadcrumb } from '@weluvabid/iris/components';
+import ProjectCard from '@components/cards/ProjectCard.svelte';
+import { withBase } from '@lib/journal';
+import { groupProjectsByTag } from '@lib/journal-tags';
+
+export async function getStaticPaths() {
+  const projects = (await getCollection('projects')).sort((left, right) => left.data.order - right.data.order);
+
+  return [...groupProjectsByTag(projects).entries()].map(([slug, group]) => ({
+    params: { slug },
+    props: { slug, label: group.label, projects: group.entries },
+  }));
+}
+
+const { label, projects } = Astro.props;
+---
+<BaseLayout title={`Projects tagged “${label}” — Projects`} description={`Projects tagged ${label}.`}>
+  <Breadcrumb.Root class="mb-8"><Breadcrumb.List><Breadcrumb.Item><Breadcrumb.Link href={withBase('/projects/')}>Projects</Breadcrumb.Link></Breadcrumb.Item><Breadcrumb.Separator /><Breadcrumb.Item><Breadcrumb.Page>Tag: {label}</Breadcrumb.Page></Breadcrumb.Item></Breadcrumb.List></Breadcrumb.Root>
+  <header class="mb-10 max-w-3xl">
+    <p class="text-xs font-semibold uppercase tracking-[0.18em] text-muted-foreground">{projects.length} {projects.length === 1 ? 'project' : 'projects'}</p>
+    <h1 class="mt-3 text-4xl font-semibold tracking-tight">#{label}</h1>
+    <p class="mt-4 text-base leading-8 text-muted-foreground">Projects filed under {label}.</p>
+  </header>
+  <div class="grid items-stretch gap-3 sm:grid-cols-2">
+    {projects.map((project) => <ProjectCard project={project.data} href={withBase(`/projects/${project.data.id}/`)} class="h-full" />)}
+  </div>
+</BaseLayout>

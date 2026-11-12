@@ -28,6 +28,7 @@ const projects = defineCollection({
     summary: z.string().min(30).max(240),
     status: z.enum(['active', 'released', 'experimental']),
     stack: z.array(z.string().min(1)).min(1).max(12),
+    tags: z.array(z.string().min(2)).max(12).default([]),
     github: z.string().url().optional(),
     demo: z.string().url().optional(),
     featured: z.boolean().default(false),

@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { groupEntriesByTag, tagHref, tagToSlug } from '../src/lib/journal-tags.ts';
+import { groupEntriesByTag, groupProjectsByTag, tagHref, tagToSlug } from '../src/lib/journal-tags.ts';
 
 test('tag slugs are stable, lowercase, and URL safe', () => {
   assert.equal(tagToSlug('Developer Tools'), 'developer-tools');
@@ -15,6 +15,19 @@ test('tag slugs reject values that cannot produce a usable route', () => {
 
 test('tag archive links use the canonical route', () => {
   assert.equal(tagHref('developer-tools'), '/journal/tag/developer-tools/');
+});
+
+test('project tag links use an isolated projects archive route', () => {
+  assert.equal(tagHref('developer-tools', 'projects'), '/projects/tag/developer-tools/');
+});
+
+test('projects are grouped independently by their own tags', () => {
+  const first = { data: { tags: ['rust', 'storage'] } };
+  const second = { data: { tags: ['rust', 'performance'] } };
+  const groups = groupProjectsByTag([first, second]);
+
+  assert.deepEqual([...groups.keys()], ['performance', 'rust', 'storage']);
+  assert.deepEqual(groups.get('rust')?.entries, [first, second]);
 });
 
 test('entries are grouped once per tag and preserve source ordering', () => {

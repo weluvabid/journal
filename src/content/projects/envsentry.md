@@ -3,6 +3,7 @@ id: envsentry
 title: "EnvSentry"
 summary: "A developer-focused tool for inspecting and validating environment configuration."
 status: experimental
+tags: [typescript, developer-tools, configuration]
 stack: [TypeScript, Developer tools]
 github: "https://github.com/weluvabid/envsentry"
 featured: false

@@ -17,7 +17,7 @@
       <div class="min-w-0">
         <h2 class="font-semibold tracking-tight">{entry.title}</h2>
         <p class="mt-2 max-w-2xl text-sm leading-6 text-muted-foreground">{entry.summary}</p>
-        <div class="pointer-events-auto"><TagList tags={entry.tags} label={entry.title} /></div>
+        <div class="pointer-events-auto inline-block"><TagList tags={entry.tags} label={entry.title} /></div>
       </div>
     </div>
     <div class="flex shrink-0 items-center gap-2 text-xs text-muted-foreground">

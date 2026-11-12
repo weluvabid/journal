@@ -4,6 +4,7 @@ import BaseLayout from '@layouts/BaseLayout.astro';
 import { Badge, Breadcrumb, Button, Card } from '@weluvabid/iris/components';
 import { ArrowLeft, ExternalLink } from '@weluvabid/iris/lucide';
 import { withBase } from '@lib/journal';
+import TagList from '@components/cards/TagList.svelte';
 export async function getStaticPaths() {
   const projects = await getCollection('projects');
   return projects.map((entry) => ({ params: { slug: entry.data.id }, props: { entry } }));
@@ -14,7 +15,7 @@ const { Content } = await render(entry);
 <BaseLayout title={`${entry.data.title} — Projects`} description={entry.data.summary}>
   <article class="mx-auto max-w-3xl">
     <Breadcrumb.Root class="mb-8"><Breadcrumb.List><Breadcrumb.Item><Breadcrumb.Link href={withBase('/projects/')}>Projects</Breadcrumb.Link></Breadcrumb.Item><Breadcrumb.Separator /><Breadcrumb.Item><Breadcrumb.Page>{entry.data.title}</Breadcrumb.Page></Breadcrumb.Item></Breadcrumb.List></Breadcrumb.Root>
-    <header class="mb-10 border-b border-border pb-8"><div class="flex flex-wrap items-center gap-2 text-xs text-muted-foreground"><Badge.Badge variant="outline" class="capitalize">{entry.data.status}</Badge.Badge>{entry.data.stack.map((item) => <Badge.Badge variant="secondary">{item}</Badge.Badge>)}</div><h1 class="mt-4 text-balance text-3xl font-semibold tracking-tight sm:text-4xl">{entry.data.title}</h1><p class="mt-5 text-base leading-8 text-muted-foreground">{entry.data.summary}</p><div class="mt-5 flex flex-wrap gap-3">{entry.data.github && <Button.Root variant="outline" href={entry.data.github} target="_blank" rel="noopener noreferrer">GitHub <ExternalLink class="size-4" aria-hidden="true" /></Button.Root>}{entry.data.demo && <Button.Root variant="outline" href={entry.data.demo} target="_blank" rel="noopener noreferrer">Live demo <ExternalLink class="size-4" aria-hidden="true" /></Button.Root>}</div></header>
+    <header class="mb-10 border-b border-border pb-8"><div class="flex flex-wrap items-center gap-2 text-xs text-muted-foreground"><Badge.Badge variant="outline" class="capitalize">{entry.data.status}</Badge.Badge></div><div class="pointer-events-auto inline-block mt-3"><TagList tags={entry.data.tags} label={entry.data.title} collection="projects" /></div><h1 class="mt-4 text-balance text-3xl font-semibold tracking-tight sm:text-4xl">{entry.data.title}</h1><p class="mt-5 text-base leading-8 text-muted-foreground">{entry.data.summary}</p><div class="mt-5 flex flex-wrap gap-3">{entry.data.github && <Button.Root variant="outline" href={entry.data.github} target="_blank" rel="noopener noreferrer">GitHub <ExternalLink class="size-4" aria-hidden="true" /></Button.Root>}{entry.data.demo && <Button.Root variant="outline" href={entry.data.demo} target="_blank" rel="noopener noreferrer">Live demo <ExternalLink class="size-4" aria-hidden="true" /></Button.Root>}</div></header>
     <div class="prose-journal"><Content /></div>
     <div class="mt-10"><Button.Root variant="ghost" href={withBase('/projects/')}><ArrowLeft class="size-4" aria-hidden="true" />Back to projects</Button.Root></div>
   </article>
