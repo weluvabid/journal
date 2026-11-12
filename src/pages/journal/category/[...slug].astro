@@ -4,9 +4,9 @@ import BaseLayout from '@layouts/BaseLayout.astro';
 import { Breadcrumb } from '@weluvabid/iris/components';
 import CategorySelect from '@components/journal/CategorySelect.svelte';
 import JournalEntryList from '@components/journal/JournalEntryList.svelte';
+import JournalEntryCard from '@components/cards/JournalEntryCard.svelte';
 import { categories, categoryById } from '@data/categories';
 import { entryHref, withBase } from '@lib/journal';
-import { tagHref } from '@lib/journal-tags';
 import { JOURNAL_PAGE_SIZE, paginateItems } from '@lib/journal-pagination';
 
 export async function getStaticPaths() {
@@ -52,22 +52,22 @@ const nextPageUrl = nextPage === null
     ariaLabel={`Entries in ${category.name}`}
   />
   <noscript>
-    <ol class="mt-3 space-y-3" aria-label="Remaining category entries">
+    <ol class="mt-3 space-y-3" aria-label={`Entries in ${category.name}`}>
       {entries.slice(JOURNAL_PAGE_SIZE).map((entry, index) => (
         <li>
-          <article class="rounded-2xl border border-border p-4">
-              <div class="flex items-start justify-between gap-4">
-                <div class="flex min-w-0 gap-4">
-                  <span class="pt-1 text-xs tabular-nums text-muted-foreground">{String(index + JOURNAL_PAGE_SIZE + 1).padStart(2, '0')}</span>
-                  <div class="min-w-0">
-                    <h2 class="font-semibold tracking-tight"><a href={entryHref(entry.data.id)} class="no-underline hover:underline">{entry.data.title}</a></h2>
-                    <p class="mt-2 max-w-2xl text-sm leading-6 text-muted-foreground">{entry.data.summary}</p>
-                    <nav class="mt-3 flex max-w-full flex-nowrap gap-2 overflow-x-auto pb-1 sm:flex-wrap sm:overflow-visible sm:pb-0" aria-label={`Tags for ${entry.data.title}`}>{entry.data.tags.map((tag) => <a href={tagHref(tag)} class="shrink-0 rounded-full border border-border px-2.5 py-1 text-xs no-underline">{tag}</a>)}</nav>
-                  </div>
-                </div>
-                <time class="shrink-0 text-xs text-muted-foreground">{entry.data.date.toLocaleDateString('en', { dateStyle: 'medium', timeZone: 'UTC' })}</time>
-              </div>
-          </article>
+          <JournalEntryCard
+            entry={{
+              id: entry.data.id,
+              title: entry.data.title,
+              summary: entry.data.summary,
+              type: entry.data.type,
+              date: entry.data.date.toISOString(),
+              dateLabel: entry.data.date.toLocaleDateString('en', { dateStyle: 'medium', timeZone: 'UTC' }),
+              tags: entry.data.tags,
+              href: entryHref(entry.data.id),
+            }}
+            index={index + JOURNAL_PAGE_SIZE}
+          />
         </li>
       ))}
     </ol>

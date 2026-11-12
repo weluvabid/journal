@@ -1,9 +1,8 @@
 <script lang="ts">
   import { onDestroy } from 'svelte';
   import { InfiniteLoader, LoaderState } from 'svelte-infinite';
-  import { Card } from '@weluvabid/iris/components';
+  import JournalEntryCard from '@components/cards/JournalEntryCard.svelte';
   import { JOURNAL_PAGE_SIZE } from '@lib/journal-pagination';
-  import { tagHref } from '@lib/journal-tags';
 
   interface JournalEntry {
     readonly id: string;
@@ -144,41 +143,7 @@
 </script>
 
 {#snippet entryCard(entry: JournalEntry, index: number)}
-  <li>
-    <Card.Root size="sm" class="rounded-2xl border border-border transition-colors hover:ring-1 hover:ring-ring/50">
-      <Card.Content class="flex flex-col gap-3 p-4 sm:flex-row sm:items-start sm:justify-between">
-        <div class="flex min-w-0 gap-4">
-          <span class="pt-1 text-xs tabular-nums text-muted-foreground">{String(index + 1).padStart(2, '0')}</span>
-          <div class="min-w-0">
-            <h2 class="font-semibold tracking-tight">
-              <a
-                href={entry.href}
-                data-card-navigation
-                class="rounded-sm no-underline outline-offset-4 hover:underline focus-visible:outline-2 focus-visible:outline-ring"
-              >{entry.title}</a>
-            </h2>
-            <p class="mt-2 max-w-2xl text-sm leading-6 text-muted-foreground">{entry.summary}</p>
-            <nav
-              class="mt-3 flex max-w-full snap-x snap-mandatory flex-nowrap gap-2 overflow-x-auto overscroll-x-contain pb-1 sm:flex-wrap sm:overflow-visible sm:pb-0"
-              aria-label={`Tags for ${entry.title}`}
-            >
-              {#each entry.tags as tag (tag)}
-                <a
-                  href={tagHref(tag)}
-                  class="inline-flex shrink-0 snap-start items-center rounded-full border border-border px-2.5 py-1 text-xs text-foreground no-underline transition-colors hover:bg-muted focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring"
-                >{tag}</a>
-              {/each}
-            </nav>
-          </div>
-        </div>
-        <div class="flex shrink-0 items-center gap-2 text-xs text-muted-foreground">
-          <time datetime={entry.date}>{entry.dateLabel}</time>
-          <span aria-hidden="true">·</span>
-          <span class="capitalize">{entry.type.replaceAll('-', ' ')}</span>
-        </div>
-      </Card.Content>
-    </Card.Root>
-  </li>
+  <li><JournalEntryCard {entry} {index} /></li>
 {/snippet}
 
 {#if initialNextPageUrl}

@@ -2,12 +2,13 @@
 import { getCollection } from 'astro:content';
 import BaseLayout from '@layouts/BaseLayout.astro';
 import { Card, Badge } from '@weluvabid/iris/components';
+import ContentCard from '@components/cards/ContentCard.svelte';
 import { withBase } from '@lib/journal';
 const projects = (await getCollection('projects')).sort((a,b) => a.data.order-b.data.order);
 ---
 <BaseLayout title="Projects — Journal" description="Selected software projects and engineering work.">
   <header class="mb-10 max-w-3xl"><p class="text-xs font-semibold uppercase tracking-[0.18em] text-muted-foreground">Selected work</p><h1 class="mt-3 text-4xl font-semibold tracking-tight">Projects</h1><p class="mt-4 text-base leading-8 text-muted-foreground">A collection of things I've built, experiments I've explored and engineering problems I've spent time understanding.</p></header>
   <div class="grid items-stretch gap-3 sm:grid-cols-2">
-    {projects.map((project) => <a href={withBase(`/projects/${project.data.id}/`)} class="block h-full rounded-2xl no-underline focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-ring"><Card.Root class="h-full rounded-2xl border border-border transition-colors hover:ring-ring/50 [--card-spacing:--spacing(5)]"><Card.Header class="flex h-full flex-col"><div class="mb-3 flex items-center justify-between gap-2"><span class="text-xs tabular-nums text-muted-foreground">{String(project.data.order).padStart(2,'0')}</span><Badge.Badge variant="outline" class="capitalize">{project.data.status}</Badge.Badge></div><Card.Title>{project.data.title}</Card.Title><Card.Description>{project.data.summary}</Card.Description><div class="mt-auto flex flex-wrap gap-2 pt-4">{project.data.stack.map((item) => <Badge.Badge variant="outline">{item}</Badge.Badge>)}</div></Card.Header></Card.Root></a>)}
+    {projects.map((project) => <ContentCard href={withBase(`/projects/${project.data.id}/`)} label={`View project ${project.data.title}`} class="h-full"><Card.Root class="h-full rounded-2xl border-0 shadow-none [--card-spacing:--spacing(5)]"><Card.Header class="flex h-full flex-col"><div class="mb-3 flex items-center justify-between gap-2"><span class="text-xs tabular-nums text-muted-foreground">{String(project.data.order).padStart(2,'0')}</span><Badge.Badge variant="outline" class="capitalize">{project.data.status}</Badge.Badge></div><Card.Title>{project.data.title}</Card.Title><Card.Description>{project.data.summary}</Card.Description><div class="mt-auto flex flex-wrap gap-2 pt-4">{project.data.stack.map((item) => <Badge.Badge variant="outline">{item}</Badge.Badge>)}</div></Card.Header></Card.Root></ContentCard>)}
   </div>
 </BaseLayout>
