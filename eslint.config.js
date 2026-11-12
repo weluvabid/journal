@@ -1,4 +1,5 @@
 import eslint from '@eslint/js';
+import { defineConfig } from 'eslint/config';
 import prettier from 'eslint-config-prettier';
 import globals from 'globals';
 import tseslint from 'typescript-eslint';
@@ -16,7 +17,7 @@ const paddingLineBetweenStatements = [
   { blankLine: 'always', prev: 'return', next: '*' },
 ];
 
-export default tseslint.config(
+export default defineConfig(
   {
     ignores: [
       '**/node_modules/**',

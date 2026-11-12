@@ -1,7 +1,15 @@
 <script lang="ts">
   import { onMount } from 'svelte';
   import { SiteHeader, Button, Tooltip } from '@weluvabid/iris/components';
-  import { NotebookText, FolderKanban, FileText, Moon, Sun, Search, CircleHelp } from '@weluvabid/iris/lucide';
+  import {
+    NotebookText,
+    FolderKanban,
+    FileText,
+    Moon,
+    Sun,
+    Search,
+    CircleHelp,
+  } from '@weluvabid/iris/lucide';
   import { SiGithub } from '@weluvabid/iris/simple-icons';
   import { getInitialTheme, toggleTheme } from '@weluvabid/iris/theme';
   import SearchPanel from '@components/search/SearchPanel.svelte';

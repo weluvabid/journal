@@ -79,7 +79,9 @@
                 >{result.summary}</span
               >
             </span>
-            <span class="shrink-0 text-xs text-muted-foreground">{result.kind === 'project' ? 'Project' : 'Entry'}</span>
+            <span class="shrink-0 text-xs text-muted-foreground"
+              >{result.kind === 'project' ? 'Project' : 'Entry'}</span
+            >
           </Command.LinkItem>
         {/each}
       </Command.Group>
@@ -89,8 +91,7 @@
     <div
       class="flex items-center justify-between border-t border-border px-3 py-2 text-xs text-muted-foreground"
     >
-      <span>{normalizedQuery ? `${results.length} matching entries` : 'Search Journal'}</span
-      >
+      <span>{normalizedQuery ? `${results.length} matching entries` : 'Search Journal'}</span>
       <span><Kbd.Kbd>↑↓</Kbd.Kbd> Navigate <Kbd.Kbd class="ml-2">↵</Kbd.Kbd> Open</span>
     </div>
   {/if}

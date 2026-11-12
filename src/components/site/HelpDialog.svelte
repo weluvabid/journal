@@ -35,7 +35,6 @@
             </dd>
           </div>
 
-
           <div class="flex items-center justify-between gap-4">
             <dt class="text-muted-foreground">Go to numbered card</dt>
             <dd class="flex items-center gap-1">
@@ -44,7 +43,9 @@
           </div>
           <div class="flex items-center justify-between gap-4">
             <dt class="text-muted-foreground">Previous / next article</dt>
-            <dd class="flex items-center gap-1"><Kbd.Kbd>[</Kbd.Kbd><span class="text-muted-foreground">/</span><Kbd.Kbd>]</Kbd.Kbd></dd>
+            <dd class="flex items-center gap-1">
+              <Kbd.Kbd>[</Kbd.Kbd><span class="text-muted-foreground">/</span><Kbd.Kbd>]</Kbd.Kbd>
+            </dd>
           </div>
           <div class="flex items-center justify-between gap-4">
             <dt class="text-muted-foreground">Open selected card</dt>
@@ -76,9 +77,9 @@
         </dl>
       </section>
       <p class="text-xs text-muted-foreground">
-        On touch screens, use the navigation controls to explore related writing. For
-        numbered cards, press G, type the card number, then press Enter. Backspace edits the number;
-        the sequence expires after two seconds of inactivity.
+        On touch screens, use the navigation controls to explore related writing. For numbered
+        cards, press G, type the card number, then press Enter. Backspace edits the number; the
+        sequence expires after two seconds of inactivity.
       </p>
     </div>
   </Dialog.Content>

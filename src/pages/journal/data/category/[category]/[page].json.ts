@@ -26,7 +26,10 @@ export async function getStaticPaths() {
         summary: entry.data.summary,
         type: entry.data.type,
         date: entry.data.date.toISOString(),
-        dateLabel: entry.data.date.toLocaleDateString('en', { dateStyle: 'medium', timeZone: 'UTC' }),
+        dateLabel: entry.data.date.toLocaleDateString('en', {
+          dateStyle: 'medium',
+          timeZone: 'UTC',
+        }),
         tags: entry.data.tags,
         href: entryHref(entry.data.id),
       }));

@@ -2,8 +2,14 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
 
-const header = readFileSync(new URL('../src/components/site/JournalHeader.svelte', import.meta.url), 'utf8');
-const footer = readFileSync(new URL('../src/components/site/JournalFooter.svelte', import.meta.url), 'utf8');
+const header = readFileSync(
+  new URL('../src/components/site/JournalHeader.svelte', import.meta.url),
+  'utf8',
+);
+const footer = readFileSync(
+  new URL('../src/components/site/JournalFooter.svelte', import.meta.url),
+  'utf8',
+);
 
 test('desktop primary navigation groups Writing, Projects and Resume before utilities', () => {
   const mainSections = header.indexOf('aria-label="Main sections"');

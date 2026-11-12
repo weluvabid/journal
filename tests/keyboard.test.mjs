@@ -1,6 +1,9 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { appendNavigationDigit, resolveNavigationIndex } from '../src/lib/keyboard/card-navigation.ts';
+import {
+  appendNavigationDigit,
+  resolveNavigationIndex,
+} from '../src/lib/keyboard/card-navigation.ts';
 
 test('card navigation builds multi-digit sequences', () => {
   assert.equal(appendNavigationDigit('', '4'), '4');

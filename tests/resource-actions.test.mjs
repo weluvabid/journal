@@ -6,7 +6,9 @@ const read = (path) => readFile(new URL(`../${path}`, import.meta.url), 'utf8');
 
 test('journal schema accepts optional external resource links', async () => {
   const schema = await read('src/content.config.ts');
+
   assert.match(schema, /links:\s*z\.object\(/);
+
   for (const key of ['git', 'stackblitz', 'mermaid']) {
     assert.match(schema, new RegExp(`${key}: z\\.string\\(\\)\\.url\\(\\)\\.optional\\(\\)`));
   }
@@ -14,12 +16,16 @@ test('journal schema accepts optional external resource links', async () => {
 
 test('article action component uses the existing Simple Icons exports', async () => {
   const component = await read('src/components/resources/ResourceActions.svelte');
+
   assert.match(component, /import \{ Button, Tooltip \} from '@weluvabid\/iris\/components'/);
   assert.match(component, /SiGit, SiStackblitz, SiMermaid/);
   assert.equal((component.match(/<Button\.Root/g) ?? []).length, 3);
   assert.equal((component.match(/variant="ghost"/g) ?? []).length, 3);
   assert.equal((component.match(/size="icon"/g) ?? []).length, 3);
-  assert.equal((component.match(/class="rounded-full hover:bg-muted hover:text-foreground"/g) ?? []).length, 3);
+  assert.equal(
+    (component.match(/class="rounded-full hover:bg-muted hover:text-foreground"/g) ?? []).length,
+    3,
+  );
   assert.doesNotMatch(component, /border border-border|rounded-md/);
   assert.equal((component.match(/target="_blank"/g) ?? []).length, 3);
   assert.equal((component.match(/rel="noopener noreferrer"/g) ?? []).length, 3);
@@ -27,7 +33,10 @@ test('article action component uses the existing Simple Icons exports', async ()
   assert.equal((component.match(/<Tooltip\.Root>/g) ?? []).length, 3);
   assert.equal((component.match(/<Tooltip\.Content>/g) ?? []).length, 3);
   assert.match(component, /<Tooltip\.Provider delayDuration=\{300\}>/);
-  assert.doesNotMatch(component, /title="(?:Source repository|Open in StackBlitz|Open Mermaid diagram)"/);
+  assert.doesNotMatch(
+    component,
+    /title="(?:Source repository|Open in StackBlitz|Open Mermaid diagram)"/,
+  );
   assert.match(component, /\{#if links\.git\}/);
   assert.match(component, /\{#if links\.stackblitz\}/);
   assert.match(component, /\{#if links\.mermaid\}/);
@@ -35,15 +44,26 @@ test('article action component uses the existing Simple Icons exports', async ()
 
 test('article page renders resource actions only when frontmatter supplies links', async () => {
   const page = await read('src/pages/journal/[...slug].astro');
-  assert.match(page, /import ResourceActions from '@components\/resources\/ResourceActions\.svelte'/);
-  assert.match(page, /entry\.data\.links && <ResourceActions client:load links=\{entry\.data\.links\}/);
+
+  assert.match(
+    page,
+    /import ResourceActions from '@components\/resources\/ResourceActions\.svelte'/,
+  );
+  assert.match(
+    page,
+    /entry\.data\.links && <ResourceActions client:load links=\{entry\.data\.links\}/,
+  );
 });
 
 test('StackBlitz and Mermaid test links are attached to relevant articles', async () => {
   const toolsArticle = await read('src/content/journal/shipping-small-developer-tools.mdx');
   const platformArticle = await read('src/content/journal/designing-a-static-content-platform.mdx');
+
   assert.match(toolsArticle, /git: https:\/\/github\.com\/weluvabid\/jsonplus/);
-  assert.match(toolsArticle, /stackblitz: https:\/\/stackblitz\.com\/edit\/jsonplus\?file=index\.js/);
+  assert.match(
+    toolsArticle,
+    /stackblitz: https:\/\/stackblitz\.com\/edit\/jsonplus\?file=index\.js/,
+  );
   assert.match(platformArticle, /git: https:\/\/github\.com\/weluvabid\/frontend-atlas/);
   assert.match(platformArticle, /mermaid: "https:\/\/mermaid\.live\/edit#pako:/);
 });

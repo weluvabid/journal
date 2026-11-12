@@ -7,8 +7,13 @@ export async function loadSearchIndex(
   fetcher: typeof fetch = fetch,
 ): Promise<SearchDocument[]> {
   const response = await fetcher(withBase('/search-index.v2.json'), { signal });
-  if (!response.ok) throw new Error(`Search index request failed with HTTP ${response.status}`);
+
+  if (!response.ok) {
+    throw new Error(`Search index request failed with HTTP ${response.status}`);
+  }
+
   const payload: unknown = await response.json();
+
   return parseSearchIndex(payload);
 }
 

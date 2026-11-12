@@ -4,15 +4,27 @@ import { entryHref, withBase } from '../src/lib/journal.ts';
 import { rankSearchResults } from '../src/lib/search/ranking.ts';
 
 const entry = (id, overrides = {}) => ({
-  id, title: id.replaceAll('-', ' '), summary: 'A sufficiently descriptive summary for this search document.',
-  tags: ['systems'], searchTerms: [], searchableText: '', href: `/journal/${id}/`, kind: 'entry', ...overrides,
+  id,
+  title: id.replaceAll('-', ' '),
+  summary: 'A sufficiently descriptive summary for this search document.',
+  tags: ['systems'],
+  searchTerms: [],
+  searchableText: '',
+  href: `/journal/${id}/`,
+  kind: 'entry',
+  ...overrides,
 });
 
 test('search ranks title matches above body-only matches deterministically', () => {
   const docs = [
     { ...entry('body-hit'), searchableText: 'The event loop schedules tasks.' },
-    { ...entry('event-loop'), title: 'How does the event loop work?', searchableText: 'A runtime concept.' },
+    {
+      ...entry('event-loop'),
+      title: 'How does the event loop work?',
+      searchableText: 'A runtime concept.',
+    },
   ];
+
   assert.equal(rankSearchResults(docs, 'event loop')[0].id, 'event-loop');
 });
 

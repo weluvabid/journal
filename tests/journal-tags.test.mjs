@@ -1,6 +1,11 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { groupEntriesByTag, groupProjectsByTag, tagHref, tagToSlug } from '../src/lib/journal-tags.ts';
+import {
+  groupEntriesByTag,
+  groupProjectsByTag,
+  tagHref,
+  tagToSlug,
+} from '../src/lib/journal-tags.ts';
 
 test('tag slugs are stable, lowercase, and URL safe', () => {
   assert.equal(tagToSlug('Developer Tools'), 'developer-tools');
@@ -40,10 +45,7 @@ test('entries are grouped once per tag and preserve source ordering', () => {
 });
 
 test('tag slug collisions fail loudly instead of generating ambiguous pages', () => {
-  const entries = [
-    { data: { tags: ['C++'] } },
-    { data: { tags: ['C'] } },
-  ];
+  const entries = [{ data: { tags: ['C++'] } }, { data: { tags: ['C'] } }];
 
   assert.throws(() => groupEntriesByTag(entries), /produce the same URL slug/u);
 });

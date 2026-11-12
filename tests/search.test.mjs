@@ -20,8 +20,16 @@ function document(id, overrides = {}) {
 
 test('search documents contain only the fields consumed by Journal search', () => {
   const item = document('event-loop');
+
   assert.deepEqual(Object.keys(item).sort(), [
-    'href', 'id', 'kind', 'searchTerms', 'searchableText', 'summary', 'tags', 'title',
+    'href',
+    'id',
+    'kind',
+    'searchTerms',
+    'searchableText',
+    'summary',
+    'tags',
+    'title',
   ]);
   assert.equal(isSearchDocument({ ...item, href: '//external.example/path' }), false);
   assert.equal(isSearchDocument({ ...item, minutes: 5 }), false);
@@ -48,7 +56,10 @@ test('search index parser validates payload shape and entry documents', () => {
   ]);
   assert.throws(() => parseSearchIndex({ version: 1, documents: [] }), /unsupported or invalid/u);
   assert.throws(() => parseSearchIndex({ version: 3, documents: [] }), /unsupported or invalid/u);
-  assert.throws(() => parseSearchIndex({ version: 2, documents: [{ invalid: true }] }), /invalid document/u);
+  assert.throws(
+    () => parseSearchIndex({ version: 2, documents: [{ invalid: true }] }),
+    /invalid document/u,
+  );
 });
 
 test('search loader passes its abort signal and reports HTTP failures', async () => {

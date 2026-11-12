@@ -23,7 +23,10 @@ export async function getStaticPaths() {
         summary: entry.data.summary,
         type: entry.data.type,
         date: entry.data.date.toISOString(),
-        dateLabel: entry.data.date.toLocaleDateString('en', { dateStyle: 'medium', timeZone: 'UTC' }),
+        dateLabel: entry.data.date.toLocaleDateString('en', {
+          dateStyle: 'medium',
+          timeZone: 'UTC',
+        }),
         tags: entry.data.tags,
         href: entryHref(entry.data.id),
       }));
@@ -32,7 +35,8 @@ export async function getStaticPaths() {
         params: { tag, page: String(page) },
         props: {
           items,
-          nextPageUrl: nextPage === null ? null : withBase(`/journal/data/tag/${tag}/${nextPage}.json`),
+          nextPageUrl:
+            nextPage === null ? null : withBase(`/journal/data/tag/${tag}/${nextPage}.json`),
         },
       });
     }
@@ -41,10 +45,11 @@ export async function getStaticPaths() {
   return paths;
 }
 
-export const GET: APIRoute = ({ props }) => new Response(JSON.stringify(props), {
-  headers: {
-    'Content-Type': 'application/json; charset=utf-8',
-    'Cache-Control': 'public, max-age=0, s-maxage=3600, stale-while-revalidate=86400',
-    'X-Content-Type-Options': 'nosniff',
-  },
-});
+export const GET: APIRoute = ({ props }) =>
+  new Response(JSON.stringify(props), {
+    headers: {
+      'Content-Type': 'application/json; charset=utf-8',
+      'Cache-Control': 'public, max-age=0, s-maxage=3600, stale-while-revalidate=86400',
+      'X-Content-Type-Options': 'nosniff',
+    },
+  });

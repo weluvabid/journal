@@ -16,28 +16,64 @@ const { entry } = Astro.props;
 const { Content } = await render(entry);
 const category = categoryById.get(entry.data.category);
 if (!category) throw new Error(`Unknown journal category: ${entry.data.category}`);
-const groupedEntries = (await getCollection('journal', ({ data }) => !data.draft && data.category === entry.data.category))
-  .sort((left, right) => right.data.date.valueOf() - left.data.date.valueOf() || left.data.title.localeCompare(right.data.title));
+const groupedEntries = (
+  await getCollection('journal', ({ data }) => !data.draft && data.category === entry.data.category)
+).sort(
+  (left, right) =>
+    right.data.date.valueOf() - left.data.date.valueOf() ||
+    left.data.title.localeCompare(right.data.title),
+);
 const currentIndex = groupedEntries.findIndex((item) => item.data.id === entry.data.id);
-if (currentIndex < 0) throw new Error(`Journal entry ${entry.data.id} is missing from its category reading order`);
+if (currentIndex < 0)
+  throw new Error(`Journal entry ${entry.data.id} is missing from its category reading order`);
 const previousEntry = groupedEntries[currentIndex - 1];
 const nextEntry = groupedEntries[currentIndex + 1];
 ---
+
 <BaseLayout title={`${entry.data.title} — Journal`} description={entry.data.summary}>
   <article data-article-swipe class="mx-auto max-w-3xl [touch-action:pan-y]">
-    <Breadcrumb.Root class="mb-8"><Breadcrumb.List><Breadcrumb.Item><Breadcrumb.Link href={withBase('/journal/')}>Journal</Breadcrumb.Link></Breadcrumb.Item><Breadcrumb.Separator /><Breadcrumb.Item><Breadcrumb.Page>{entry.data.title}</Breadcrumb.Page></Breadcrumb.Item></Breadcrumb.List></Breadcrumb.Root>
+    <Breadcrumb.Root class="mb-8"
+      ><Breadcrumb.List
+        ><Breadcrumb.Item
+          ><Breadcrumb.Link href={withBase('/journal/')}>Journal</Breadcrumb.Link></Breadcrumb.Item
+        ><Breadcrumb.Separator /><Breadcrumb.Item
+          ><Breadcrumb.Page>{entry.data.title}</Breadcrumb.Page></Breadcrumb.Item
+        ></Breadcrumb.List
+      ></Breadcrumb.Root
+    >
     <header class="mb-10 border-b border-border pb-8">
-      <div class="flex flex-wrap items-center gap-2 text-xs text-muted-foreground"><Badge.Badge variant="secondary">{category.name}</Badge.Badge><Badge.Badge variant="outline" class="capitalize">{entry.data.type.replaceAll('-', ' ')}</Badge.Badge><time datetime={entry.data.date.toISOString()}>{entry.data.date.toLocaleDateString('en', { dateStyle: 'long' })}</time></div>
-      <h1 class="mt-4 text-balance text-3xl font-semibold tracking-tight sm:text-4xl">{entry.data.title}</h1>
+      <div class="flex flex-wrap items-center gap-2 text-xs text-muted-foreground">
+        <Badge.Badge variant="secondary">{category.name}</Badge.Badge><Badge.Badge
+          variant="outline"
+          class="capitalize">{entry.data.type.replaceAll('-', ' ')}</Badge.Badge
+        ><time datetime={entry.data.date.toISOString()}
+          >{entry.data.date.toLocaleDateString('en', { dateStyle: 'long' })}</time
+        >
+      </div>
+      <h1 class="mt-4 text-balance text-3xl font-semibold tracking-tight sm:text-4xl">
+        {entry.data.title}
+      </h1>
       <p class="mt-5 text-base leading-8 text-muted-foreground">{entry.data.summary}</p>
-      <div class="inline-block min-w-0 max-w-full"><TagList tags={entry.data.tags} label={entry.data.title} /></div>
-      {entry.data.links && <ResourceActions client:load links={entry.data.links} title={entry.data.title} />}
+      <div class="inline-block min-w-0 max-w-full">
+        <TagList tags={entry.data.tags} label={entry.data.title} />
+      </div>
+      {
+        entry.data.links && (
+          <ResourceActions client:load links={entry.data.links} title={entry.data.title} />
+        )
+      }
     </header>
     <div class="prose-journal"><Content /></div>
-    <div class="mt-10"><Button.Root variant="ghost" href={withBase(`/journal/category/${category.id}/`)}><ArrowLeft class="size-4" aria-hidden="true" />Back to {category.name}</Button.Root></div>
+    <div class="mt-10">
+      <Button.Root variant="ghost" href={withBase(`/journal/category/${category.id}/`)}
+        ><ArrowLeft class="size-4" aria-hidden="true" />Back to {category.name}</Button.Root
+      >
+    </div>
     <ArticleNavigation
       client:load
-      previous={previousEntry ? { title: previousEntry.data.title, url: entryHref(previousEntry.data.id) } : null}
+      previous={previousEntry
+        ? { title: previousEntry.data.title, url: entryHref(previousEntry.data.id) }
+        : null}
       next={nextEntry ? { title: nextEntry.data.title, url: entryHref(nextEntry.data.id) } : null}
     />
   </article>

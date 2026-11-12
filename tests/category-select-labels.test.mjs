@@ -6,6 +6,7 @@ const read = (path) => readFile(new URL(`../${path}`, import.meta.url), 'utf8');
 
 test('category select displays human-readable labels instead of internal IDs', async () => {
   const component = await read('src/components/journal/CategorySelect.svelte');
+
   assert.match(component, /const currentLabel = \$derived\(/);
   assert.match(component, /current === 'all'\s*\? 'All entries'/);
   assert.match(component, /categories\.find\(\(category\) => category\.id === current\)\?\.name/);

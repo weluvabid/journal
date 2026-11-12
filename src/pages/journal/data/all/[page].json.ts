@@ -33,7 +33,7 @@ export async function getStaticPaths() {
       },
     };
   });
-};
+}
 
 export const GET: APIRoute = ({ props }) => {
   return new Response(JSON.stringify(props), {

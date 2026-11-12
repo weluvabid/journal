@@ -1,11 +1,11 @@
 ---
 id: cachewise
-title: "Cachewise"
-summary: "A cache implementation and benchmarking playground exploring eviction policies, cost-aware decisions and measurable performance."
+title: 'Cachewise'
+summary: 'A cache implementation and benchmarking playground exploring eviction policies, cost-aware decisions and measurable performance.'
 status: released
 tags: [rust, caching, benchmarking, performance]
 stack: [Rust, Caching, Benchmarking]
-github: "https://github.com/weluvabid/cachewise"
+github: 'https://github.com/weluvabid/cachewise'
 featured: true
 order: 1
 ---

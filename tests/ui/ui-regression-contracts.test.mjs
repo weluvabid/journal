@@ -2,7 +2,10 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import { readFile } from 'node:fs/promises';
 
-const layout = await readFile(new URL('../../src/layouts/BaseLayout.astro', import.meta.url), 'utf8');
+const layout = await readFile(
+  new URL('../../src/layouts/BaseLayout.astro', import.meta.url),
+  'utf8',
+);
 const home = await readFile(new URL('../../src/pages/index.astro', import.meta.url), 'utf8');
 
 test('shared layout retains skip-to-content and sticky-header scroll offset', () => {

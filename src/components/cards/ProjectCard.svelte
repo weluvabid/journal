@@ -25,7 +25,9 @@
 <ContentCard {href} label={`View project ${project.title}`} class={className}>
   <div class="pointer-events-none flex h-full min-w-0 flex-col gap-3 p-5">
     <div class="flex items-center gap-2">
-      <span class="text-xs tabular-nums text-muted-foreground">{String(number).padStart(2, '0')}</span>
+      <span class="text-xs tabular-nums text-muted-foreground"
+        >{String(number).padStart(2, '0')}</span
+      >
       <Badge.Badge variant="outline" class="capitalize">{project.status}</Badge.Badge>
     </div>
     <div class="min-w-0">

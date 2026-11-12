@@ -1,5 +1,6 @@
 <script lang="ts">
   import { onDestroy, untrack } from 'svelte';
+  import { SvelteSet } from 'svelte/reactivity';
   import { InfiniteLoader, LoaderState } from 'svelte-infinite';
   import JournalEntryCard from '@components/cards/JournalEntryCard.svelte';
   import { JOURNAL_PAGE_SIZE } from '@lib/journal-pagination';
@@ -33,32 +34,46 @@
   const initialState = untrack(() => ({
     entries: [...initialEntries],
     nextPageUrl: initialNextPageUrl,
-    seenIds: new Set(initialEntries.map((entry) => entry.id)),
+    seenIds: new SvelteSet(initialEntries.map((entry) => entry.id)),
   }));
 
   let entries = $state<JournalEntry[]>(initialState.entries);
   let nextPageUrl = $state<string | null>(initialState.nextPageUrl);
   let requestInFlight = false;
+
   const loaderState = new LoaderState();
   const seenIds = initialState.seenIds;
-  const requestedPageUrls = new Set<string>();
+  const requestedPageUrls = new SvelteSet<string>();
+
   let destroyed = false;
   let activeRequest: AbortController | undefined;
 
   onDestroy(() => {
     destroyed = true;
+
     activeRequest?.abort();
   });
 
   function isPageResponse(value: unknown): value is PageResponse {
-    if (typeof value !== 'object' || value === null) return false;
+    if (typeof value !== 'object' || value === null) {
+      return false;
+    }
 
     const candidate = value as Record<string, unknown>;
-    if (!Array.isArray(candidate.items)) return false;
-    if (candidate.nextPageUrl !== null && typeof candidate.nextPageUrl !== 'string') return false;
+
+    if (!Array.isArray(candidate.items)) {
+      return false;
+    }
+
+    if (candidate.nextPageUrl !== null && typeof candidate.nextPageUrl !== 'string') {
+      return false;
+    }
 
     return candidate.items.every((item) => {
-      if (typeof item !== 'object' || item === null) return false;
+      if (typeof item !== 'object' || item === null) {
+        return false;
+      }
+
       const entry = item as Record<string, unknown>;
 
       return (
@@ -69,7 +84,9 @@
         typeof entry.date === 'string' &&
         typeof entry.dateLabel === 'string' &&
         typeof entry.href === 'string' &&
-        ['engineering-note', 'build-log', 'deep-dive', 'retrospective'].includes(String(entry.type)) &&
+        ['engineering-note', 'build-log', 'deep-dive', 'retrospective'].includes(
+          String(entry.type),
+        ) &&
         Array.isArray(entry.tags) &&
         entry.tags.every((tag) => typeof tag === 'string')
       );
@@ -77,18 +94,25 @@
   }
 
   async function loadMore(): Promise<void> {
-    if (requestInFlight || !nextPageUrl || destroyed) return;
+    if (requestInFlight || !nextPageUrl || destroyed) {
+      return;
+    }
 
     requestInFlight = true;
+
     const controller = new AbortController();
+
     activeRequest = controller;
+
     const timeoutId = window.setTimeout(() => controller.abort(), 15_000);
 
     try {
       const requestUrl = new URL(nextPageUrl, window.location.href);
+
       if (requestUrl.origin !== window.location.origin) {
         throw new TypeError('Journal pagination returned a cross-origin request URL.');
       }
+
       if (requestedPageUrls.has(requestUrl.href)) {
         throw new Error(`Journal pagination attempted to revisit ${requestUrl.pathname}.`);
       }
@@ -104,29 +128,39 @@
       }
 
       const payload: unknown = await response.json();
+
       if (!isPageResponse(payload)) {
         throw new TypeError('Journal pagination returned an invalid response.');
       }
 
-      if (destroyed) return;
-      if (payload.items.length > JOURNAL_PAGE_SIZE) {
-        throw new RangeError(`Journal pagination returned more than ${JOURNAL_PAGE_SIZE} entries in one page.`);
+      if (destroyed) {
+        return;
       }
-      const followingPageUrl = payload.nextPageUrl === null
-        ? null
-        : new URL(payload.nextPageUrl, window.location.href);
+
+      if (payload.items.length > JOURNAL_PAGE_SIZE) {
+        throw new RangeError(
+          `Journal pagination returned more than ${JOURNAL_PAGE_SIZE} entries in one page.`,
+        );
+      }
+
+      const followingPageUrl =
+        payload.nextPageUrl === null ? null : new URL(payload.nextPageUrl, window.location.href);
+
       if (followingPageUrl && followingPageUrl.origin !== window.location.origin) {
         throw new TypeError('Journal pagination returned a cross-origin next-page URL.');
       }
+
       if (followingPageUrl && requestedPageUrls.has(followingPageUrl.href)) {
         throw new Error(`Journal pagination contains a cycle at ${followingPageUrl.pathname}.`);
       }
 
-      const pageIds = new Set<string>();
+      const pageIds = new SvelteSet<string>();
+
       for (const entry of payload.items) {
         if (pageIds.has(entry.id) || seenIds.has(entry.id)) {
           throw new Error(`Journal pagination returned duplicate entry id: ${entry.id}`);
         }
+
         pageIds.add(entry.id);
       }
 
@@ -135,8 +169,13 @@
       }
 
       requestedPageUrls.add(requestUrl.href);
-      for (const entry of payload.items) seenIds.add(entry.id);
+
+      for (const entry of payload.items) {
+        seenIds.add(entry.id);
+      }
+
       entries.push(...payload.items);
+
       nextPageUrl = payload.nextPageUrl;
 
       if (nextPageUrl === null) {
@@ -149,11 +188,16 @@
         if (!(error instanceof DOMException && error.name === 'AbortError')) {
           console.error('Unable to load more journal entries.', error);
         }
+
         loaderState.error();
       }
     } finally {
       window.clearTimeout(timeoutId);
-      if (activeRequest === controller) activeRequest = undefined;
+
+      if (activeRequest === controller) {
+        activeRequest = undefined;
+      }
+
       requestInFlight = false;
     }
   }
@@ -176,7 +220,9 @@
     </ol>
 
     {#snippet loading()}
-      <p class="py-4 text-center text-sm text-muted-foreground" role="status">Loading more entries…</p>
+      <p class="py-4 text-center text-sm text-muted-foreground" role="status">
+        Loading more entries…
+      </p>
     {/snippet}
 
     {#snippet error(attemptLoad)}
@@ -197,7 +243,9 @@
     {/snippet}
 
     {#snippet coolingOff()}
-      <p class="py-4 text-center text-xs text-muted-foreground">A moment — preparing the next entries.</p>
+      <p class="py-4 text-center text-xs text-muted-foreground">
+        A moment — preparing the next entries.
+      </p>
     {/snippet}
   </InfiniteLoader>
 {:else}

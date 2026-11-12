@@ -1,16 +1,17 @@
 /**
  * @typedef {{
  *   type: string,
- *   range: [number, number],
- *   loc: {
+ *   range?: [number, number],
+ *   loc?: {
  *     start: { line: number, column: number },
  *     end: { line: number, column: number }
- *   },
+ *   } | null,
  *   expression?: { type: string }
  * }} PositionedNode
  */
 
-export default {
+/** @type {import('eslint').Rule.RuleModule} */
+const assignmentGroupPadding = {
   meta: {
     type: 'layout',
     docs: {
@@ -42,6 +43,10 @@ export default {
      * @param {PositionedNode} right
      */
     function hasOnlyWhitespaceBetween(left, right) {
+      if (!left.range || !right.range) {
+        return false;
+      }
+
       return /^\s*$/u.test(sourceCode.text.slice(left.range[1], right.range[0]));
     }
 
@@ -52,17 +57,23 @@ export default {
      * @returns {((fixer: import('eslint').Rule.RuleFixer) => import('eslint').Rule.Fix) | null}
      */
     function fixGap(left, right, blankLinesRequired) {
+      if (!left.range || !right.range) {
+        return null;
+      }
+
+      const start = left.range[1];
+      const end = right.range[0];
+
       if (!hasOnlyWhitespaceBetween(left, right)) {
         return null;
       }
 
-      const between = sourceCode.text.slice(left.range[1], right.range[0]);
+      const between = sourceCode.text.slice(start, end);
       const newline = sourceCode.text.includes('\r\n') ? '\r\n' : '\n';
       const desired = newline.repeat(blankLinesRequired + 1);
       const indentation = between.match(/[ \t]*$/u)?.[0] ?? '';
 
-      return (fixer) =>
-        fixer.replaceTextRange([left.range[1], right.range[0]], `${desired}${indentation}`);
+      return (fixer) => fixer.replaceTextRange([start, end], `${desired}${indentation}`);
     }
 
     /** @param {PositionedNode[]} statements */
@@ -70,16 +81,17 @@ export default {
       for (let index = 0; index < statements.length; index += 1) {
         const statement = statements[index];
 
-        if (!isAssignment(statement)) {
+        if (!isAssignment(statement) || !statement.loc) {
           continue;
         }
 
         const previous = statements[index - 1];
         const next = statements[index + 1];
+
         const previousIsAssignment = previous ? isAssignment(previous) : false;
         const nextIsAssignment = next ? isAssignment(next) : false;
 
-        if (previous) {
+        if (previous?.loc) {
           const lineGap = statement.loc.start.line - previous.loc.end.line - 1;
           const expectedGap = previousIsAssignment ? 0 : 1;
 
@@ -92,7 +104,7 @@ export default {
           }
         }
 
-        if (next && !nextIsAssignment) {
+        if (next?.loc && !nextIsAssignment) {
           const lineGap = next.loc.start.line - statement.loc.end.line - 1;
 
           if (lineGap !== 1) {
@@ -107,20 +119,19 @@ export default {
     }
 
     return {
-      /** @param {PositionedNode & { body: PositionedNode[] }} node */
       Program(node) {
         checkBody(node.body);
       },
 
-      /** @param {PositionedNode & { body: PositionedNode[] }} node */
       BlockStatement(node) {
         checkBody(node.body);
       },
 
-      /** @param {PositionedNode & { consequent: PositionedNode[] }} node */
       SwitchCase(node) {
         checkBody(node.consequent);
       },
     };
   },
 };
+
+export default assignmentGroupPadding;

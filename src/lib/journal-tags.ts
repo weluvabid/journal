@@ -23,6 +23,7 @@ export type TagCollection = 'journal' | 'projects';
 
 export function tagHref(tag: string, collection: TagCollection = 'journal'): string {
   const basePath = collection === 'projects' ? '/projects' : '/journal';
+
   return withBase(`${basePath}/tag/${tagToSlug(tag)}/`);
 }
 
@@ -31,7 +32,9 @@ export function projectTagHref(tag: string): string {
 }
 
 /** Build deterministic tag groups and fail on ambiguous slug collisions. */
-export function groupContentByTag<T extends { readonly data: { readonly tags: readonly string[] } }>(
+export function groupContentByTag<
+  T extends { readonly data: { readonly tags: readonly string[] } },
+>(
   entries: readonly T[],
   collection: TagCollection = 'journal',
 ): Map<string, { readonly label: string; readonly entries: T[] }> {
@@ -42,13 +45,19 @@ export function groupContentByTag<T extends { readonly data: { readonly tags: re
 
     for (const label of entry.data.tags) {
       const slug = tagToSlug(label);
-      if (seenForEntry.has(slug)) continue;
+
+      if (seenForEntry.has(slug)) {
+        continue;
+      }
+
       seenForEntry.add(slug);
 
       const existing = groups.get(slug);
 
       if (existing && existing.label !== label) {
-        throw new Error(`${collection === 'projects' ? 'Project' : 'Journal'} tags "${existing.label}" and "${label}" produce the same URL slug: ${slug}`);
+        throw new Error(
+          `${collection === 'projects' ? 'Project' : 'Journal'} tags "${existing.label}" and "${label}" produce the same URL slug: ${slug}`,
+        );
       }
 
       if (existing) {
@@ -63,14 +72,14 @@ export function groupContentByTag<T extends { readonly data: { readonly tags: re
 }
 
 /** Backwards-compatible journal grouping helper. */
-export function groupEntriesByTag<T extends { readonly data: { readonly tags: readonly string[] } }>(
-  entries: readonly T[],
-): Map<string, { readonly label: string; readonly entries: T[] }> {
+export function groupEntriesByTag<
+  T extends { readonly data: { readonly tags: readonly string[] } },
+>(entries: readonly T[]): Map<string, { readonly label: string; readonly entries: T[] }> {
   return groupContentByTag(entries, 'journal');
 }
 
-export function groupProjectsByTag<T extends { readonly data: { readonly tags: readonly string[] } }>(
-  projects: readonly T[],
-): Map<string, { readonly label: string; readonly entries: T[] }> {
+export function groupProjectsByTag<
+  T extends { readonly data: { readonly tags: readonly string[] } },
+>(projects: readonly T[]): Map<string, { readonly label: string; readonly entries: T[] }> {
   return groupContentByTag(projects, 'projects');
 }

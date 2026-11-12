@@ -2,11 +2,23 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
 
-const header = readFileSync(new URL('../src/components/site/JournalHeader.svelte', import.meta.url), 'utf8');
-const footer = readFileSync(new URL('../src/components/site/JournalFooter.svelte', import.meta.url), 'utf8');
-const ghost = readFileSync(new URL('../src/components/brand/GhostMark.svelte', import.meta.url), 'utf8');
+const header = readFileSync(
+  new URL('../src/components/site/JournalHeader.svelte', import.meta.url),
+  'utf8',
+);
+const footer = readFileSync(
+  new URL('../src/components/site/JournalFooter.svelte', import.meta.url),
+  'utf8',
+);
+const ghost = readFileSync(
+  new URL('../src/components/brand/GhostMark.svelte', import.meta.url),
+  'utf8',
+);
 
-for (const [name, source] of [['header', header], ['footer', footer]]) {
+for (const [name, source] of [
+  ['header', header],
+  ['footer', footer],
+]) {
   test(`${name} uses the shared animated ghost mark`, () => {
     assert.match(source, /GhostMark/);
     assert.match(source, /gradientId=/);

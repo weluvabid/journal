@@ -4,6 +4,9 @@
  * changes. Keep optional metadata arrays safe at the search-index boundary.
  */
 export function stringArray(value: unknown): string[] {
-  if (!Array.isArray(value)) return [];
+  if (!Array.isArray(value)) {
+    return [];
+  }
+
   return value.filter((item): item is string => typeof item === 'string');
 }

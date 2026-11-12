@@ -13,14 +13,22 @@ const entries = [...allEntries].sort((a, b) => b.data.date.valueOf() - a.data.da
 const featured = entries.filter((entry) => entry.data.featured).slice(0, 4);
 const projects = (await getCollection('projects')).sort((a, b) => a.data.order - b.data.order);
 const featuredProjects = projects.filter((project) => project.data.featured);
-
 ---
-<BaseLayout title="Journal — How I think. What I build." description="Engineering notes, experiments, project write-ups and technical deep dives.">
+
+<BaseLayout
+  title="Journal — How I think. What I build."
+  description="Engineering notes, experiments, project write-ups and technical deep dives."
+>
   <section class="mx-auto max-w-3xl py-10 sm:py-14">
-    <p class="text-xs font-semibold uppercase tracking-[0.18em] text-muted-foreground">An engineering journal</p>
-    <h1 class="mt-4 text-balance text-3xl font-semibold tracking-tight sm:text-5xl">How I think. What I build.</h1>
+    <p class="text-xs font-semibold uppercase tracking-[0.18em] text-muted-foreground">
+      An engineering journal
+    </p>
+    <h1 class="mt-4 text-balance text-3xl font-semibold tracking-tight sm:text-5xl">
+      How I think. What I build.
+    </h1>
     <p class="mt-5 max-w-2xl text-pretty text-base leading-8 text-muted-foreground sm:text-lg">
-      Notes from working through engineering problems: the experiments, decisions, dead ends and ideas behind the software I build.
+      Notes from working through engineering problems: the experiments, decisions, dead ends and
+      ideas behind the software I build.
     </p>
     <div class="mt-7 flex flex-wrap gap-3">
       <Button.Root href={withBase('/journal/')} variant="default">Read the journal</Button.Root>
@@ -29,50 +37,112 @@ const featuredProjects = projects.filter((project) => project.data.featured);
   </section>
 
   <div data-keyboard-navigation="primary">
-  <section class="mx-auto max-w-5xl py-10 sm:py-14" aria-labelledby="areas-heading">
-    <div class="mb-8">
-      <p class="text-xs font-semibold uppercase tracking-[0.18em] text-muted-foreground">Explore</p>
-      <h2 id="areas-heading" class="mt-2 text-2xl font-semibold tracking-tight sm:text-3xl">Browse by topic</h2>
-    </div>
-    <div class="grid items-stretch gap-3 sm:grid-cols-2" role="group" aria-label="Journal categories">
-      {categories.map((category, index) => {
-        const count = entries.filter((entry) => entry.data.category === category.id).length;
-        return <ContentCard href={withBase(`/journal/category/${category.id}/`)} label={`Browse ${category.name}`} class="h-full">
-          <Card.Root class="h-full rounded-2xl border-0 shadow-none [--card-spacing:--spacing(5)]">
-            <Card.Header class="flex h-full flex-col">
-              <div class="mb-3 flex items-center justify-between gap-2"><span class="text-xs font-medium tabular-nums text-muted-foreground">{String(index + 1).padStart(2, '0')}</span><Badge.Badge variant="secondary" class="shrink-0">{count} {count === 1 ? ' entry' : ' entries'}</Badge.Badge></div>
-              <Card.Title>{category.name}</Card.Title><Card.Description>{category.description}</Card.Description>
-            </Card.Header>
-          </Card.Root>
-        </ContentCard>;
-      })}
-    </div>
-  </section>
+    <section class="mx-auto max-w-5xl py-10 sm:py-14" aria-labelledby="areas-heading">
+      <div class="mb-8">
+        <p class="text-xs font-semibold uppercase tracking-[0.18em] text-muted-foreground">
+          Explore
+        </p>
+        <h2 id="areas-heading" class="mt-2 text-2xl font-semibold tracking-tight sm:text-3xl">
+          Browse by topic
+        </h2>
+      </div>
+      <div
+        class="grid items-stretch gap-3 sm:grid-cols-2"
+        role="group"
+        aria-label="Journal categories"
+      >
+        {
+          categories.map((category, index) => {
+            const count = entries.filter((entry) => entry.data.category === category.id).length;
+            return (
+              <ContentCard
+                href={withBase(`/journal/category/${category.id}/`)}
+                label={`Browse ${category.name}`}
+                class="h-full"
+              >
+                <Card.Root class="h-full rounded-2xl border-0 shadow-none [--card-spacing:--spacing(5)]">
+                  <Card.Header class="flex h-full flex-col">
+                    <div class="mb-3 flex items-center justify-between gap-2">
+                      <>
+                        <span class="text-xs font-medium tabular-nums text-muted-foreground">
+                          {String(index + 1).padStart(2, '0')}
+                        </span>
+                        <Badge.Badge variant="secondary" class="shrink-0">
+                          {count} {count === 1 ? ' entry' : ' entries'}
+                        </Badge.Badge>
+                      </>
+                    </div>
+                    <>
+                      <Card.Title>{category.name}</Card.Title>
+                      <Card.Description>{category.description}</Card.Description>
+                    </>
+                  </Card.Header>
+                </Card.Root>
+              </ContentCard>
+            );
+          })
+        }
+      </div>
+    </section>
 
-  <section class="mx-auto mt-4 max-w-5xl pb-8" aria-labelledby="featured-heading">
-    <div class="mb-8 flex items-end justify-between gap-4"><div><p class="text-xs font-semibold uppercase tracking-[0.18em] text-muted-foreground">The journal</p><h2 id="featured-heading" class="mt-2 text-2xl font-semibold tracking-tight">Featured writing</h2></div><Button.Root variant="link" href={withBase('/journal/')}>All entries</Button.Root></div>
-    <div class="grid items-stretch gap-3 sm:grid-cols-2">
-      {featured.map((entry, index) => <JournalEntryCard
-        entry={{
-          id: entry.data.id,
-          title: entry.data.title,
-          summary: entry.data.summary,
-          type: entry.data.type,
-          date: entry.data.date.toISOString(),
-          dateLabel: entry.data.date.toLocaleDateString('en', { dateStyle: 'medium', timeZone: 'UTC' }),
-          tags: entry.data.tags,
-          href: entryHref(entry.data.id),
-        }}
-        index={index + categories.length}
-        variant="featured"
-        class="h-full"
-      />)}
-    </div>
-  </section>
+    <section class="mx-auto mt-4 max-w-5xl pb-8" aria-labelledby="featured-heading">
+      <div class="mb-8 flex items-end justify-between gap-4">
+        <div>
+          <p class="text-xs font-semibold uppercase tracking-[0.18em] text-muted-foreground">
+            The journal
+          </p><h2 id="featured-heading" class="mt-2 text-2xl font-semibold tracking-tight">
+            Featured writing
+          </h2>
+        </div><Button.Root variant="link" href={withBase('/journal/')}>All entries</Button.Root>
+      </div>
+      <div class="grid items-stretch gap-3 sm:grid-cols-2">
+        {
+          featured.map((entry, index) => (
+            <JournalEntryCard
+              entry={{
+                id: entry.data.id,
+                title: entry.data.title,
+                summary: entry.data.summary,
+                type: entry.data.type,
+                date: entry.data.date.toISOString(),
+                dateLabel: entry.data.date.toLocaleDateString('en', {
+                  dateStyle: 'medium',
+                  timeZone: 'UTC',
+                }),
+                tags: entry.data.tags,
+                href: entryHref(entry.data.id),
+              }}
+              index={index + categories.length}
+              variant="featured"
+              class="h-full"
+            />
+          ))
+        }
+      </div>
+    </section>
 
-  <section class="mx-auto mt-10 max-w-5xl sm:mt-16" aria-labelledby="projects-heading">
-    <div class="mb-8 flex items-end justify-between gap-4"><div><p class="text-xs font-semibold uppercase tracking-[0.18em] text-muted-foreground">The work</p><h2 id="projects-heading" class="mt-2 text-2xl font-semibold tracking-tight">Selected projects</h2></div><Button.Root variant="link" href={withBase('/projects/')}>All projects</Button.Root></div>
-    <div class="grid items-stretch gap-3 sm:grid-cols-2">{featuredProjects.map((project, index) => <ProjectCard project={project.data} href={withBase(`/projects/${project.data.id}/`)} number={categories.length + featured.length + index + 1} class="h-full" />)}</div>
-  </section>
+    <section class="mx-auto mt-10 max-w-5xl sm:mt-16" aria-labelledby="projects-heading">
+      <div class="mb-8 flex items-end justify-between gap-4">
+        <div>
+          <p class="text-xs font-semibold uppercase tracking-[0.18em] text-muted-foreground">
+            The work
+          </p><h2 id="projects-heading" class="mt-2 text-2xl font-semibold tracking-tight">
+            Selected projects
+          </h2>
+        </div><Button.Root variant="link" href={withBase('/projects/')}>All projects</Button.Root>
+      </div>
+      <div class="grid items-stretch gap-3 sm:grid-cols-2">
+        {
+          featuredProjects.map((project, index) => (
+            <ProjectCard
+              project={project.data}
+              href={withBase(`/projects/${project.data.id}/`)}
+              number={categories.length + featured.length + index + 1}
+              class="h-full"
+            />
+          ))
+        }
+      </div>
+    </section>
   </div>
 </BaseLayout>

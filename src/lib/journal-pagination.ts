@@ -20,6 +20,7 @@ export function paginateItems<T>(
   }
 
   const start = (page - 1) * pageSize;
+
   if (!Number.isSafeInteger(start)) {
     throw new RangeError(`Page offset exceeds the safe integer range; received ${page}`);
   }

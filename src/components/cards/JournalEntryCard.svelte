@@ -30,7 +30,9 @@
     <div class="pointer-events-none flex h-full min-w-0 flex-col gap-3 p-5">
       <div class="flex items-center gap-2">
         <span class="text-xs tabular-nums text-muted-foreground">{number}</span>
-        <Badge.Badge variant="secondary" class="capitalize">{entry.type.replaceAll('-', ' ')}</Badge.Badge>
+        <Badge.Badge variant="secondary" class="capitalize"
+          >{entry.type.replaceAll('-', ' ')}</Badge.Badge
+        >
       </div>
       <div class="min-w-0">
         <h2 class="font-medium tracking-tight">{entry.title}</h2>
@@ -39,20 +41,28 @@
       <div class="pointer-events-auto inline-block min-w-0 max-w-full self-start">
         <TagList tags={entry.tags} label={entry.title} />
       </div>
-      <time class="mt-auto pt-4 text-xs text-muted-foreground" datetime={entry.date}>{entry.dateLabel}</time>
+      <time class="mt-auto pt-4 text-xs text-muted-foreground" datetime={entry.date}
+        >{entry.dateLabel}</time
+      >
     </div>
   {:else}
-    <div class="pointer-events-none flex min-w-0 flex-col gap-3 p-4 sm:flex-row sm:items-start sm:justify-between">
+    <div
+      class="pointer-events-none flex min-w-0 flex-col gap-3 p-4 sm:flex-row sm:items-start sm:justify-between"
+    >
       <div class="flex min-w-0 gap-4">
         <span class="pt-1 text-xs tabular-nums text-muted-foreground">{number}</span>
         <div class="min-w-0">
           <h2 class="font-semibold tracking-tight">{entry.title}</h2>
           <p class="mt-2 max-w-2xl text-sm leading-6 text-muted-foreground">{entry.summary}</p>
-          <div class="pointer-events-auto inline-block min-w-0 max-w-full"><TagList tags={entry.tags} label={entry.title} /></div>
+          <div class="pointer-events-auto inline-block min-w-0 max-w-full">
+            <TagList tags={entry.tags} label={entry.title} />
+          </div>
         </div>
       </div>
       <div class="flex shrink-0 items-center gap-2 text-xs text-muted-foreground">
-        <time datetime={entry.date}>{entry.dateLabel}</time><span aria-hidden="true">·</span><span class="capitalize">{entry.type.replaceAll('-', ' ')}</span>
+        <time datetime={entry.date}>{entry.dateLabel}</time><span aria-hidden="true">·</span><span
+          class="capitalize">{entry.type.replaceAll('-', ' ')}</span
+        >
       </div>
     </div>
   {/if}

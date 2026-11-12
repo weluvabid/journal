@@ -24,7 +24,9 @@
 
   function navigate(value: string): void {
     const prefix = `/${base.replace(/^\/+|\/+$/gu, '')}`.replace(/^\/$/u, '');
-    const destination = value === 'all' ? `${prefix}/journal/` : `${prefix}/journal/category/${value}/`;
+    const destination =
+      value === 'all' ? `${prefix}/journal/` : `${prefix}/journal/category/${value}/`;
+
     window.location.assign(destination);
   }
 </script>

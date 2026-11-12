@@ -1,7 +1,13 @@
 import type { SearchDocument } from './types.ts';
 
 export function normalizeSearchText(value: string): string {
-  return value.normalize('NFKD').replace(/[\p{M}]/gu, '').toLowerCase().replace(/[^\p{L}\p{N}]+/gu, ' ').trim().replace(/\s+/gu, ' ');
+  return value
+    .normalize('NFKD')
+    .replace(/[\p{M}]/gu, '')
+    .toLowerCase()
+    .replace(/[^\p{L}\p{N}]+/gu, ' ')
+    .trim()
+    .replace(/\s+/gu, ' ');
 }
 
 function containsPhrase(text: string, phrase: string): boolean {
