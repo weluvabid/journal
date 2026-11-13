@@ -81,7 +81,10 @@ function signalSwipeBoundary(article: HTMLElement, direction: ArticleSwipeDirect
 const boundaryNoticeTimes = new Map<ArticleSwipeDirection, number>();
 
 /** Attach touch-only horizontal article navigation and return deterministic cleanup. */
-export function attachArticleSwipeNavigation(targets: ArticleSwipeTargets): () => void {
+export function attachArticleSwipeNavigation(
+  targets: ArticleSwipeTargets,
+  navigateTo: (destination: string) => void,
+): () => void {
   const root = window;
   let start: { x: number; y: number; pointerId: number; article: HTMLElement } | null = null;
 
@@ -141,7 +144,7 @@ export function attachArticleSwipeNavigation(targets: ArticleSwipeTargets): () =
     const destination = direction === 'next' ? targets.nextUrl : targets.previousUrl;
 
     if (destination) {
-      root.location.assign(destination);
+      navigateTo(destination);
     } else {
       signalSwipeBoundary(origin.article, direction);
     }

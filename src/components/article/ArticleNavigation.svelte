@@ -1,5 +1,6 @@
 <script lang="ts">
   import { onMount } from 'svelte';
+  import { navigate } from 'astro:transitions/client';
   import { attachArticleSwipeNavigation } from '@lib/navigation/article-gestures';
   import { Button, Tooltip } from '@weluvabid/iris/components';
   import { ChevronLeft, ChevronRight } from '@weluvabid/iris/lucide';
@@ -17,10 +18,15 @@
   const { previous, next }: Props = $props();
 
   onMount(() =>
-    attachArticleSwipeNavigation({
-      previousUrl: previous?.url ?? null,
-      nextUrl: next?.url ?? null,
-    }),
+    attachArticleSwipeNavigation(
+      {
+        previousUrl: previous?.url ?? null,
+        nextUrl: next?.url ?? null,
+      },
+      (destination) => {
+        void navigate(destination);
+      },
+    ),
   );
 </script>
 
