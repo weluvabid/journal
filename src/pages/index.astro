@@ -27,7 +27,13 @@ const selectedProjects = projects.slice(0, 4);
     </h1>
     <p class="mt-5 max-w-2xl text-pretty text-base leading-8 text-muted-foreground sm:text-lg">
       Notes from building software: the projects, experiments, engineering decisions, dead ends and
-      ideas that shape my work.
+      ideas that shape my work.{' '}
+      <a
+        href={withBase('/about/')}
+        class="font-medium text-foreground underline decoration-border underline-offset-4 transition-colors hover:decoration-foreground focus-visible:rounded-sm focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-ring"
+      >
+        A little more about me.
+      </a>
     </p>
     <div class="mt-7 flex flex-wrap gap-3">
       <Button.Root href={withBase('/journal/')} variant="default">Read the journal</Button.Root>
