@@ -1,3 +1,4 @@
+import { INTENTS } from '@lib/content-text';
 import type { SearchDocument } from './types.ts';
 
 function isRecord(value: unknown): value is Record<string, unknown> {
@@ -30,7 +31,7 @@ export function isSearchDocument(value: unknown): value is SearchDocument {
     typeof value.href === 'string' &&
     value.href.startsWith('/') &&
     !value.href.startsWith('//') &&
-    (value.kind === 'entry' || value.kind === 'project')
+    (value.kind === INTENTS.entry || value.kind === INTENTS.project)
   );
 }
 

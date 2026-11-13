@@ -5,6 +5,7 @@ import { Breadcrumb } from '@weluvabid/iris/components';
 import ProjectCard from '@components/cards/ProjectCard.svelte';
 import { withBase } from '@lib/journal';
 import { groupProjectsByTag } from '@lib/journal-tags';
+import { INTENTS, pluralize } from '@lib/content-text';
 
 export async function getStaticPaths() {
   const projects = (await getCollection('projects')).sort(
@@ -34,8 +35,7 @@ const { label, projects } = Astro.props;
     ></Breadcrumb.Root
   >
   <p class="mb-10 text-xs font-semibold uppercase tracking-[0.18em] text-muted-foreground">
-    {projects.length}
-    {projects.length === 1 ? 'project' : 'projects'}
+    {pluralize(projects.length, INTENTS.project)}
   </p>
   <div class="grid items-stretch gap-3 sm:grid-cols-2">
     {

@@ -4,6 +4,7 @@
   import type { SearchDocument } from '@lib/search/types';
   import { rankSearchResults } from '@lib/search/ranking';
   import { loadSearchIndex } from '@lib/search';
+  import { INTENTS, pluralize } from '@lib/content-text';
 
   interface Props {
     open?: boolean;
@@ -64,7 +65,7 @@
         >
       </div>
     {:else if !normalizedQuery}
-      <Command.Empty>Start typing to search {documents.length} entries.</Command.Empty>
+      <Command.Empty>Start typing to search {pluralize(documents.length, INTENTS.entry)}.</Command.Empty>
     {:else if results.length === 0}
       <Command.Empty>No results for “{normalizedQuery}”. Try a broader term.</Command.Empty>
     {:else}
@@ -81,7 +82,7 @@
               >
             </span>
             <span class="shrink-0 text-xs text-muted-foreground"
-              >{result.kind === 'project' ? 'Project' : 'Entry'}</span
+              >{result.kind === INTENTS.project ? 'Project' : 'Entry'}</span
             >
           </Command.LinkItem>
         {/each}
@@ -92,7 +93,7 @@
     <div
       class="flex items-center justify-between border-t border-border px-3 py-2 text-xs text-muted-foreground"
     >
-      <span>{normalizedQuery ? `${results.length} matching entries` : 'Search Journal'}</span>
+      <span>{normalizedQuery ? pluralize(results.length, INTENTS.matchingEntry) : 'Search Journal'}</span>
       <span><Kbd.Kbd>↑↓</Kbd.Kbd> Navigate <Kbd.Kbd class="ml-2">↵</Kbd.Kbd> Open</span>
     </div>
   {/if}

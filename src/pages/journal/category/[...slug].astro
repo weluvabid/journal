@@ -8,6 +8,7 @@ import JournalEntryCard from '@components/cards/JournalEntryCard.svelte';
 import { categories, categoryById } from '@data/categories';
 import { entryHref, withBase } from '@lib/journal';
 import { JOURNAL_PAGE_SIZE, paginateItems } from '@lib/journal-pagination';
+import { INTENTS, pluralize } from '@lib/content-text';
 
 export async function getStaticPaths() {
   return [...categoryById.values()].map((category) => ({
@@ -51,8 +52,7 @@ const nextPageUrl =
   >
   <h1 class="sr-only">{category.name}</h1>
   <p class="mb-4 text-xs font-semibold uppercase tracking-[0.18em] text-muted-foreground">
-    {entries.length}
-    {entries.length === 1 ? 'entry' : 'entries'}
+    {pluralize(entries.length, INTENTS.entry)}
   </p>
   <div class="mb-6 min-w-0 max-w-full">
     <CategorySelect

@@ -8,6 +8,7 @@ import JournalEntryCard from '@components/cards/JournalEntryCard.svelte';
 import { categories } from '@data/categories';
 import { entryHref, withBase } from '@lib/journal';
 import { JOURNAL_PAGE_SIZE, paginateItems } from '@lib/journal-pagination';
+import { INTENTS, pluralize } from '@lib/content-text';
 
 const entries = (await getCollection('journal', ({ data }) => !data.draft)).sort(
   (left, right) =>
@@ -40,7 +41,7 @@ const nextPageUrl = nextPage === null ? null : withBase(`/journal/data/all/${nex
   >
   <h1 class="sr-only">Journal</h1>
   <p class="mb-4 text-xs font-semibold uppercase tracking-[0.18em] text-muted-foreground">
-    {entries.length}{' '}{entries.length === 1 ? 'entry' : 'entries'}
+    {pluralize(entries.length, INTENTS.entry)}
   </p>
   <div class="mb-6 min-w-0 max-w-full">
     <CategorySelect client:load categories={categories} base={import.meta.env.BASE_URL} />

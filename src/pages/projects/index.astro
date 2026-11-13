@@ -4,6 +4,7 @@ import BaseLayout from '@layouts/BaseLayout.astro';
 import ProjectCard from '@components/cards/ProjectCard.svelte';
 import { Breadcrumb } from '@weluvabid/iris/components';
 import { withBase } from '@lib/journal';
+import { INTENTS, pluralize } from '@lib/content-text';
 
 const projects = (await getCollection('projects')).sort((a, b) => a.data.order - b.data.order);
 ---
@@ -20,7 +21,7 @@ const projects = (await getCollection('projects')).sort((a, b) => a.data.order -
   >
   <h1 class="sr-only">Projects</h1>
   <p class="mb-8 text-xs font-semibold uppercase tracking-[0.18em] text-muted-foreground">
-    {projects.length}{' '}{projects.length === 1 ? 'project' : 'projects'}
+    {pluralize(projects.length, INTENTS.project)}
   </p>
   <div class="grid items-stretch gap-3 sm:grid-cols-2">
     {

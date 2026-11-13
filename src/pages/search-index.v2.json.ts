@@ -4,6 +4,7 @@ import { getCollection } from 'astro:content';
 import { withBase, entryHref } from '@lib/journal';
 import { normalizeSearchText } from '@lib/search/ranking';
 import { stringArray } from '@lib/search/arrays';
+import { INTENTS } from '@lib/content-text';
 
 export const GET: APIRoute = async () => {
   const entries = await getCollection('journal', ({ data }) => !data.draft);
@@ -29,7 +30,7 @@ export const GET: APIRoute = async () => {
         ].join(' '),
       ),
       href: entryHref(entry.data.id),
-      kind: 'entry' as const,
+      kind: INTENTS.entry,
     };
   });
 
@@ -49,7 +50,7 @@ export const GET: APIRoute = async () => {
         [project.data.title, project.data.summary, project.body ?? '', ...stack, ...tags].join(' '),
       ),
       href: withBase(`/projects/${project.data.id}/`),
-      kind: 'project' as const,
+      kind: INTENTS.project,
     });
   }
 
