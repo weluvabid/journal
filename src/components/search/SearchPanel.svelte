@@ -3,7 +3,7 @@
   import { Command, Alert, Spinner, Kbd } from '@weluvabid/iris/components';
   import type { SearchDocument } from '@lib/search/types';
   import { rankSearchResults } from '@lib/search/ranking';
-  import { isAbortError, loadSearchIndex } from '@lib/search';
+  import { loadSearchIndex } from '@lib/search';
 
   interface Props {
     open?: boolean;
@@ -19,26 +19,27 @@
   const normalizedQuery = $derived(query.trim());
 
   onMount(() => {
-    const controller = new AbortController();
+    let mounted = true;
 
     async function loadIndex(): Promise<void> {
       try {
-        documents = await loadSearchIndex(controller.signal);
+        const index = await loadSearchIndex();
+        if (mounted) documents = index;
       } catch (error) {
-        if (!isAbortError(error)) {
+        if (mounted) {
           loadError =
             error instanceof Error ? error.message : 'An unexpected search error occurred';
         }
       } finally {
-        if (!controller.signal.aborted) {
-          loading = false;
-        }
+        if (mounted) loading = false;
       }
     }
 
     void loadIndex();
 
-    return () => controller.abort();
+    return () => {
+      mounted = false;
+    };
   });
 </script>
 

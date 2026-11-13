@@ -2,21 +2,37 @@ import { parseSearchIndex } from './validation.ts';
 import { withBase } from '../journal.ts';
 import type { SearchDocument } from './types.ts';
 
-export async function loadSearchIndex(
-  signal: AbortSignal,
-  fetcher: typeof fetch = fetch,
-): Promise<SearchDocument[]> {
-  const response = await fetcher(withBase('/search-index.v2.json'), { signal });
+// Cache the parsed corpus and the in-flight load. WeakMap keeps injected fetchers
+// used by tests isolated without retaining them after the caller releases them.
+const searchIndexCache = new WeakMap<typeof fetch, Promise<SearchDocument[]>>();
 
-  if (!response.ok) {
-    throw new Error(`Search index request failed with HTTP ${response.status}`);
+export function loadSearchIndex(fetcher: typeof fetch = fetch): Promise<SearchDocument[]> {
+  const cached = searchIndexCache.get(fetcher);
+
+  if (cached) {
+    return cached;
   }
 
-  const payload: unknown = await response.json();
+  const request = (async (): Promise<SearchDocument[]> => {
+    const response = await fetcher(withBase('/search-index.v2.json'));
 
-  return parseSearchIndex(payload);
-}
+    if (!response.ok) {
+      throw new Error(`Search index request failed with HTTP ${response.status}`);
+    }
 
-export function isAbortError(error: unknown): boolean {
-  return error instanceof DOMException && error.name === 'AbortError';
+    const payload: unknown = await response.json();
+
+    return parseSearchIndex(payload);
+  })();
+
+  searchIndexCache.set(fetcher, request);
+
+  void request.catch(() => {
+    // A transient network or validation failure must not poison the cache.
+    if (searchIndexCache.get(fetcher) === request) {
+      searchIndexCache.delete(fetcher);
+    }
+  });
+
+  return request;
 }

@@ -62,13 +62,13 @@ test('search index parser validates payload shape and entry documents', () => {
   );
 });
 
-test('search loader passes its abort signal and reports HTTP failures', async () => {
-  const controller = new AbortController();
-  let requestedUrl = '';
-  let requestedSignal;
+test('search loader deduplicates concurrent requests and reuses the parsed index', async () => {
+  let requests = 0;
   const fetcher = async (url, options) => {
-    requestedUrl = url;
-    requestedSignal = options.signal;
+    requests += 1;
+    assert.equal(url, '/search-index.v2.json');
+    assert.equal(options, undefined);
+    await Promise.resolve();
 
     return new Response(JSON.stringify({ version: 2, documents: [document('event-loop')] }), {
       status: 200,
@@ -76,15 +76,35 @@ test('search loader passes its abort signal and reports HTTP failures', async ()
     });
   };
 
-  const documents = await loadSearchIndex(controller.signal, fetcher);
+  const [first, concurrent] = await Promise.all([
+    loadSearchIndex(fetcher),
+    loadSearchIndex(fetcher),
+  ]);
+  const subsequent = await loadSearchIndex(fetcher);
 
-  assert.equal(requestedUrl, '/search-index.v2.json');
-  assert.equal(requestedSignal, controller.signal);
+  assert.equal(requests, 1);
+  assert.strictEqual(first, concurrent);
+  assert.strictEqual(first, subsequent);
+  assert.equal(first[0].id, 'event-loop');
+});
+
+test('search loader reports HTTP failures and allows retry', async () => {
+  let requests = 0;
+  const fetcher = async () => {
+    requests += 1;
+    if (requests === 1) return new Response('', { status: 503 });
+
+    return new Response(JSON.stringify({ version: 2, documents: [document('event-loop')] }), {
+      status: 200,
+      headers: { 'content-type': 'application/json' },
+    });
+  };
+
+  await assert.rejects(loadSearchIndex(fetcher), /HTTP 503/u);
+  const documents = await loadSearchIndex(fetcher);
+
+  assert.equal(requests, 2);
   assert.equal(documents[0].id, 'event-loop');
-  await assert.rejects(
-    loadSearchIndex(controller.signal, async () => new Response('', { status: 503 })),
-    /HTTP 503/u,
-  );
 });
 
 test('search normalization handles case, punctuation, accents, and whitespace', () => {
