@@ -31,14 +31,14 @@
     <div class="flex h-full min-w-0 flex-col gap-3 p-5">
       <div class="flex items-center gap-2">
         <span class="text-xs tabular-nums text-muted-foreground">{number}</span>
-        <Badge.Badge variant="secondary" class="capitalize"
-          >{entry.type.replaceAll('-', ' ')}</Badge.Badge
-        >
         {#if entry.series}
           <Badge.Badge variant="outline">
             Series · {entry.series.part}/{entry.series.totalParts}
           </Badge.Badge>
         {/if}
+        <Badge.Badge variant="secondary" class="capitalize"
+          >{entry.type.replaceAll('-', ' ')}</Badge.Badge
+        >
       </div>
       <div class="min-w-0">
         <h2 class="font-medium tracking-tight">{entry.title}</h2>
@@ -56,15 +56,15 @@
       <div class="flex min-w-0 gap-4">
         <span class="pt-1 text-xs tabular-nums text-muted-foreground">{number}</span>
         <div class="min-w-0">
-          <h2 class="font-semibold tracking-tight">{entry.title}</h2>
-          <p class="mt-2 max-w-2xl text-sm leading-6 text-muted-foreground">{entry.summary}</p>
           {#if entry.series}
-            <div class="mt-2">
+            <div class="mb-2">
               <Badge.Badge variant="outline">
                 Series · Part {entry.series.part}/{entry.series.totalParts}
               </Badge.Badge>
             </div>
           {/if}
+          <h2 class="font-semibold tracking-tight">{entry.title}</h2>
+          <p class="mt-2 max-w-2xl text-sm leading-6 text-muted-foreground">{entry.summary}</p>
           <div class="block w-full min-w-0 max-w-full">
             <TagList tags={entry.tags} label={entry.title} />
           </div>
