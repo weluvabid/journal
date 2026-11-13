@@ -166,7 +166,9 @@
               {/snippet}
             </Tooltip.Trigger>
             <Tooltip.Content
-              >{theme === 'dark' ? 'Switch to light theme' : 'Switch to dark theme'}</Tooltip.Content
+              >{theme === 'dark'
+                ? 'Switch to light theme'
+                : 'Switch to dark theme'}</Tooltip.Content
             >
           </Tooltip.Root>
         </div>
@@ -176,16 +178,16 @@
             <Tooltip.Trigger>
               {#snippet child({ props })}
                 <Button.Root
-                {...props}
-                variant="ghost"
-                size="icon"
-                class="rounded-full"
-                href="https://github.com/weluvabid/journal"
-                target="_blank"
-                rel="noopener noreferrer"
-                aria-label="Journal on GitHub (opens in a new tab)"
-              >
-                <SiGithub aria-hidden="true" />
+                  {...props}
+                  variant="ghost"
+                  size="icon"
+                  class="rounded-full"
+                  href="https://github.com/weluvabid/journal"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  aria-label="Journal on GitHub (opens in a new tab)"
+                >
+                  <SiGithub aria-hidden="true" />
                 </Button.Root>
               {/snippet}
             </Tooltip.Trigger>
@@ -198,15 +200,15 @@
             <Tooltip.Trigger>
               {#snippet child({ props })}
                 <Button.Root
-                {...props}
-                variant="ghost"
-                size="icon"
-                class="rounded-full"
-                aria-label="Help and keyboard shortcuts"
-                aria-keyshortcuts="?"
-                onclick={() => (helpOpen = true)}
-              >
-                <CircleHelp aria-hidden="true" />
+                  {...props}
+                  variant="ghost"
+                  size="icon"
+                  class="rounded-full"
+                  aria-label="Help and keyboard shortcuts"
+                  aria-keyshortcuts="?"
+                  onclick={() => (helpOpen = true)}
+                >
+                  <CircleHelp aria-hidden="true" />
                 </Button.Root>
               {/snippet}
             </Tooltip.Trigger>
@@ -231,10 +233,13 @@
               aria-label={theme === 'dark' ? 'Switch to light theme' : 'Switch to dark theme'}
               onclick={() => {
                 handleThemeToggle();
+
                 mobileMenu.open = false;
               }}
             >
-              {#if theme === 'dark'}<Sun aria-hidden="true" />{:else}<Moon aria-hidden="true" />{/if}
+              {#if theme === 'dark'}<Sun aria-hidden="true" />{:else}<Moon
+                  aria-hidden="true"
+                />{/if}
               <span>{theme === 'dark' ? 'Light theme' : 'Dark theme'}</span>
             </Button.Root>
             <Button.Root

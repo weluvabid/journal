@@ -66,6 +66,7 @@ test('search loader deduplicates concurrent requests and reuses the parsed index
   let requests = 0;
   const fetcher = async (url, options) => {
     requests += 1;
+
     assert.equal(url, '/search-index.v2.json');
     assert.equal(options, undefined);
     await Promise.resolve();
@@ -92,7 +93,10 @@ test('search loader reports HTTP failures and allows retry', async () => {
   let requests = 0;
   const fetcher = async () => {
     requests += 1;
-    if (requests === 1) return new Response('', { status: 503 });
+
+    if (requests === 1) {
+      return new Response('', { status: 503 });
+    }
 
     return new Response(JSON.stringify({ version: 2, documents: [document('event-loop')] }), {
       status: 200,

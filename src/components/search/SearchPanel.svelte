@@ -25,14 +25,19 @@
     async function loadIndex(): Promise<void> {
       try {
         const index = await loadSearchIndex();
-        if (mounted) documents = index;
+
+        if (mounted) {
+          documents = index;
+        }
       } catch (error) {
         if (mounted) {
           loadError =
             error instanceof Error ? error.message : 'An unexpected search error occurred';
         }
       } finally {
-        if (mounted) loading = false;
+        if (mounted) {
+          loading = false;
+        }
       }
     }
 
@@ -65,7 +70,9 @@
         >
       </div>
     {:else if !normalizedQuery}
-      <Command.Empty>Start typing to search {pluralize(documents.length, INTENTS.entry)}.</Command.Empty>
+      <Command.Empty
+        >Start typing to search {pluralize(documents.length, INTENTS.entry)}.</Command.Empty
+      >
     {:else if results.length === 0}
       <Command.Empty>No results for “{normalizedQuery}”. Try a broader term.</Command.Empty>
     {:else}
@@ -93,7 +100,11 @@
     <div
       class="flex items-center justify-between border-t border-border px-3 py-2 text-xs text-muted-foreground"
     >
-      <span>{normalizedQuery ? pluralize(results.length, INTENTS.matchingEntry) : 'Search Journal'}</span>
+      <span
+        >{normalizedQuery
+          ? pluralize(results.length, INTENTS.matchingEntry)
+          : 'Search Journal'}</span
+      >
       <span><Kbd.Kbd>↑↓</Kbd.Kbd> Navigate <Kbd.Kbd class="ml-2">↵</Kbd.Kbd> Open</span>
     </div>
   {/if}

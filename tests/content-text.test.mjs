@@ -21,7 +21,13 @@ test('pluralize supports all declared content intents', () => {
 });
 
 test('pluralize rejects invalid counts', () => {
-  for (const count of [-1, 1.5, Number.NaN, Number.POSITIVE_INFINITY, Number.MAX_SAFE_INTEGER + 1]) {
+  for (const count of [
+    -1,
+    1.5,
+    Number.NaN,
+    Number.POSITIVE_INFINITY,
+    Number.MAX_SAFE_INTEGER + 1,
+  ]) {
     assert.throws(() => pluralize(count, INTENTS.entry), RangeError);
   }
 });

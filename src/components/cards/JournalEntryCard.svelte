@@ -46,9 +46,7 @@
       >
     </div>
   {:else}
-    <div
-      class="flex min-w-0 flex-col gap-3 p-4 sm:flex-row sm:items-start sm:justify-between"
-    >
+    <div class="flex min-w-0 flex-col gap-3 p-4 sm:flex-row sm:items-start sm:justify-between">
       <div class="flex min-w-0 gap-4">
         <span class="pt-1 text-xs tabular-nums text-muted-foreground">{number}</span>
         <div class="min-w-0">

@@ -1,4 +1,4 @@
-import { INTENTS } from '@lib/content-text';
+import type { INTENTS } from '@lib/content-text';
 
 export interface SearchDocument {
   readonly id: string;
