@@ -34,11 +34,14 @@ test('desktop primary navigation and separator are hidden on mobile', () => {
 test('mobile overflow menu exposes secondary controls without duplicating primary navigation', () => {
   const menu = header.slice(header.indexOf('<DropdownMenu.Root>'));
 
-  assert.match(menu, /<DropdownMenu.Trigger[\s\S]*sm:hidden[\s\S]*aria-label="More options"/);
   assert.match(menu, /Light theme|Dark theme/);
-  assert.match(menu, /GitHub/);
+  assert.match(menu, /<DropdownMenu\.Item class="min-h-10 rounded-lg px-3">/);
+  assert.match(menu, /\{#snippet child\(\{ props \}\)\}/);
+  assert.match(
+    menu,
+    /<a[\s\S]*?\{\.\.\.props\}[\s\S]*?href="https:\/\/github\.com\/weluvabid\/journal"/,
+  );
   assert.match(menu, /Help/);
-  assert.match(menu, /<DropdownMenu.Content/);
   assert.doesNotMatch(menu, /<details|<summary/);
   assert.doesNotMatch(footer, /Writing|Projects|Resume/);
 });

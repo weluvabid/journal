@@ -229,14 +229,18 @@
                 />{/if}
               <span>{theme === 'dark' ? 'Light theme' : 'Dark theme'}</span>
             </DropdownMenu.Item>
-            <DropdownMenu.Item
-              href="https://github.com/weluvabid/journal"
-              target="_blank"
-              rel="noopener noreferrer"
-              class="min-h-10 rounded-lg px-3"
-            >
-              <SiGithub aria-hidden="true" />
-              <span>GitHub</span>
+            <DropdownMenu.Item class="min-h-10 rounded-lg px-3">
+              {#snippet child({ props })}
+                <a
+                  {...props}
+                  href="https://github.com/weluvabid/journal"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                >
+                  <SiGithub aria-hidden="true" size={16} />
+                  <span>GitHub</span>
+                </a>
+              {/snippet}
             </DropdownMenu.Item>
             <DropdownMenu.Item
               class="min-h-10 rounded-lg px-3"
