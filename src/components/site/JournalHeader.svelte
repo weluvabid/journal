@@ -217,7 +217,7 @@
           <DropdownMenu.Content
             align="end"
             side="bottom"
-            class="mt-2 min-w-44 rounded-xl border border-border bg-popover p-2 text-popover-foreground shadow-lg"
+            class="mt-2 min-w-44 rounded-xl border border-border bg-popover p-2 text-popover-foreground shadow-lg animate-none duration-0"
           >
             <DropdownMenu.Item
               class="min-h-10 rounded-lg px-3"
