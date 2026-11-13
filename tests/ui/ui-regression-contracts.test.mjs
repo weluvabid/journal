@@ -27,3 +27,9 @@ test('home page exposes Journal and Projects as primary destinations', () => {
   assert.match(home, /\/journal\//u);
   assert.match(home, /\/projects\//u);
 });
+
+
+test('shared layout keeps viewport sizing and vertical scrolling on the body', () => {
+  assert.match(layout, /<html lang="en" class="h-full overflow-hidden">/u);
+  assert.match(layout, /<body class="h-full overflow-y-auto scroll-smooth">/u);
+});

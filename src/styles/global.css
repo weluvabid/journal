@@ -9,7 +9,7 @@
   }
 
   html {
-    @apply scroll-smooth bg-background font-sans text-foreground;
+    @apply bg-background font-sans text-foreground;
   }
 
   body {
