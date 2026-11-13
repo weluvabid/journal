@@ -52,12 +52,12 @@ test('journal landing and category archives use the compact shared archive layou
 
   assert.match(index, /<Breadcrumb\.Page>Journal<\/Breadcrumb\.Page>/);
   assert.match(index, /<h1 class="sr-only">Journal<\/h1>/);
-  assert.match(index, /\{entries\.length\}\{\s*' '\s*\}\{entries\.length === 1/);
+  assert.match(index, /pluralize\(entries\.length, INTENTS\.entry\)/);
   assert.doesNotMatch(index, /Writing & notes|An evolving record of experiments/);
-  assert.ok(index.indexOf('{entries.length}') < index.indexOf('<CategorySelect'));
+  assert.ok(index.indexOf('pluralize(entries.length') < index.indexOf('<CategorySelect'));
 
   assert.match(category, /<Breadcrumb\.Page>\{category\.name\}<\/Breadcrumb\.Page>/);
   assert.match(category, /<h1 class="sr-only">\{category\.name\}<\/h1>/);
   assert.doesNotMatch(category, /<h1 class="mt-3 text-4xl|<p class="mt-4 text-base leading-8/);
-  assert.ok(category.indexOf('{entries.length}') < category.indexOf('<CategorySelect'));
+  assert.ok(category.indexOf('pluralize(entries.length') < category.indexOf('<CategorySelect'));
 });

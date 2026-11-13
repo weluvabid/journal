@@ -29,7 +29,8 @@ test('tags remain independent links above the stretched card link', async () => 
   const tags = await read('../src/components/cards/TagList.svelte');
 
   assert.match(card, /<ContentCard href=\{entry\.href\}/);
-  assert.match(card, /pointer-events-auto block w-full min-w-0 max-w-full/);
+  assert.match(tags, /pointer-events-auto block w-fit min-w-0 max-w-full/);
+  assert.doesNotMatch(card, /pointer-events-(?:auto|none)/);
   assert.match(tags, /<a\s+href=\{tagHref\(tag, collection\)\}/);
   assert.doesNotMatch(tags, /data-card-navigation/);
   const contentCard = await read('../src/components/cards/ContentCard.svelte');
@@ -97,7 +98,8 @@ test('homepage journal and project cards expose independent tag links', async ()
     projectCard,
     /<TagList tags=\{project\.tags} label=\{project\.title} collection="projects" \/>/,
   );
-  assert.match(projectCard, /pointer-events-auto mt-auto block w-full min-w-0 max-w-full/);
+  assert.match(projectCard, /mt-auto block w-full min-w-0 max-w-full/);
+  assert.match(projectCard, /<TagList/);
   assert.match(projects, /<ProjectCard\s+project=\{project\.data\}/);
   assert.match(projectDetail, /collection="projects"/);
   assert.match(projectTagArchive, /groupProjectsByTag\(projects\)/);
@@ -156,11 +158,14 @@ test('project cards share the journal card interaction and layout contract', asy
   const contentCard = await read('../src/components/cards/ContentCard.svelte');
 
   assert.match(projectCard, /<ContentCard \{href\} label=\{`View project \$\{project\.title\}`\}/);
-  assert.match(projectCard, /pointer-events-none flex h-full min-w-0 flex-col/);
-  assert.match(projectCard, /pointer-events-auto mt-auto block w-full min-w-0 max-w-full/);
+  assert.match(projectCard, /flex h-full min-w-0 flex-col/);
+  assert.doesNotMatch(projectCard, /pointer-events-(?:auto|none)/);
+  assert.match(projectCard, /mt-auto block w-full min-w-0 max-w-full/);
+  assert.match(projectCard, /<TagList/);
   assert.match(projectCard, /<Badge\.Badge variant="outline"/);
   assert.match(projectCard, /collection="projects"/);
-  assert.match(journalCard, /pointer-events-none flex min-w-0 flex-col/);
+  assert.match(journalCard, /flex min-w-0 flex-col/);
+  assert.doesNotMatch(journalCard, /pointer-events-(?:auto|none)/);
   assert.match(contentCard, /absolute inset-0/);
 });
 
@@ -168,8 +173,10 @@ test('tag lists remain width-constrained scrollports at every breakpoint', async
   const tags = await read('../src/components/cards/TagList.svelte');
 
   assert.match(tags, /min-w-0 max-w-full/);
-  assert.match(tags, /touch-pan-x[^"]*overflow-x-auto/);
-  assert.match(tags, /flex-nowrap/);
+  assert.doesNotMatch(tags, /touch-pan-x/);
+  assert.match(tags, /overflow-x-auto/);
+  assert.match(tags, /w-fit min-w-0 max-w-full/);
+  assert.match(tags, /flex w-max flex-nowrap gap-2/);
   assert.match(tags, /shrink-0/);
 });
 

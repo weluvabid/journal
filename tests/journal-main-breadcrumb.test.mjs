@@ -18,7 +18,7 @@ test('main Journal label uses the same non-linked breadcrumb presentation as arc
 
 test('entry count, category filters and list remain after the breadcrumb', () => {
   const breadcrumbIndex = source.indexOf('<Breadcrumb.Root');
-  const countIndex = source.indexOf('{entries.length}');
+  const countIndex = source.indexOf('pluralize(entries.length');
   const filtersIndex = source.indexOf('<CategorySelect');
   const listIndex = source.indexOf('<JournalEntryList');
 

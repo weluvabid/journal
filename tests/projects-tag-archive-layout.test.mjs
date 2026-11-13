@@ -16,7 +16,7 @@ test('project tag archive uses Projects as parent and #tag as current breadcrumb
 });
 
 test('project tag archive retains the count and removes the redundant hero', () => {
-  assert.ok(source.includes("{projects.length === 1 ? 'project' : 'projects'}"));
+  assert.match(source, /pluralize\(projects\.length, INTENTS\.project\)/);
   assert.ok(!source.includes('Projects filed under'));
   assert.ok(!source.includes('text-4xl font-semibold tracking-tight'));
   assert.ok(!source.includes('<h1'));

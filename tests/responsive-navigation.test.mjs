@@ -25,16 +25,18 @@ test('desktop primary navigation groups Writing, Projects and Resume before util
 });
 
 test('desktop primary navigation and separator are hidden on mobile', () => {
-  assert.match(header, /hidden items-center gap-1 sm:flex/);
-  assert.match(header, /hidden h-6 w-px shrink-0 bg-border sm:block/);
+  assert.match(header, /<div class="flex items-center gap-1" aria-label="Main sections">/);
+  assert.match(header, /<details class="relative sm:hidden" bind:this=\{mobileMenu\}>/);
+  assert.match(header, /<div class="hidden sm:contents">/);
+  assert.match(header, /<span class="mx-2 h-6 w-px shrink-0 bg-border"/);
 });
 
-test('mobile bottom navigation contains Writing, Projects and Resume in order', () => {
-  const writing = footer.indexOf('<span class="text-xs leading-none">Writing</span>');
-  const projects = footer.indexOf('<span class="text-xs leading-none">Projects</span>');
-  const resume = footer.indexOf('<span class="text-xs leading-none">Resume</span>');
+test('mobile overflow menu exposes secondary controls without duplicating primary navigation', () => {
+  const menu = header.slice(header.indexOf('<details class="relative sm:hidden"'));
 
-  assert.ok(writing !== -1 && writing < projects && projects < resume);
-  assert.match(footer, /sm:hidden/);
-  assert.match(footer, /NotebookText/);
+  assert.match(menu, /<summary[\s\S]*aria-label="More options"/);
+  assert.match(menu, /Light theme|Dark theme/);
+  assert.match(menu, /GitHub/);
+  assert.match(menu, /Help/);
+  assert.doesNotMatch(footer, /Writing|Projects|Resume/);
 });

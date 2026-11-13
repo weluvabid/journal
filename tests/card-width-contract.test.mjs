@@ -18,11 +18,17 @@ test('all card and detail-page tag wrappers use the available content width', as
   const projectDetail = await read('../src/pages/projects/[...slug].astro');
   const tagList = await read('../src/components/cards/TagList.svelte');
 
-  assert.match(projectCard, /pointer-events-auto mt-auto block w-full min-w-0 max-w-full/);
-  assert.match(journalCard, /pointer-events-auto block w-full min-w-0 max-w-full/);
+  assert.match(projectCard, /mt-auto block w-full min-w-0 max-w-full/);
+  assert.match(journalCard, /block w-full min-w-0 max-w-full/);
+  assert.doesNotMatch(projectCard, /pointer-events-(?:auto|none)/);
+  assert.doesNotMatch(journalCard, /pointer-events-(?:auto|none)/);
   assert.match(journalDetail, /block w-full min-w-0 max-w-full/);
   assert.match(projectDetail, /block w-full min-w-0 max-w-full/);
   assert.match(tagList, /relative mt-3 min-w-0 max-w-full/);
-  assert.match(tagList, /block w-full min-w-0 max-w-full[\s\S]*?overflow-x-auto/);
+  assert.match(
+    tagList,
+    /pointer-events-auto block w-fit min-w-0 max-w-full[\s\S]*?overflow-x-auto/,
+  );
+  assert.match(tagList, /flex w-max flex-nowrap gap-2/);
   assert.doesNotMatch(tagList, /sm:flex-wrap|sm:overflow-visible/);
 });

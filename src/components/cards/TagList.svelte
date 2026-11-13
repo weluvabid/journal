@@ -1,5 +1,5 @@
 <script lang="ts">
-  import { onMount, tick } from 'svelte';
+  import { tick } from 'svelte';
   import { tagHref, type TagCollection } from '@lib/journal-tags';
 
   interface Props {
@@ -14,49 +14,54 @@
   let canScrollLeft = $state(false);
   let canScrollRight = $state(false);
 
-  function updateScrollAffordances() {
-    if (!viewport) {
+  function updateScrollAffordances(element: HTMLElement | undefined = viewport) {
+    if (!element) {
       return;
     }
 
-    const maxScrollLeft = Math.max(0, viewport.scrollWidth - viewport.clientWidth);
+    const maxScrollLeft = Math.max(0, element.scrollWidth - element.clientWidth);
 
-    canScrollLeft = maxScrollLeft > 1 && viewport.scrollLeft > 1;
-    canScrollRight = maxScrollLeft > 1 && viewport.scrollLeft < maxScrollLeft - 1;
+    canScrollLeft = maxScrollLeft > 1 && element.scrollLeft > 1;
+    canScrollRight = maxScrollLeft > 1 && element.scrollLeft < maxScrollLeft - 1;
   }
 
-  onMount(() => {
-    if (!viewport || !track) {
+  $effect(() => {
+    const viewportElement = viewport;
+    const trackElement = track;
+
+    if (!viewportElement || !trackElement) {
       return;
     }
 
-    viewport.addEventListener('scroll', updateScrollAffordances, { passive: true });
+    const update = () => updateScrollAffordances(viewportElement);
+
+    viewportElement.addEventListener('scroll', update, { passive: true });
 
     if (typeof ResizeObserver !== 'undefined') {
-      const resizeObserver = new ResizeObserver(updateScrollAffordances);
+      const resizeObserver = new ResizeObserver(update);
 
-      resizeObserver.observe(viewport);
-      resizeObserver.observe(track);
-      updateScrollAffordances();
+      resizeObserver.observe(viewportElement);
+      resizeObserver.observe(trackElement);
+      update();
 
       return () => {
-        viewport.removeEventListener('scroll', updateScrollAffordances);
+        viewportElement.removeEventListener('scroll', update);
         resizeObserver.disconnect();
       };
     }
 
-    window.addEventListener('resize', updateScrollAffordances);
-    updateScrollAffordances();
+    window.addEventListener('resize', update);
+    update();
 
     return () => {
-      viewport.removeEventListener('scroll', updateScrollAffordances);
-      window.removeEventListener('resize', updateScrollAffordances);
+      viewportElement.removeEventListener('scroll', update);
+      window.removeEventListener('resize', update);
     };
   });
 
   $effect(() => {
     void tags;
-    void tick().then(updateScrollAffordances);
+    void tick().then(() => updateScrollAffordances());
   });
 </script>
 

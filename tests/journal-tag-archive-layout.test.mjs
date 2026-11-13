@@ -16,7 +16,7 @@ test('journal tag archive uses Journal as the parent and #tag as the current bre
 });
 
 test('journal tag archive retains the entry count without a redundant hero', () => {
-  assert.ok(source.includes("{entries.length === 1 ? 'entry' : 'entries'}"));
+  assert.match(source, /pluralize\(entries\.length, INTENTS\.entry\)/);
   assert.ok(!source.includes('Writing filed under'));
   assert.ok(!source.includes('text-4xl font-semibold tracking-tight'));
 });

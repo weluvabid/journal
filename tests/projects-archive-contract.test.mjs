@@ -19,8 +19,7 @@ test('Projects archive uses the same compact, non-linked breadcrumb presentation
 });
 
 test('Projects archive shows a pluralized count using the Journal count typography', () => {
-  assert.match(source, /\{projects\.length\}/);
-  assert.match(source, /projects\.length === 1 \? 'project' : 'projects'/);
+  assert.match(source, /pluralize\(projects\.length, INTENTS\.project\)/);
   assert.match(
     source,
     /class="mb-8 text-xs font-semibold uppercase tracking-\[0\.18em\] text-muted-foreground"/,

@@ -1,4 +1,4 @@
-import { INTENTS } from '@lib/content-text';
+import { INTENTS } from '../content-text.ts';
 import type { SearchDocument } from './types.ts';
 
 function isRecord(value: unknown): value is Record<string, unknown> {
