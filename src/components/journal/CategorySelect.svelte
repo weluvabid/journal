@@ -110,14 +110,14 @@
 <nav class="relative min-w-0 max-w-full" aria-label="Journal categories">
   <div
     bind:this={viewport}
-    class="block w-full min-w-0 max-w-full snap-x snap-proximity touch-pan-x overflow-x-auto overscroll-x-contain pb-1 focus-visible:rounded-sm focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring"
+    class="block w-full min-w-0 max-w-full snap-x snap-proximity touch-pan-x overflow-x-auto overscroll-x-contain pb-1"
     aria-label="Browse journal categories"
   >
     <div bind:this={track} class="flex w-max min-w-full flex-nowrap gap-2">
       <a
         href={categoryHref('all')}
         aria-current={current === 'all' ? 'page' : undefined}
-        class="inline-flex shrink-0 snap-start items-center rounded-full border border-border px-2.5 py-1 text-xs text-foreground no-underline transition-colors hover:bg-muted focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring"
+        class="inline-flex shrink-0 snap-start items-center rounded-full border border-border px-2.5 py-1 text-xs text-foreground no-underline transition-colors hover:bg-muted focus-visible:outline-2 focus-visible:outline-offset-[-2px] focus-visible:outline-ring"
         class:bg-muted={current === 'all'}
       >
         All entries
@@ -126,7 +126,7 @@
         <a
           href={categoryHref(category.id)}
           aria-current={current === category.id ? 'page' : undefined}
-          class="inline-flex shrink-0 snap-start items-center rounded-full border border-border px-2.5 py-1 text-xs text-foreground no-underline transition-colors hover:bg-muted focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring"
+          class="inline-flex shrink-0 snap-start items-center rounded-full border border-border px-2.5 py-1 text-xs text-foreground no-underline transition-colors hover:bg-muted focus-visible:outline-2 focus-visible:outline-offset-[-2px] focus-visible:outline-ring"
           class:bg-muted={current === category.id}
         >
           {category.name}
