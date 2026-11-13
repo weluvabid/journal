@@ -1,0 +1,51 @@
+---
+id: copy-2-markdown-local-first-browser-extraction
+title: 'Copying the Web as Markdown Without a Backend'
+type: deep-dive
+category: frontend-engineering
+summary: 'How a Manifest V3 extension separates page extraction, conservative filtering, Markdown conversion and clipboard ownership while keeping copied content local.'
+date: 2026-11-13
+project: copy-2-markdown
+tags: [browser-extensions, markdown, privacy, javascript]
+searchTerms: [manifest-v3, activeTab, readability, turndown, offscreen-document, clipboard]
+featured: true
+draft: false
+---
+
+A web page is not a document. The article is sitting next to nav, ads, hidden helper text, framework chrome, and whatever the app rendered into the same tree. Turning that into Markdown is an extraction problem first. Formatting is the easy half.
+
+Copy 2 Markdown does page, selection, or link, locally, in Chrome. The interesting part isn't Turndown. It's the fences around it. Page access happens because the user invoked an action. Extraction doesn't own the clipboard. The clipboard write doesn't run inside the page.
+
+Popup, context menu, or shortcut. The MV3 service worker checks the URL, injects the bundled content script if it isn't there yet, sends a typed message. The popup uses that same path. There isn't a second extractor hiding in the popup.
+
+Page and selection return HTML. Conversion turns the fragment into Markdown. An offscreen document, owned by the extension, writes the clipboard. Link copy can be built in the service worker. No DOM walk required if you only wanted the URL.
+
+```text
+action → worker → extract HTML → markdown → offscreen clipboard
+```
+
+Extraction knows about the live page. Conversion knows HTML plus a base URL. Clipboard code knows how to write text from an extension document. Mix those and the content script becomes a junk drawer.
+
+Page copy clones the document and tries Readability. Good on articles. Weak on docs sites and app UIs that don't have an article shape. If Readability doesn't return enough text, the fallback looks for `main`, then `article`, then `[role="main"]`, then body. That's a cleaned root, not "serialize the whole page."
+
+Filtering is split so it stays readable:
+
+- structural: scripts, styles, templates, embeds, forms, native controls
+- semantic: toolbars, menus, tablists, tooltips
+- framework: a short list of known UI patterns
+
+A class name is not proof an element is chrome. Docs are built with the same component libraries as the chrome around them. Framework rules stay in their own list so they don't melt into one giant selector.
+
+Readability runs on a detached clone, so it can't see computed style. The extractor compares the live tree to the clone and drops elements that are actually hidden. Clipping, absolute positioning, a 1px box, or a utility class is not enough by itself. Visible content uses those too.
+
+Selection copy does not run the article pipeline. It clones the selected ranges. If the live selection is gone but the action still has a selection string, that string goes in as text. Empty selection is an error, not a silent empty clipboard.
+
+Extracted HTML caps at 5 MB. Thin pages fail visibly.
+
+Conversion is Turndown plus the GFM plugin: headings, emphasis, links, images, nested lists, tasks, quotes, fences, rules, tables. Extra rules for strikethrough, lazy image `src`, language hints, fence length, table pipes, whitespace. Relative URLs resolve against the page. Links allow `http:`, `https:`, `mailto:`, `tel:`. Images allow `http:` and `https:` only. Credentials in the URL get dropped. Remote images are not fetched. The Markdown keeps a destination, not a blob.
+
+The converter takes a fragment and a base URL and doesn't import `chrome`. So the nasty HTML cases are unit tests. Playwright hits the built extension for the path that actually touches the browser.
+
+Permissions: `activeTab`, `scripting`, `clipboardWrite`, `contextMenus`, `offscreen`. No persistent host permission. No account, no backend, no analytics. The copied page stays in the browser. Restricted URLs fail with an error you can see. Chrome's own install and crash reporting are outside this boundary; I don't pretend the extension controls them.
+
+*Example I'd add:* one docs page before/after filter — the nav that got removed and the code sample that had to stay.

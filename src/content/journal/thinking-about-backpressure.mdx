@@ -11,18 +11,22 @@ featured: false
 draft: false
 ---
 
-## The problem space
+An unbounded queue is how you pretend the consumer is keeping up. The difference sits in memory until latency is embarrassing or the process falls over. Backpressure is admitting the rates don't match, and choosing what a person sees when they don't. Wait, retry, get rejected, or watch the job sit.
 
-Lorem ipsum dolor sit amet, consectetur adipiscing elit. Integer posuere erat a ante venenatis dapibus posuere velit aliquet. Cras mattis consectetur purus sit amet fermentum. Donec sed odio dui. Aenean lacinia bibendum nulla sed consectetur.
+On the Shopify path the stages are ordinary and still easy to lie about. HTTP handler, publish, queue, worker, database, object storage. They do not share a speed. A worker can pull faster than the database commits. A report can be produced faster than storage will take the object. More concurrency helps until the downstream thing saturates. After that it's extra retries fighting over the same limit.
 
-## What I am exploring
+So the limits have to be actual numbers. In-flight cap, bounded buffers, timeouts, payload size, and a policy for a message that cannot be processed. A cap with no policy is just a crash on a different line.
 
-Praesent commodo cursus magna, vel scelerisque nisl consectetur et. Maecenas faucibus mollis interdum. Vestibulum id ligula porta felis euismod semper. Nulla vitae elit libero, a pharetra augue. Curabitur blandit tempus porttitor.
+The Shopify-facing Cloud Run service is not the Pub/Sub worker, and neither of those is a one-shot migration or maintenance job. Request lifetime and a process that sits on a subscription are different runtimes. Pull concurrency belongs on the worker. If the service starts consuming "just for this one path," there are two worker pools and only one of them is obvious.
 
-## Constraints and trade-offs
+I want one worker instance before any autoscaler. Throughput, backlog growth, processing time, what the database does under that. Scale from measured backlog and what one instance can finish, not from the fact that the slider goes higher.
 
-Etiam porta sem malesuada magna mollis euismod. Morbi leo risus, porta ac consectetur ac, vestibulum at eros. Sed posuere consectetur est at lobortis. Aenean eu leo quam. Pellentesque ornare sem lacinia quam venenatis vestibulum.
+Retries are how a small outage gets bigger. Retrying everything immediately is a self-DDoS. Backoff with jitter. A dead-letter path so a poison message doesn't sit at the head forever.
 
-## Notes
+At-least-once means the same logical operation runs more than once. That's the contract, not an edge case. Handlers need a stable operation id, a uniqueness constraint, or a transition that's a no-op the second time. Ack before the write is durable and you drop work. Ack after the write, with no idempotency, and a lost ack applies it twice.
 
-Donec ullamcorper nulla non metus auctor fringilla. Vestibulum id ligula porta felis euismod semper. Nullam quis risus eget urna mollis ornare vel eu leo. Integer posuere erat a ante venenatis dapibus posuere velit aliquet.
+Cancel work whose caller is gone, when stopping is actually safe. On shutdown: stop pulling, finish or release what's in flight inside the termination budget, don't ack what you didn't finish. The gauges I care about are dull. Depth, age of the oldest message, processing time, retry count, in-flight, downstream errors. If oldest-age climbs, the queue is not "buffering."
+
+What overload means depends on the promise. Some requests should fail fast. Some can wait inside a bounded window. Low-priority work can be dropped. Fulfillment work shouldn't vanish. Accept it durably or fail it where someone can see. The policy has to be the one already tested with the producer faster than the consumer, for longer than a demo.
+
+*Example I'd add:* one worker, publish rate above commit rate, depth and oldest-message age, then the same load with an in-flight cap and a second delivery of one operation id.

@@ -5,10 +5,10 @@ import { readdir, access } from 'node:fs/promises';
 const journalRoot = new URL('../src/content/journal/', import.meta.url);
 const projectsRoot = new URL('../src/content/projects/', import.meta.url);
 
-test('Journal ships exactly twenty MDX seed entries', async () => {
+test('Journal contains twenty-eight MDX entries with stable kebab-case filenames', async () => {
   const files = (await readdir(journalRoot)).filter((file) => file.endsWith('.mdx'));
 
-  assert.equal(files.length, 20);
+  assert.equal(files.length, 28);
 
   for (const file of files) {
     const id = file.slice(0, -4);
@@ -17,10 +17,10 @@ test('Journal ships exactly twenty MDX seed entries', async () => {
   }
 });
 
-test('initial portfolio contains the selected eight projects and excludes FulfillmentGuard', async () => {
+test('initial portfolio contains the selected eleven projects and excludes FulfillmentGuard', async () => {
   const files = (await readdir(projectsRoot)).filter((file) => file.endsWith('.md'));
 
-  assert.equal(files.length, 8);
+  assert.equal(files.length, 11);
   assert.equal(
     files.some((file) => file.toLowerCase().includes('fulfillment')),
     false,

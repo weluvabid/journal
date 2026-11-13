@@ -1,32 +1,48 @@
 ---
 id: benchmarking-without-lying-to-yourself
-title: 'Benchmarking Without Lying to Yourself'
-type: engineering-note
+title: 'Benchmarking Cache Policies Without Lying to Yourself'
+type: deep-dive
 category: systems-engineering
-summary: 'Notes on benchmark design, repeatability, workload selection and interpreting noisy measurements.'
-date: 2026-11-10
+summary: 'A deterministic benchmark compares Cachewise with LRU using weighted hit ratio, throughput and batched latency while keeping the limits of synthetic workloads explicit.'
+date: 2026-11-13
 project: cachewise
 series:
   id: cachewise-engineering
   part: 3
-tags: [benchmarking, performance, measurement]
-searchTerms: [benchmarking, performance, measurement]
-featured: false
+tags: [benchmarking, caching, performance, measurement]
+searchTerms: [weighted-hit-ratio, scan-pollution, skewed-workload, byte-pressure, microbenchmark]
+featured: true
 draft: false
 ---
 
-## The problem space
+A cache benchmark can be arranged to flatter whatever policy you just wrote. Cachewise tries not to. The streams are deterministic, they target cases where recency, recomputation cost and size disagree, and LRU sees the same requests and the same logical capacity.
 
-Lorem ipsum dolor sit amet, consectetur adipiscing elit. Integer posuere erat a ante venenatis dapibus posuere velit aliquet. Cras mattis consectetur purus sit amet fermentum. Donec sed odio dui. Aenean lacinia bibendum nulla sed consectetur.
+`computeCost` is a weight the caller supplies. The bench does not run the expensive work. That's useful: you can score retention without the factory dominating the timer. It also means a better weighted hit ratio is not an application latency win until you measure the real recomputation.
 
-## What I am exploring
+Three workloads, on purpose narrow:
 
-Praesent commodo cursus magna, vel scelerisque nisl consectetur et. Maecenas faucibus mollis interdum. Vestibulum id ligula porta felis euismod semper. Nulla vitae elit libero, a pharetra augue. Curabitur blandit tempus porttitor.
+- **Scan pollution.** A hot, expensive set sits near capacity while a large fraction of requests are cheap one-off keys. Does scan traffic kick out the entries you actually wanted to keep?
+- **Skewed expensive reuse.** Access piles onto a small head of the key space, and that head is expensive. Sizes vary.
+- **Byte pressure.** Small expensive entries fight large cheap ones for the same byte budget.
 
-## Constraints and trade-offs
+Uniform access and phase changes are not in this set. Don't cite the numbers for those patterns. I didn't measure them.
 
-Etiam porta sem malesuada magna mollis euismod. Morbi leo risus, porta ac consectetur ac, vestibulum at eros. Sed posuere consectetur est at lobortis. Aenean eu leo quam. Pellentesque ornare sem lacinia quam venenatis vestibulum.
+The clock is logical, so recency decay and sketch aging don't depend on the scheduler being in a good mood. Policy order alternates across trials so one policy doesn't always run warm. Warm-ups are not samples. The report keeps the runtime, the machine, and every trial. JSON for the raw run, CSV if you want to argue with it in a notebook, Markdown for the short table.
 
-## Notes
+The number I care about first is weighted hit ratio: cost-weight served by hits, over cost-weight requested. Raw hit ratio is context. A hit on a cheap key and a hit on an expensive key are not the same event. Throughput and batch p50/p95 are there because the policy itself costs CPU. Those percentiles are over batch averages, not single operations. Evictions and rejections show whether the cache made room or refused the insert.
 
-Donec ullamcorper nulla non metus auctor fringilla. Vestibulum id ligula porta felis euismod semper. Nullam quis risus eget urna mollis ornare vel eu leo. Integer posuere erat a ante venenatis dapibus posuere velit aliquet.
+One checked-in run, Node.js 26.13.0, Apple M4 Max, 100,000 ops, 256 KiB logical budget, seven measured trials, two warm-ups:
+
+| Workload | LRU | Cost-aware |
+| --- | ---: | ---: |
+| Scan pollution | 63.84% | 99.02% |
+| Skewed expensive reuse | 58.93% | 91.69% |
+| Byte pressure | 80.94% | 99.44% |
+
+Weighted hit ratio moved in the cost-aware policy's favour on all three. Throughput did not. It was slower on the first two and faster on byte pressure. If I only published the hit-ratio column I'd be lying by omission.
+
+What this run does not say: universal hit rate, production latency, heap behaviour, multi-process contention, or "faster on your laptop." `maxBytes` is an accounting budget, not a process RSS cap. JIT, GC and machine load move the timer. Compare policies inside one run before you compare commits. GitHub-hosted runners are convenient and they are not quiet hardware.
+
+For an application decision you still need a trace that looks like the application, and you have to time the factory, not just the cache bookkeeping.
+
+*Example I'd add:* one trial from `report.json` next to the matching CSV row, so the median isn't a magic cell.

@@ -3,30 +3,42 @@ id: cost-aware-eviction-policies
 title: 'Thinking Beyond LRU: Cost-Aware Eviction'
 type: deep-dive
 category: systems-engineering
-summary: 'Exploring how entry cost changes the shape of an eviction policy and what a useful benchmark should measure.'
-date: 2026-11-11
+summary: 'Cachewise scores entries by recency, estimated reuse, recomputation cost and logical size, then separates victim selection from candidate admission.'
+date: 2026-11-13
 project: cachewise
 series:
   id: cachewise-engineering
   part: 2
 tags: [caching, algorithms, performance]
-searchTerms: [caching, algorithms, performance]
+searchTerms: [cost-aware-cache, lru, count-min-sketch, admission-control, eviction-score]
 featured: true
 draft: false
 ---
 
-## The problem space
+LRU answers "who haven't we touched in a while?" Fine when sizes and rebuild costs are in the same ballpark. Bad when the cache holds a 40-byte report that took a serious computation and a fat blob that was cheap.
 
-Lorem ipsum dolor sit amet, consectetur adipiscing elit. Integer posuere erat a ante venenatis dapibus posuere velit aliquet. Cras mattis consectetur purus sit amet fermentum. Donec sed odio dui. Aenean lacinia bibendum nulla sed consectetur.
+Cachewise's default score uses four things the caller can actually know: recency, a rough frequency, a recomputation weight, and a logical size. It will not predict the next request. It will stop pretending the last-access timestamp is the whole story.
 
-## What I am exploring
+```text
+age     = max(0, now - lastAccessedAt)
+recency = 0.5 ^ (age / recencyHalfLife)
+reuse   = log2(1 + frequency)
+cost    = log2(1 + computeCost)
+score   = (recency × reuse × cost) / max(1, size)
+```
 
-Praesent commodo cursus magna, vel scelerisque nisl consectetur et. Maecenas faucibus mollis interdum. Vestibulum id ligula porta felis euismod semper. Nulla vitae elit libero, a pharetra augue. Curabitur blandit tempus porttitor.
+Half-life is 60 seconds and it isn't a constructor option yet. Every half-life, recency halves. The logs keep a ridiculous `computeCost` or a saturated counter from scaling the score linearly forever. Dividing by size is the whole point: reuse per byte, not reuse in the abstract.
 
-## Constraints and trade-offs
+Neither input is measured. `computeCost` is a weight. `size` is whatever `estimateSize` returns. Inconsistent weights make a consistent mess. A bad estimator makes the denominator lie.
 
-Etiam porta sem malesuada magna mollis euismod. Morbi leo risus, porta ac consectetur ac, vestibulum at eros. Sed posuere consectetur est at lobortis. Aenean eu leo quam. Pellentesque ornare sem lacinia quam venenatis vestibulum.
+A `Map` of frequency counters grows with every key you've ever seen, even when the byte budget is holding. The sketch doesn't. Four rows, 8-bit counters, fixed width. Estimate is the minimum counter. Saturate at 255, halve on the half-life. Collisions overestimate; I don't keep a side table to "fix" that, because the side table is the unbounded structure I was avoiding. Object identity goes through a bounded LRU table. Two local symbols with the same description can collide. `maxTrackedKeys` sets the width of the sketch, not a key cap on the cache.
 
-## Notes
+Picking a victim and admitting a candidate are different steps. Residents get ordered by ascending score until enough bytes fall out. The candidate is kept only if its score is positive and at least as high as every victim in that set. The plan is built first. Removals happen after the plan passes. Fail the admission check and the cache is untouched. Replacement works the same way: the old value is excluded from the budget math and disposed only if the new value gets in.
 
-Donec ullamcorper nulla non metus auctor fringilla. Vestibulum id ligula porta felis euismod semper. Nullam quis risus eget urna mollis ornare vel eu leo. Integer posuere erat a ante venenatis dapibus posuere velit aliquet.
+More than one victim means sort, then compare. Not a knapsack search. Single-victim is a scan. Multi-victim pays for the sort. That's the complexity I chose instead of maintaining a heap of scores on every read.
+
+LRU stays in the same type, oldest access, admit once you've made room. Same budget, different question, so the bench can compare them without two caches.
+
+The score does not know future traffic, real factory time, true heap size, or whether the caller’s weights mean anything. A phase change makes yesterday's hot key useless. That's why the next note is a benchmark with a narrow claim, not a victory lap.
+
+*Example I'd add:* three entries — small/expensive, large/cheap, stale/hot — and the victim the score picks versus LRU.

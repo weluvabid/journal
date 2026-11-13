@@ -1,23 +1,34 @@
 ---
 id: structaura
-title: 'Structaura'
-summary: 'An engineering project exploring structured data and deliberate software boundaries.'
+title: 'StructAura'
+summary: 'Deterministic JavaScript and TypeScript AST fingerprinting built with Tree-sitter, a shared Rust core, SHA-256 Merkle hashing and WebAssembly.'
 status: experimental
-tags: [typescript, architecture, structured-data]
-stack: [TypeScript, Architecture]
+tags: [rust, webassembly, tree-sitter, javascript, typescript, hashing]
+stack: [Rust, WebAssembly, Tree-sitter, JavaScript, TypeScript]
 github: 'https://github.com/weluvabid/structaura'
+journal:
+  primary: building-structaura
 featured: false
 order: 6
 ---
 
 ## Overview
 
-Lorem ipsum dolor sit amet, consectetur adipiscing elit. Integer posuere erat a ante venenatis dapibus posuere velit aliquet. Cras mattis consectetur purus sit amet fermentum.
+Deterministic, versioned structural fingerprints for JavaScript and TypeScript. Tree-sitter parses. A bounded normalization policy drops the syntax noise that isn't part of the contract. What's left is hashed with a SHA-256 Merkle scheme.
+
+Native Rust and the browser package share that core. The browser side parses with `web-tree-sitter` and exposes ESM as `@weluvabid/structaura`.
 
 ## Engineering notes
 
-Praesent commodo cursus magna, vel scelerisque nisl consectetur et. Maecenas faucibus mollis interdum. Vestibulum id ligula porta felis euismod semper.
+Parser adapters are not the fingerprint. Both sides emit the same flat preorder records, and the Rust core validates and rebuilds that representation iteratively. Canonical encoding uses domain separation, length-prefixed values, fixed-width integers, typed properties, and ordered child hashes.
+
+A fingerprint carries a format version, a language identifier, and a language-specific normalization version. Mismatched identities are rejected. You don't compare bare digests and hope. Normalization removes comments and selected syntax noise. It is not a semantic-equivalence engine.
+
+*Example I'd add:* two sources that differ only by a comment (same fingerprint), one structural edit (different fingerprint), version fields visible.
 
 ## What to explore
 
-Donec ullamcorper nulla non metus auctor fringilla. Vestibulum id ligula porta felis euismod semper. Nullam quis risus eget urna mollis ornare vel eu leo.
+- [Source repository](https://github.com/weluvabid/structaura)
+- [Architecture documentation](https://github.com/weluvabid/structaura/blob/main/docs/architecture.md)
+- [Fingerprint contract](https://github.com/weluvabid/structaura/blob/main/docs/fingerprint-contract.md)
+- [Benchmark methodology and results](https://github.com/weluvabid/structaura/blob/main/docs/benchmarks.md)

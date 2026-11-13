@@ -55,7 +55,7 @@ test('article page renders resource actions only when frontmatter supplies links
   );
 });
 
-test('StackBlitz and Mermaid test links are attached to relevant articles', async () => {
+test('StackBlitz and source repository links are attached to relevant articles', async () => {
   const toolsArticle = await read('src/content/journal/shipping-small-developer-tools.mdx');
   const platformArticle = await read('src/content/journal/designing-a-static-content-platform.mdx');
 
@@ -64,6 +64,5 @@ test('StackBlitz and Mermaid test links are attached to relevant articles', asyn
     toolsArticle,
     /stackblitz: https:\/\/stackblitz\.com\/edit\/jsonplus\?file=index\.js/,
   );
-  assert.match(platformArticle, /git: https:\/\/github\.com\/weluvabid\/frontend-atlas/);
-  assert.match(platformArticle, /mermaid:\s*['"]https:\/\/mermaid\.live\/edit#pako:/);
+  assert.match(platformArticle, /git: https:\/\/github\.com\/weluvabid\/journal/);
 });

@@ -11,18 +11,16 @@ featured: false
 draft: false
 ---
 
-## The problem space
+A proof of concept is a question with a program attached. Not a tiny version of the product. And not architecture I keep because the first demo looked fine.
 
-Lorem ipsum dolor sit amet, consectetur adipiscing elit. Integer posuere erat a ante venenatis dapibus posuere velit aliquet. Cras mattis consectetur purus sit amet fermentum. Donec sed odio dui. Aenean lacinia bibendum nulla sed consectetur.
+I use them when a library or a browser won't behave the way the page said. The API reference is a start. The version I'm actually linking is the test.
 
-## What I am exploring
+The question has to be something a "no" can kill. Can this future be polled again after `Pending`? Does this context have clipboard write, or only sometimes? Can the Svelte primitive be driven from outside, or does it swallow the state? Does the codec keep the comma and the capital, or eat them? Can a runtime fault point at the source span that caused it? If I can't picture the failure, I'm just tinkering.
 
-Praesent commodo cursus magna, vel scelerisque nisl consectetur et. Maecenas faucibus mollis interdum. Vestibulum id ligula porta felis euismod semper. Nulla vitae elit libero, a pharetra augue. Curabitur blandit tempus porttitor.
+The happy path is the weak experiment. Poll twice. Cancel. Feed the parser a delimiter that could go either way. Deny the permission. Put a reserved phrase in the input and check whether `decode(encode(x))` is still `x`. That's usually where the design moves. Clipboard that only works in a foreground tab is a different execution boundary, not a bug to shrug at. A format that can't tell empty from missing needs another representation. Ten lines now is cheaper than a data model stood up on the wrong one.
 
-## Constraints and trade-offs
+Then I decide whether the scratch file dies or a slice of it becomes a module. Production wants bounds, a named error, a compatibility note, and tests that aren't the experiment. A prototype is optimized for learning this afternoon. Shipping code is optimized for the input I didn't think of. Copying the prototype wholesale keeps the shortcut along with the insight.
 
-Etiam porta sem malesuada magna mollis euismod. Morbi leo risus, porta ac consectetur ac, vestibulum at eros. Sed posuere consectetur est at lobortis. Aenean eu leo quam. Pellentesque ornare sem lacinia quam venenatis vestibulum.
+Stop when another variation wouldn't change the decision, or when what's left is cheap if you're wrong. The result is the decision and what the run actually showed. Not a folder of benches nobody opens.
 
-## Notes
-
-Donec ullamcorper nulla non metus auctor fringilla. Vestibulum id ligula porta felis euismod semper. Nullam quis risus eget urna mollis ornare vel eu leo. Integer posuere erat a ante venenatis dapibus posuere velit aliquet.
+*Example I'd add:* the short check and the one-line result. "Second poll after `Pending` did X." Or "clipboard write threw in this context."

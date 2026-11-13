@@ -1,0 +1,46 @@
+---
+id: building-jsonplus
+title: 'Building JSON+: A Graph-Aware Serialization Format for JavaScript'
+type: deep-dive
+category: systems-engineering
+summary: 'How I designed a versioned JavaScript serialization format that preserves cycles, shared identity, built-ins and binary views while validating untrusted input.'
+date: 2026-11-13
+project: jsonplus
+tags: [typescript, serialization, javascript, data-structures, graph-theory, security]
+searchTerms: [graph serialization, cyclic objects, shared references, object identity, typed arrays, binary serialization, resource limits, JSON alternative]
+links:
+  git: https://github.com/weluvabid/jsonplus
+featured: false
+draft: false
+---
+
+`JSON.stringify` is fine until the value isn't a tree. `undefined` disappears, `BigInt` throws, a cycle throws, and two fields pointing at the same object come back as two objects. JSON+ is a versioned JSON envelope that keeps those identities for a bounded set of JavaScript values. It is not a heap snapshot. Functions, closures, symbols, DOM nodes, weak collections, arbitrary classes: out.
+
+The design hinge is dull and easy to get wrong. An object graph is not nested JSON. If `first` and `second` point at one object, that's one node and two edges. If an object points at itself, that's a cycle. The wire format has to be able to say both.
+
+Envelope is small: `format`, `version`, `root`, `nodes`. Primitives go inline or as explicit tags (`undefined`, `NaN`, infinities, `-0`, `BigInt` as canonical decimal). The first time the encoder sees a referenceable object it records the identity *before* walking children. Later hits reuse `{ "$ref": n }`. That's how cycles fall out without a special recursive case.
+
+The node table is also the work queue. A cursor walks it; newly discovered objects get appended. No second traversal structure, no recursive descent of the source graph.
+
+Properties, array slots and Map entries are flat alternating buffers. A tuple per pair would be a lot of garbage for no information. Arrays store indexes, so a hole stays a hole and doesn't become an explicit `undefined`.
+
+Decode is phased, not recursive:
+
+```text
+parse → schema, refs, reachability, limits
+     → allocate objects and buffers
+     → wire edges
+     → resolve root
+```
+
+Allocating before wiring is why forward refs and cycles are normal. It's also why garbage input dies before a half-built graph exists. Unknown tags, duplicate keys, bad refs, uneven pair buffers, misaligned typed-array views, non-canonical Base64, unreachable nodes, oversized payloads: errors, with stable `JSONPlusError` codes. Duplicate JSON object keys need a scan of the original text. `JSON.parse` will otherwise keep one and drop the rest before you can complain.
+
+Supported: ordinary objects and null-prototype objects, sparse arrays, `Date`, `RegExp` (including `lastIndex` as a graph edge), `Map` and `Set` in insertion order, `ArrayBuffer`, typed arrays, `DataView`. Views share backing-buffer identity. Buffers are allocated before views so the offset is real.
+
+Accessors are not invoked on purpose. Descriptors, extensibility and arbitrary prototypes are not preserved. Restored data properties come back writable and configurable. Proxies are outside the contract; reflecting on one can run traps, and I can't promise a hostile proxy is side-effect free. Resizable buffers and `SharedArrayBuffer` are unsupported.
+
+The decoder treats the document as untrusted. Limits (`maxNodes`, `maxEdges`, `maxBinaryBytes`, string length, collection size, input and output chars) fail with `RESOURCE_LIMIT_EXCEEDED`. They are work bounds, not a precise heap budget.
+
+Encoder describes a supported graph. Decoder refuses to believe the bytes. Version 1 is the only schema. If the schema changes, the version changes. Silent reinterpretation of old documents is how serializers rot.
+
+*Example I'd add:* the shared-object-plus-cycle snippet from the README, then the node table it produces, with the two `$ref`s pointing at one index.

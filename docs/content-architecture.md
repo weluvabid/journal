@@ -27,6 +27,8 @@ Project tags use the same canonical tag URL model as journal tags but live under
 
 The generated `/search-index.v2.json` contains only the fields consumed by the client search UI: ID, title, summary, tags, search terms, searchable text, destination URL and document kind. Its payload is versioned and strictly validated before ranking. Search ranking and validation live in `src/lib/search/`.
 
-## Seed content
+## Editorial content
 
-The repository contains 20 MDX seed entries with Lorem Ipsum bodies. These are structural seed content, not finished editorial copy. Replace the body text before presenting those entries as substantive published writing.
+The collection began with 20 structural seed entries. The first has been replaced with a substantive
+Journal article; the remaining placeholders still need real editorial copy before being presented
+as finished writing.

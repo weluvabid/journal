@@ -1,32 +1,42 @@
 ---
 id: building-a-cache-from-first-principles
 title: 'Building a Cache from First Principles'
-type: engineering-note
+type: deep-dive
 category: systems-engineering
-summary: 'A running set of notes on cache structure, eviction policy and the trade-offs behind a small implementation.'
-date: 2026-11-12
+summary: 'Cachewise combines a logical byte budget, cost-aware retention, expiration and per-key single-flight computation in one bounded JavaScript-agent cache.'
+date: 2026-11-13
 project: cachewise
 series:
   id: cachewise-engineering
   part: 1
-tags: [rust, caching, systems]
-searchTerms: [rust, caching, systems]
+tags: [typescript, caching, systems, concurrency]
+searchTerms: [cache, logical-memory-budget, ttl, single-flight, cancellation, invalidation]
 featured: true
 draft: false
 ---
 
-## The problem space
+If every value costs the same, LRU is fine. Keep what you touched recently, throw out the cold stuff when you're full. Real entries aren't like that. One result is huge and cheap to rebuild. Another is a few hundred bytes and painful. Cachewise is a TypeScript cache that refuses to pretend those are the same object.
 
-Lorem ipsum dolor sit amet, consectetur adipiscing elit. Integer posuere erat a ante venenatis dapibus posuere velit aliquet. Cras mattis consectetur purus sit amet fermentum. Donec sed odio dui. Aenean lacinia bibendum nulla sed consectetur.
+The budget is `maxBytes` plus an `estimateSize` callback. For a `Uint8Array`, `byteLength` is an honest number. For an object graph, the caller picks an accounting convention and lives with it. This is not a JavaScript heap cap. Headers, hidden slots, shared structure, closures, GC — none of that is in the estimate. `maxBytes` bounds the ledger, not RSS.
 
-## What I am exploring
+TTL expires entries. `delete` removes them. `pruneExpired()` walks the map because there is no timer per entry. Idle expired rows still count toward `bytesUsed` until something touches them or you prune. I didn't want a background clock.
 
-Praesent commodo cursus magna, vel scelerisque nisl consectetur et. Maecenas faucibus mollis interdum. Vestibulum id ligula porta felis euismod semper. Nulla vitae elit libero, a pharetra augue. Curabitur blandit tempus porttitor.
+LRU is still there as a baseline: oldest `lastAccessedAt`, and once you've made room the candidate goes in. The default policy asks a ruder question. Is this candidate worth the residents it would kick out?
 
-## Constraints and trade-offs
+The score is recency, decayed, times `log2(1 + frequency)`, times `log2(1 + computeCost)`, divided by size. Logs stop one huge cost or one very hot key from owning the cache linearly. Division by size prefers estimated reuse per accounted byte. `computeCost` is a weight you pass in. The cache does not time your factory.
 
-Etiam porta sem malesuada magna mollis euismod. Morbi leo risus, porta ac consectetur ac, vestibulum at eros. Sed posuere consectetur est at lobortis. Aenean eu leo quam. Pellentesque ornare sem lacinia quam venenatis vestibulum.
+When an insert needs space, the victim set is planned before anything is removed. The candidate needs a positive score and has to beat the victims it would displace. If it can't, insert returns without touching the map. A rejected candidate leaves the cache as it was. Replacing an existing key is the same idea: the old value is left out of the capacity math and disposed only after the new one is admitted. Multi-victim selection is greedy sort-by-score, not a search over subsets.
 
-## Notes
+Frequency is a Count-Min Sketch, four rows of 8-bit counters by default. Width is fixed. Unique-key churn cannot grow a counter map. Counters saturate at 255 and get halved on a half-life. Collisions overestimate. That's the sketch. Object keys go through a bounded identity table. `maxTrackedKeys` is sketch width, not "max keys in the cache."
 
-Donec ullamcorper nulla non metus auctor fringilla. Vestibulum id ligula porta felis euismod semper. Nullam quis risus eget urna mollis ornare vel eu leo. Integer posuere erat a ante venenatis dapibus posuere velit aliquet.
+`getOrCompute` is single-flight per key. Concurrent callers join one promise. Each caller can abort their own wait. The factory sees a different, shared signal. One waiter leaving does not cancel the others. The last waiter leaving aborts the shared signal and drops the flight. Abort is cooperative. A factory that ignores the signal keeps running; the cache can refuse to store the result, it cannot unwind side effects the factory already did.
+
+`set` or `delete` during a flight marks that flight non-cacheable so a late factory can't overwrite the explicit value. `clear()` bumps an epoch and aborts known flights. A factory that settles after clear does not repopulate the cache. The promise the caller is awaiting still settles with the factory's result. Invalidation controls admission, not what the waiter observes.
+
+One `Cache` instance, one JavaScript agent. Workers don't share flights. This is not a distributed cache.
+
+Disposal and event callbacks are synchronous, and exceptions from them are caught so a listener can't tear the state machine in half. There's an optional error hook. If the hook throws, that throw is swallowed too. Reporting must not become a second way to corrupt the map. The catch is that the callback still runs on the caller’s turn. Don't do I/O in it.
+
+Scoring details and the benchmark are the next two notes. This one is the boundary: what the cache is responsible for, and what it refuses to pretend.
+
+*Example I'd add:* two callers on one key, one aborts, the factory still completes, and only the remaining caller observes the stored value.

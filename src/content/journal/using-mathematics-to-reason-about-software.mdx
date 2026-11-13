@@ -11,18 +11,22 @@ featured: false
 draft: false
 ---
 
-## The problem space
+I reach for math when it changes a decision. How many states, what a structure costs as input grows, how soon a collision stops being hypothetical, whether a bench number supports the sentence under it. Not to make a README look formal.
 
-Lorem ipsum dolor sit amet, consectetur adipiscing elit. Integer posuere erat a ante venenatis dapibus posuere velit aliquet. Cras mattis consectetur purus sit amet fermentum. Donec sed odio dui. Aenean lacinia bibendum nulla sed consectetur.
+WordWeave is the clean case. Four positions, 64 words each:
 
-## What I am exploring
+`64⁴ = (2⁶)⁴ = 2²⁴ = 16,777,216`
 
-Praesent commodo cursus magna, vel scelerisque nisl consectetur et. Maecenas faucibus mollis interdum. Vestibulum id ligula porta felis euismod semper. Nulla vitae elit libero, a pharetra augue. Curabitur blandit tempus porttitor.
+24 bits, if you pretend every combination is available and English is uniform. It isn't. Three positions would have been `64³ = 262,144`. The fourth word is a 64× larger space, so the same 64 reserved phrases occupy a much thinner slice of four-word phrases than of three-word ones. That's a budget. The corpus scan is the check. A correct formula plus a wrong assumption is still a wrong claim about text.
 
-## Constraints and trade-offs
+Cachewise has the same split. Logs are in the score so a caller who stamps an absurd compute cost doesn't flatten recency and size. Decaying recency, estimated frequency, recomputation cost, over logical size. A policy, not a theorem that this cache is optimal. If the cost estimate is nonsense, the math will faithfully rank nonsense. Writing it down means I can point at a term, change it, and bench the workload. It doesn't excuse skipping the bench.
 
-Etiam porta sem malesuada magna mollis euismod. Morbi leo risus, porta ac consectetur ac, vestibulum at eros. Sed posuere consectetur est at lobortis. Aenean eu leo quam. Pellentesque ornare sem lacinia quam venenatis vestibulum.
+Birthday bound is the one I don't want to hand-wave. `N` equally likely values, `k` independent draws, collisions get uncomfortable around `k ≈ √N`. A "huge" id space is smaller than the digits suggest. The approximation dies if draws aren't close to uniform and independent. Biased hashes, or retries that repeat the same value, are a different model.
 
-## Notes
+Tests too. A thousand random cases stuck in one corner, or an oracle that shares the bug, is a count without evidence. State the invariant. Make the generator move. Prefer a second implementation that doesn't share the code.
 
-Donec ullamcorper nulla non metus auctor fringilla. Vestibulum id ligula porta felis euismod semper. Nullam quis risus eget urna mollis ornare vel eu leo. Integer posuere erat a ante venenatis dapibus posuere velit aliquet.
+Big-O throws designs out. It doesn't crown a winner. A linear scan of a tiny bounded list beats a tree I have to maintain. A heap makes "next" cheap and the bookkeeping worse. TinyLSM's memtable is a `BTreeMap` because I wanted a determined order and log lookup and update. Immutable sorted runs make a read do more work. Compaction is the bill for that, not a bonus feature.
+
+Write the assumption next to the number, then check it. Capacity, then a collision scan. Complexity, then inputs at the size you actually expect. A probability, then "is the data even shaped like that?"
+
+*Example I'd add:* `64³` beside `64⁴` with the reserved-phrase count, and one birthday line with a real `N` so `√N` isn't left as a symbol.

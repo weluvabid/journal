@@ -1,0 +1,35 @@
+---
+id: needle-language-compiler-and-reversible-debugger
+title: 'Needle: A Tiny Language with a Reversible Debugger'
+type: deep-dive
+category: systems-engineering
+summary: 'Designing a deliberately small language that compiles to Brainfuck, with a bounded reference interpreter, source maps and reversible single-step execution.'
+date: 2026-11-13
+project: needle
+tags: [rust, compilers, interpreters, webassembly, debugging]
+searchTerms: [brainfuck, lexer, parser, source-maps, reversible-execution, wasm, web-worker]
+featured: true
+draft: false
+---
+
+Needle is eight commands and a compiler to Brainfuck. The syntax is a toy. The machinery around it isn't: a Rust frontend, a direct interpreter, source maps, reversible steps, and a playground that runs the core through WASM in a worker.
+
+Commands: `poke` / `nick` bump the cell, `next` / `back` move the pointer, `loop` / `stitch` are the brackets, `spill` writes a byte, `snag` reads one. Counts are optional on the four counted ops, default 1, same line, in range.
+
+Tape is 30,000 unsigned bytes unless you configure otherwise. Arithmetic wraps mod 256. Pointer starts at 0. Walking off the tape is a runtime error with a source location. A counted move is checked before the pointer changes. Fail the check and you don't end up three cells into a move that was never legal.
+
+`snag` takes one byte of UTF-8 input. EOF leaves the cell alone. `spill` appends one byte. The playground decodes output as UTF-8 and shows replacement characters when the bytes aren't valid. Those are Needle's rules. I'm not inheriting whatever the nearest Brainfuck interpreter does on EOF.
+
+Limits, because a tiny loop is still a loop: 256 KiB of source, a million generated Brainfuck instructions, 1 MiB input, 1 MiB output, a million operations per session. Tape size and history have their own caps. The parser enforces the source side. The interpreter enforces the rest.
+
+Lexer, parser, AST, compiler, diagnostics, spans, interpreter are separate, and none of them import a browser. The compiler emits Brainfuck plus a mapping back to the Needle op. That mapping is the debugger. `poke 100` is one step in the UI. It is not one hundred `+` keypresses. If the step model followed the generated instructions, the source language would be a lie.
+
+WASM is a `wasm-bindgen` adapter. The playground is TypeScript. Execution sits in a worker so a long run doesn't freeze the page. Semantics stay in Rust, where the tests are.
+
+Reverse execution stores deltas, not tape snapshots. A full copy of 30,000 cells per op is almost entirely unchanged bytes. A delta stores what the op did, plus enough execution metadata to put the pointer, input position, output and instruction back. History default is 100,000 ops, hard stop 250,000, oldest deltas go first. Rewind does not refund the execution budget. Otherwise you rewind and replay to dodge the limit.
+
+Tests run the reference interpreter against an independent Brainfuck runner on the compiled program. Agreement on programs that stay inside the model is the interesting result. Falling off the tape is Needle-specific; the other runner doesn't have Needle's checked pointer, so don't expect the error text to match.
+
+The debugger checks are separate: step and rewind restore cell, pointer, input position, output and instruction; truncation is deterministic; the budget stays spent.
+
+*Example I'd add:* `poke 100` in the source map, the hundred `+`s it emits, and one undo delta that puts the cell back in a single step.

@@ -11,18 +11,18 @@ featured: false
 draft: false
 ---
 
-## The problem space
+"It's slow" is a mood. A budget is a number: latency you're willing to spend, memory you're willing to keep, CPU, bytes on the wire. Until those exist, optimization is just fidgeting, and you'll "fix" the metric that's easiest to move.
 
-Lorem ipsum dolor sit amet, consectetur adipiscing elit. Integer posuere erat a ante venenatis dapibus posuere velit aliquet. Cras mattis consectetur purus sit amet fermentum. Donec sed odio dui. Aenean lacinia bibendum nulla sed consectetur.
+Latency isn't throughput. You can do a lot of ops per second and still have a miserable p95. Payload size isn't heap size. Cachewise's `maxBytes` counts what the estimator says, not object headers and map overhead. Bundle size is transfer and parse. Main-thread CPU is what happens after the bundle is already there.
 
-## What I am exploring
+Say which number. Median is the typical call. p95 is the tail people actually feel. Peak memory catches the spike an average hides. A chart without the workload is decoration.
 
-Praesent commodo cursus magna, vel scelerisque nisl consectetur et. Maecenas faucibus mollis interdum. Vestibulum id ligula porta felis euismod semper. Nulla vitae elit libero, a pharetra augue. Curabitur blandit tempus porttitor.
+Cachewise is the example I keep coming back to because the budgets fight. A large expensive entry can evict several small ones. A policy can raise weighted hit ratio and lose throughput doing the bookkeeping. So the bench prints weighted hit ratio *and* throughput *and* batch latency. One blended "performance score" would let me hide the loss.
 
-## Constraints and trade-offs
+A hot loop isn't the bottleneck if you're waiting on the network. A smaller bundle doesn't help if a synchronous walk blocks the click. More concurrency helps until the next stage saturates, then it just grows the queue. Every change should name the resource it expects to save and the one it might spend.
 
-Etiam porta sem malesuada magna mollis euismod. Morbi leo risus, porta ac consectetur ac, vestibulum at eros. Sed posuere consectetur est at lobortis. Aenean eu leo quam. Pellentesque ornare sem lacinia quam venenatis vestibulum.
+Synthetic workloads are for isolating a question. They are not production. If the traffic shape changes, throw the conclusion out and measure again.
 
-## Notes
+Sometimes the right result is doing nothing. Inside the budget, extra cleverness is complexity the user never sees. Move parsing to a worker, cap an input, bound history, shrink a payload — when a number says you should. Not because fast feels responsible.
 
-Donec ullamcorper nulla non metus auctor fringilla. Vestibulum id ligula porta felis euismod semper. Nullam quis risus eget urna mollis ornare vel eu leo. Integer posuere erat a ante venenatis dapibus posuere velit aliquet.
+*Example I'd add:* one Cachewise workload where weighted hit ratio goes up and ops/sec goes down, with both numbers in the same row.

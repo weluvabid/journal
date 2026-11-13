@@ -1,32 +1,32 @@
 ---
 id: designing-a-static-content-platform
-title: 'Designing a Static Content Platform'
+title: 'Designing Journal: A Backendless Publishing Platform'
 type: deep-dive
 category: frontend-engineering
-summary: 'How content schemas, static generation and client-side behaviour can work together without a backend.'
-date: 2026-11-06
-project: frontend-atlas
-tags: [astro, static-sites, architecture]
+summary: 'How I turned Markdown and MDX into a statically generated engineering publication with local search, progressive pagination and smooth client-side navigation.'
+date: 2026-11-13
+tags: [astro, svelte, static-sites, mdx, search, web-performance, architecture]
+searchTerms: [backendless, publishing, static generation, content collections, browser search]
 links:
-  git: https://github.com/weluvabid/frontend-atlas
-  mermaid: 'https://mermaid.live/edit#pako:eNpVjb1ug0AQhF_ltFUigUWMMT9FpBgnbiwlhauAixMsHLK5Q8sh2wHePQdWlGSrHc03Mz1kKkeIoDirSyY4aXbYppKZe0liQVWra94emW0_DzvUrFYSbwPbPOwUa4VqmkqWj3d-M0Es7vcThkyLSp7GuxXP-XeJA9sme95o1Rz_OoeLGthrUn0IU__fEYQm9ZYUPCq4nXFiMacZAQtKqnKINHVoQY1U80lCP7kpaIE1phCZlzDvrnbO6WRn6qwohVSOJt9w-alU_VNBqisFmJ1za1TX5FzjtuIl8V8EZY4Uq05qiLy5AaIerkb4C8fzQ9cPloETesHaghtEy2W4cNau6z95KzcMQ2c1WvA1bzqLwPfGb103d4U'
-searchTerms: [astro, static-sites, architecture]
+  git: https://github.com/weluvabid/journal
 featured: true
 draft: false
 ---
 
-## The problem space
+This site is articles and project notes. Visitors read them. I publish by changing a file. I didn't want a database, an admin, and a content API in front of that.
 
-Lorem ipsum dolor sit amet, consectetur adipiscing elit. Integer posuere erat a ante venenatis dapibus posuere velit aliquet. Cras mattis consectetur purus sit amet fermentum. Donec sed odio dui. Aenean lacinia bibendum nulla sed consectetur.
+Astro builds the pages. MDX and Markdown live in the repo. The collection schema fails the build if frontmatter is wrong — a missing field is a CI problem, not a surprise in production. Git is the review tool. Diffs, revert, no migration. The cost is that "publish" means build and deploy. There is no live editor, and I don't miss it for this.
 
-## What I am exploring
+The browser gets HTML. Svelte hydrates where something is actually interactive: search, theme, keyboard shortcuts, the list that grows as you scroll. Not the article body.
 
-Praesent commodo cursus magna, vel scelerisque nisl consectetur et. Maecenas faucibus mollis interdum. Vestibulum id ligula porta felis euismod semper. Nulla vitae elit libero, a pharetra augue. Curabitur blandit tempus porttitor.
+Search is a JSON index generated with the site. The dialog fetches it when you open search, then ranks locally. No search box that round-trips to a server for a corpus this size. The index is titles, summaries, tags, search terms, routes. Not the full article text glued into the first paint.
 
-## Constraints and trade-offs
+The first page of the journal is useful by itself. More entries load as you go. Generating one giant archive page because it was easy would just ship the archive to everyone.
 
-Etiam porta sem malesuada magna mollis euismod. Morbi leo risus, porta ac consectetur ac, vestibulum at eros. Sed posuere consectetur est at lobortis. Aenean eu leo quam. Pellentesque ornare sem lacinia quam venenatis vestibulum.
+Static does not mean the UI is free. Focus, keyboard, theme persistence, small screens — still work. I hit a mobile Safari paint bug that didn't show up on desktop. The fix stayed on that rendering path. A site-wide animation "just in case" would have been me not understanding the bug.
 
-## Notes
+Type is the product. Monochrome, small accents, no layout competing with the note.
 
-Donec ullamcorper nulla non metus auctor fringilla. Vestibulum id ligula porta felis euismod semper. Nullam quis risus eget urna mollis ornare vel eu leo. Integer posuere erat a ante venenatis dapibus posuere velit aliquet.
+If I later need accounts, per-user state, or content that changes between deploys, that's a service. It isn't a reason to pretend this site already has one.
+
+*Example I'd add:* the search index shape for one entry, next to the query that should rank it first and the one that shouldn't.

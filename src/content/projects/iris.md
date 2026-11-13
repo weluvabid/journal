@@ -12,12 +12,24 @@ order: 3
 
 ## Overview
 
-Lorem ipsum dolor sit amet, consectetur adipiscing elit. Integer posuere erat a ante venenatis dapibus posuere velit aliquet. Cras mattis consectetur purus sit amet fermentum.
+A Svelte UI base so the same components aren't copied between repos. Not an application framework. Composable pieces, styling conventions, and a small demo. Branding stays in the product.
+
+Restrained on purpose. Monochrome, light and dark. Tailwind is the styling vocabulary. Interaction primitives come from shadcn-svelte. Focus and keyboard behavior are a bad thing to reimplement from scratch.
 
 ## Engineering notes
 
-Praesent commodo cursus magna, vel scelerisque nisl consectetur et. Maecenas faucibus mollis interdum. Vestibulum id ligula porta felis euismod semper.
+Iris owns reusable interaction. It doesn't own routing, global state, or a product's information architecture. Callers compose content, change links, and adapt layout without dropping the accessible behavior.
+
+A component that only runs inside this repository isn't reusable yet. Stable exports, deliberate peer dependencies, reproducible build output, a clean install somewhere else. Published to npm. 0.4.1 is the point where that stopped being a local folder.
+
+The demo checks installation, composition, and theming. It should stay smaller than the library, not turn into a second product. Lint, format, types, and release automation protect the same boundary as the exports.
+
+*Example I'd add:* one consumer install, one composed component, and a keyboard-only pass where focus doesn't get lost.
 
 ## What to explore
 
-Donec ullamcorper nulla non metus auctor fringilla. Vestibulum id ligula porta felis euismod semper. Nullam quis risus eget urna mollis ornare vel eu leo.
+- The component exports and their composition patterns.
+- The use of shadcn-svelte primitives rather than reimplementing interaction behaviour.
+- Theme-aware, monochrome styling and the separation of shared UI from product branding.
+- The package build and published npm distribution.
+- The consuming projects that demonstrate how the foundation is reused.

@@ -1,0 +1,43 @@
+---
+id: building-structaura
+title: 'Building StructAura: Deterministic AST Fingerprinting with Rust and WebAssembly'
+type: deep-dive
+category: systems-engineering
+summary: 'How I built a versioned JavaScript and TypeScript structural fingerprint using Tree-sitter, a shared Rust core, canonical encoding and iterative Merkle hashing.'
+date: 2026-11-13
+project: structaura
+tags: [rust, webassembly, tree-sitter, javascript, typescript, hashing, compilers]
+searchTerms: [AST fingerprinting, structural hash, Merkle tree, canonicalization, syntax tree, deterministic hashing]
+links:
+  git: https://github.com/weluvabid/structaura
+featured: true
+draft: false
+---
+
+A source hash changes because you fixed a comment or let the formatter breathe. Correct for bytes. Useless if the question is "did the syntax change?"
+
+StructAura parses JavaScript or TypeScript with Tree-sitter, applies a small, versioned set of syntax-only normalizations, and hashes a canonical tree. Same Rust core on native and in the browser WASM build. I didn't want two fingerprint definitions that drift the moment the bindings do.
+
+Matching fingerprints mean the canonical trees match for that language and that normalization version. They do not mean the programs do the same thing. No constant folding, no types, no "these functions are equivalent." If I need that I'll say so, and I won't.
+
+Native Tree-sitter and `web-tree-sitter` don't share a runtime. They share a record format. Both adapters emit a flat preorder: syntax kind, optional leaf text, and how many children were kept. The Rust core rebuilds the tree from that stream and is the only thing allowed to canonicalize, encode and hash.
+
+```text
+native parser ─┐
+               ├─ records → Rust core → fingerprint
+browser parser ┘              (wasm-bindgen on the web)
+```
+
+The core walks with an explicit vector, reverse preorder. No recursive application-level walk, which matters once the tree is nasty. A bad record stream fails. Truncation and leftover records are errors, not "best effort" trees.
+
+Version 1 drops comments and some anonymous punctuation, unwraps a single parenthesized expression, and strips string delimiters without decoding escapes. Child order stays. Escape spelling stays. Two strings that mean the same thing at runtime can still hash differently. That's a choice. Changing it means bumping `normalizationVersion`, or old fingerprints lie.
+
+Encoding is boring on purpose: domain tags, fixed-width big-endian ints, length-prefixed bytes, typed properties, sorted property keys, child hashes in source order. Merkle-style, iterative. A changed descendant changes the path to the root. The root hash mixes format version, language and normalization version with the digest. `compareFingerprints` checks that identity before it looks at the hex. Don't compare bare digests across languages. A JS hash and a TS hash are different objects even if the hex collides.
+
+Recorded release-build numbers, 15 samples after warm-up: small inputs under about 116 µs median; ~64–70 KB inputs around 12–14 ms at p95. Stage timings (parse, canonicalize, encode, Merkle) are diagnostic. Don't add them up and call it the end-to-end number. Instrumentation changes the run.
+
+The browser package has an async `init()` because the WASM module and the grammars have to load. After that, fingerprinting is synchronous. Large files belong in a worker so parsing doesn't freeze the page.
+
+The contract I'd rather publish is the narrow one. Comments and some punctuation can vanish. Retained syntax changes should move the digest. Anything past that is a different tool.
+
+*Example I'd add:* the two snippets from the README (`const total = left + right` with a comment, versus the minified form) and the shared digest, then one edit that flips it.

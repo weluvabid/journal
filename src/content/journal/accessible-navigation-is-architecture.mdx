@@ -12,18 +12,20 @@ featured: false
 draft: false
 ---
 
-## The problem space
+If keyboard focus gets stuck, the page isn't done. Accessibility here isn't a last coat of paint on a finished shell. The header, landmarks, dialogs and focus order are one system. Style them in isolation and you get a menu that looks correct and strands the caret.
 
-Lorem ipsum dolor sit amet, consectetur adipiscing elit. Integer posuere erat a ante venenatis dapibus posuere velit aliquet. Cras mattis consectetur purus sit amet fermentum. Donec sed odio dui. Aenean lacinia bibendum nulla sed consectetur.
+Frontend Atlas didn't need a clever application chrome. It needed a small reading UI that stayed predictable when the viewport changed, when there was no pointer, and when a dialog sat on top of the article.
 
-## What I am exploring
+Before any script runs, the document should already have a map: one primary navigation landmark, a main landmark, headings in an order that matches the page, a skip link past the repeated header. Links go somewhere. Buttons do something. A clickable `div` that imitates both is a second interaction model, and you will maintain it by hand forever.
 
-Praesent commodo cursus magna, vel scelerisque nisl consectetur et. Maecenas faucibus mollis interdum. Vestibulum id ligula porta felis euismod semper. Nulla vitae elit libero, a pharetra augue. Curabitur blandit tempus porttitor.
+Native controls already know how to activate from the keyboard. Custom menus and dialogs are allowed when the product actually needs them. Then you own the whole contract: open, close, where focus lands, Escape, where focus returns, and a tab sequence that still makes sense. Owning half of that is worse than using the primitive.
 
-## Constraints and trade-offs
+`open: boolean` is not the state of a responsive menu. There's a trigger, the links that exist in this viewport, and a focus location. If the menu closes because the user picked a destination or the layout collapsed, focus cannot remain on a node that just unmounted. Dialog opens, focus moves inside. Dialog closes, focus returns to the control that opened it, if that control is still there.
 
-Etiam porta sem malesuada magna mollis euismod. Morbi leo risus, porta ac consectetur ac, vestibulum at eros. Sed posuere consectetur est at lobortis. Aenean eu leo quam. Pellentesque ornare sem lacinia quam venenatis vestibulum.
+Sticky headers hide fragment targets. The heading is "reached" and sitting under the bar. `scroll-margin-top` fixes that without a scroll listener. Hover-only actions disappear without a pointer. Focus rings have to stay visible in both themes. If the only signal is an animation, `prefers-reduced-motion` deletes your UI.
 
-## Notes
+A screenshot proves alignment. It does not prove a keyboard path. Tab the page. Activate links and buttons without a mouse. Open and dismiss dialogs. Resize while the nav is open. Follow a fragment under the sticky header. Listen to one page in a screen reader. Automated checks catch missing names. They will not catch focus returned to a button that is gone.
 
-Donec ullamcorper nulla non metus auctor fringilla. Vestibulum id ligula porta felis euismod semper. Nullam quis risus eget urna mollis ornare vel eu leo. Integer posuere erat a ante venenatis dapibus posuere velit aliquet.
+If focus behaviour isn't part of the component contract, every page rediscovers it, and one of them gets it wrong.
+
+*Example I'd add:* skip link, sticky header, and the `scroll-margin-top` value, next to the heading actually visible after the jump.

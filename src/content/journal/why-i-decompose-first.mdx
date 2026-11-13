@@ -11,18 +11,20 @@ featured: true
 draft: false
 ---
 
-## The problem space
+If the problem is still one blob, I stall. Not because a diagram belongs in the repo. Because there's nowhere to start and nothing to check.
 
-Lorem ipsum dolor sit amet, consectetur adipiscing elit. Integer posuere erat a ante venenatis dapibus posuere velit aliquet. Cras mattis consectetur purus sit amet fermentum. Donec sed odio dui. Aenean lacinia bibendum nulla sed consectetur.
+So I pull it apart before the interesting code. Inputs, outputs, state, invariants, dependencies, how it fails. An unknown is fine when nothing hangs on it. If the design dies without that answer, it's the first question, not a TODO under the implementation.
 
-## What I am exploring
+The sentences I want are dull enough to test. After a completed mutation, accounted cache bytes are still inside the budget. A delete doesn't come back because an older run outlived the tombstone. A diagnostic points at the construct that failed, not at the file in general. A progress import that doesn't validate does not touch the saved record. Those are targets. A list of folders isn't.
 
-Praesent commodo cursus magna, vel scelerisque nisl consectetur et. Maecenas faucibus mollis interdum. Vestibulum id ligula porta felis euismod semper. Nulla vitae elit libero, a pharetra augue. Curabitur blandit tempus porttitor.
+Then the cuts. Parsing doesn't persist. A domain rule doesn't import a browser component to decide. A worker doesn't quietly reuse request-scoped state from the handler that published the message. A component doesn't own the whole data lifecycle.
 
-## Constraints and trade-offs
+FulfillmentGuard is where this stopped being a preference. HTTP requests, background workers, the database, object storage, message delivery. One process "that is the app" hides which failure belongs to which lifetime. Service, worker, one-shot jobs. Three execution models, named, instead of one deployment that does all of them badly.
 
-Etiam porta sem malesuada magna mollis euismod. Morbi leo risus, porta ac consectetur ac, vestibulum at eros. Sed posuere consectetur est at lobortis. Aenean eu leo quam. Pellentesque ornare sem lacinia quam venenatis vestibulum.
+Order isn't the feature list. The assumption that can invalidate the rest comes first, then whatever later work sits on. A small check that the browser API actually supports the flow. The schema before code that assumes its invariants. A migration tried before a workload runs on it. That's also what makes parallel work less scary. Two pieces can move once the contract between them stopped changing every afternoon.
 
-## Notes
+The failure in the other direction is splitting for sport. If two functions always change together and there's no real contract, another file is just a longer jump. A boundary earns it when it isolates a responsibility, fences a dependency, or lets me verify the behavior without booting the rest.
 
-Donec ullamcorper nulla non metus auctor fringilla. Vestibulum id ligula porta felis euismod semper. Nullam quis risus eget urna mollis ornare vel eu leo. Integer posuere erat a ante venenatis dapibus posuere velit aliquet.
+Smallest structure that makes the important behavior visible. After that, implementation is mostly filling in decisions that already have names.
+
+*Example I'd add:* one invariant as a test name. Cache budget, tombstone survival, or "bad import does not write." Next to the module that owns it.

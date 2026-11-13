@@ -12,18 +12,20 @@ featured: false
 draft: false
 ---
 
-## The problem space
+An account is a second product. Registration, sessions, password reset, email, deletion, retention, support, abuse. Sometimes you need that. "Remember which questions I finished" is not that requirement.
 
-Lorem ipsum dolor sit amet, consectetur adipiscing elit. Integer posuere erat a ante venenatis dapibus posuere velit aliquet. Cras mattis consectetur purus sit amet fermentum. Donec sed odio dui. Aenean lacinia bibendum nulla sed consectetur.
+Frontend Atlas is a handbook. I wanted progress without standing up identity infrastructure before the reading experience had earned it. Progress stays in the browser. Moving it to another device is a separate problem, solved with a QR, not a login.
 
-## What I am exploring
+The browser is the storage boundary. The page loads without waiting on auth. There's no password to lose and no profile sitting on a server. The cost is obvious: clear site data, switch browsers, switch machines, and the progress is gone until you exported it. Local-first is not "permanent." Quota fails. JSON rots. The stored shape is versioned, validated on read, and if it's junk the UI says so instead of pretending you have a streak.
 
-Praesent commodo cursus magna, vel scelerisque nisl consectetur et. Maecenas faucibus mollis interdum. Vestibulum id ligula porta felis euismod semper. Nulla vitae elit libero, a pharetra augue. Curabitur blandit tempus porttitor.
+A QR export is a transfer, not sync. Scan it on the other device, validate, apply. After that the two browsers can diverge. There is no server merging edits. I don't want the UI to imply there is.
 
-## Constraints and trade-offs
+QR density is a real constraint, so the payload is capped. Question IDs live in an append-only manifest. The version-1 blob is prefixed `FATL1:` and packs two bits of state per question. At 150 questions the bitset is `ceil(150 × 2 / 8) = 38` bytes before the rest of the envelope. Favourites have room in the format and are not the same bits as "completed." A bookmark is not a finished article.
 
-Etiam porta sem malesuada magna mollis euismod. Morbi leo risus, porta ac consectetur ac, vestibulum at eros. Sed posuere consectetur est at lobortis. Aenean eu leo quam. Pellentesque ornare sem lacinia quam venenatis vestibulum.
+Import is either merge or replace. Merge doesn't wipe local work. Replace does, and it says so. Version, manifest compatibility, indexes and bounds are checked before any local write. A bad QR fails closed.
 
-## Notes
+Progress keys off an immutable question id, not the title and not the position in a list. Retitle the article, reorder the manifest, the completion still points at the same id. Derive identity from the heading and a copy edit orphans someone's progress.
 
-Donec ullamcorper nulla non metus auctor fringilla. Vestibulum id ligula porta felis euismod semper. Nullam quis risus eget urna mollis ornare vel eu leo. Integer posuere erat a ante venenatis dapibus posuere velit aliquet.
+If the product later needs continuous multi-device sync, shared workspaces, or recovery after a wiped phone, then an account might be the right system. It should show up because that requirement showed up. Not because every app is supposed to have a login screen.
+
+*Example I'd add:* a 3-question manifest, the two-bit packing, and a merge that keeps a local completion the QR didn't have.

@@ -12,18 +12,16 @@ featured: true
 draft: false
 ---
 
-## The problem space
+A dialog is not a box with an X. A combobox is not an input taped to a list. If I can't explain the keyboard contract, I can't compose the thing, and I can't debug it when focus vanishes.
 
-Lorem ipsum dolor sit amet, consectetur adipiscing elit. Integer posuere erat a ante venenatis dapibus posuere velit aliquet. Cras mattis consectetur purus sit amet fermentum. Donec sed odio dui. Aenean lacinia bibendum nulla sed consectetur.
+That's the standard for Iris. I build on shadcn-svelte and I keep their primitives. I'm not rewriting focus traps to feel like I own the stack. I am also not shipping a button whose behaviour I can't describe.
 
-## What I am exploring
+What belongs to the primitive: focus trap, dismissal, listbox keyboard map, the roles. What belongs to the app: the title, the items, what they mean. Tokens and spacing can move. They don't get to delete the focus ring or the accessible name while they're at it.
 
-Praesent commodo cursus magna, vel scelerisque nisl consectetur et. Maecenas faucibus mollis interdum. Vestibulum id ligula porta felis euismod semper. Nulla vitae elit libero, a pharetra augue. Curabitur blandit tempus porttitor.
+When I'm unsure, I don't wire the component into a full page and hope. One file. Render it. Tab. Escape. Look at the DOM. Ask one question: can the parent control it, does focus return, does the name survive composition, does theming eat the outline? A tiny proof answers that. A pretty gallery hides it.
 
-## Constraints and trade-offs
+Rewriting every primitive throws away years of edge cases. Adopting a library you can't inspect creates behaviour nobody on the project owns. The middle is: keep the hard interaction in the primitive, own composition and product styling, and have a checklist if you ever do replace it.
 
-Etiam porta sem malesuada magna mollis euismod. Morbi leo risus, porta ac consectetur ac, vestibulum at eros. Sed posuere consectetur est at lobortis. Aenean eu leo quam. Pellentesque ornare sem lacinia quam venenatis vestibulum.
+A component is reusable when the API says what it is responsible for, the accessibility behaviour is known, the deps are deliberate, and the failure is testable. "Looks fine in the screenshot" is not that.
 
-## Notes
-
-Donec ullamcorper nulla non metus auctor fringilla. Vestibulum id ligula porta felis euismod semper. Nullam quis risus eget urna mollis ornare vel eu leo. Integer posuere erat a ante venenatis dapibus posuere velit aliquet.
+*Example I'd add:* the generated DOM for one dialog, trigger included, with where focus is after open and after close.
