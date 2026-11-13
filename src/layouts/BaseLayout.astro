@@ -86,7 +86,8 @@ const themeBootstrap = createThemeScript();
               destination.origin === current.origin &&
               destination.pathname === current.pathname &&
               destination.search === current.search &&
-              destination.hash === current.hash
+              destination.hash === current.hash &&
+              !destination.hash
             ) {
               event.preventDefault();
             }
@@ -155,6 +156,7 @@ const themeBootstrap = createThemeScript();
     </div>
     <div class="mx-auto flex min-h-svh w-full max-w-6xl flex-col px-4 pb-24 sm:px-6 sm:pb-0">
       <JournalHeader client:load />
+      <!-- Keep programmatic focus on the skip-link destination without adding it to the tab order. -->
       <main id="main-content" tabindex="-1" class="min-h-0 flex-1 scroll-mt-28 py-12 sm:py-16">
         <slot />
       </main>

@@ -13,6 +13,11 @@ test('shared layout retains skip-to-content and sticky-header scroll offset', ()
   assert.match(layout, /id="main-content"[^>]*scroll-mt-28/u);
 });
 
+test('same-fragment links retain native focus and scroll behaviour', () => {
+  assert.match(layout, /destination\.hash === current\.hash &&\s*!destination\.hash/u);
+  assert.match(layout, /id="main-content" tabindex="-1"/u);
+});
+
 test('shared layout retains delayed navigation loader', () => {
   assert.match(layout, /journal-navigation-loader/u);
   assert.match(layout, /\}, 200\)/u);

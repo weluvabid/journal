@@ -26,17 +26,19 @@ test('desktop primary navigation groups Writing, Projects and Resume before util
 
 test('desktop primary navigation and separator are hidden on mobile', () => {
   assert.match(header, /<div class="flex items-center gap-1" aria-label="Main sections">/);
-  assert.match(header, /<details class="relative sm:hidden" bind:this=\{mobileMenu\}>/);
+  assert.match(header, /<DropdownMenu\.Root>/);
   assert.match(header, /<div class="hidden sm:contents">/);
   assert.match(header, /<span class="mx-2 h-6 w-px shrink-0 bg-border"/);
 });
 
 test('mobile overflow menu exposes secondary controls without duplicating primary navigation', () => {
-  const menu = header.slice(header.indexOf('<details class="relative sm:hidden"'));
+  const menu = header.slice(header.indexOf('<DropdownMenu.Root>'));
 
-  assert.match(menu, /<summary[\s\S]*aria-label="More options"/);
+  assert.match(menu, /<DropdownMenu.Trigger[\s\S]*aria-label="More options"[\s\S]*sm:hidden/);
   assert.match(menu, /Light theme|Dark theme/);
   assert.match(menu, /GitHub/);
   assert.match(menu, /Help/);
+  assert.match(menu, /<DropdownMenu.Content/);
+  assert.doesNotMatch(menu, /<details|<summary/);
   assert.doesNotMatch(footer, /Writing|Projects|Resume/);
 });

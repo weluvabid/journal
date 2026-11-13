@@ -110,7 +110,6 @@
 <nav class="relative min-w-0 max-w-full" aria-label="Journal categories">
   <div
     bind:this={viewport}
-    tabindex="0"
     class="block w-full min-w-0 max-w-full snap-x snap-proximity touch-pan-x overflow-x-auto overscroll-x-contain pb-1 focus-visible:rounded-sm focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring"
     aria-label="Browse journal categories"
   >

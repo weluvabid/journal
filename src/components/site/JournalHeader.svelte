@@ -1,6 +1,6 @@
 <script lang="ts">
   import { onMount } from 'svelte';
-  import { SiteHeader, Button, Tooltip } from '@weluvabid/iris/components';
+  import { SiteHeader, Button, Tooltip, DropdownMenu } from '@weluvabid/iris/components';
   import {
     NotebookText,
     FolderKanban,
@@ -22,18 +22,10 @@
   let theme = $state<'light' | 'dark'>('light');
   let searchOpen = $state(false);
   let helpOpen = $state(false);
-  let mobileMenu: HTMLDetailsElement;
 
   onMount(() => {
     theme = getInitialTheme();
 
-    const handleDocumentKeydown = (event: KeyboardEvent): void => {
-      if (event.key === 'Escape' && mobileMenu?.open) {
-        mobileMenu.open = false;
-      }
-    };
-
-    document.addEventListener('keydown', handleDocumentKeydown);
     const uninstallKeyboardController = installKeyboardController({
       onSearch: () => {
         helpOpen = false;
@@ -45,7 +37,6 @@
     });
 
     return () => {
-      document.removeEventListener('keydown', handleDocumentKeydown);
       uninstallKeyboardController();
     };
   });
@@ -216,56 +207,47 @@
           </Tooltip.Root>
         </div>
 
-        <details class="relative sm:hidden" bind:this={mobileMenu}>
-          <summary
-            class="flex size-10 cursor-pointer list-none items-center justify-center rounded-full text-foreground outline-none hover:bg-accent focus-visible:ring-2 focus-visible:ring-ring [&::-webkit-details-marker]:hidden"
+        <DropdownMenu.Root>
+          <DropdownMenu.Trigger
+            class="flex size-10 items-center justify-center rounded-full text-foreground outline-none hover:bg-accent focus-visible:ring-2 focus-visible:ring-ring sm:hidden"
             aria-label="More options"
           >
             <Ellipsis aria-hidden="true" />
-          </summary>
-          <div
-            class="absolute right-0 top-full z-50 mt-2 flex min-w-44 flex-col gap-1 rounded-xl border border-border bg-popover p-2 text-popover-foreground shadow-lg"
-            aria-label="More options"
+          </DropdownMenu.Trigger>
+          <DropdownMenu.Content
+            align="end"
+            side="bottom"
+            class="mt-2 min-w-44 rounded-xl border border-border bg-popover p-2 text-popover-foreground shadow-lg"
           >
-            <Button.Root
-              variant="ghost"
-              class="justify-start rounded-lg"
+            <DropdownMenu.Item
+              class="min-h-10 rounded-lg px-3"
+              onclick={handleThemeToggle}
               aria-label={theme === 'dark' ? 'Switch to light theme' : 'Switch to dark theme'}
-              onclick={() => {
-                handleThemeToggle();
-
-                mobileMenu.open = false;
-              }}
             >
               {#if theme === 'dark'}<Sun aria-hidden="true" />{:else}<Moon
                   aria-hidden="true"
                 />{/if}
               <span>{theme === 'dark' ? 'Light theme' : 'Dark theme'}</span>
-            </Button.Root>
-            <Button.Root
-              variant="ghost"
-              class="justify-start rounded-lg"
+            </DropdownMenu.Item>
+            <DropdownMenu.Item
               href="https://github.com/weluvabid/journal"
               target="_blank"
               rel="noopener noreferrer"
+              class="min-h-10 rounded-lg px-3"
             >
               <SiGithub aria-hidden="true" />
               <span>GitHub</span>
-            </Button.Root>
-            <Button.Root
-              variant="ghost"
-              class="justify-start rounded-lg"
+            </DropdownMenu.Item>
+            <DropdownMenu.Item
+              class="min-h-10 rounded-lg px-3"
+              onclick={() => (helpOpen = true)}
               aria-label="Help and keyboard shortcuts"
-              onclick={() => {
-                helpOpen = true;
-                mobileMenu.open = false;
-              }}
             >
               <CircleHelp aria-hidden="true" />
               <span>Help</span>
-            </Button.Root>
-          </div>
-        </details>
+            </DropdownMenu.Item>
+          </DropdownMenu.Content>
+        </DropdownMenu.Root>
       </div>
     </nav>
   </SiteHeader>
