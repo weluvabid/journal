@@ -88,7 +88,10 @@ const nextPageUrl =
                   ? {
                       series: {
                         part: entry.data.series.part,
-                        totalParts: getJournalSeriesPartCount(allJournalEntries, entry.data.series.id),
+                        totalParts: getJournalSeriesPartCount(
+                          allJournalEntries,
+                          entry.data.series.id,
+                        ),
                       },
                     }
                   : {}),

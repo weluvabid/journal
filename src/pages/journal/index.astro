@@ -26,7 +26,12 @@ const initialEntries = firstPage.map((entry) => ({
   dateLabel: entry.data.date.toLocaleDateString('en', { dateStyle: 'medium', timeZone: 'UTC' }),
   tags: entry.data.tags,
   ...(entry.data.series
-    ? { series: { part: entry.data.series.part, totalParts: getJournalSeriesPartCount(entries, entry.data.series.id) } }
+    ? {
+        series: {
+          part: entry.data.series.part,
+          totalParts: getJournalSeriesPartCount(entries, entry.data.series.id),
+        },
+      }
     : {}),
   href: entryHref(entry.data.id),
 }));
@@ -74,7 +79,12 @@ const nextPageUrl = nextPage === null ? null : withBase(`/journal/data/all/${nex
                 }),
                 tags: entry.data.tags,
                 ...(entry.data.series
-                  ? { series: { part: entry.data.series.part, totalParts: getJournalSeriesPartCount(entries, entry.data.series.id) } }
+                  ? {
+                      series: {
+                        part: entry.data.series.part,
+                        totalParts: getJournalSeriesPartCount(entries, entry.data.series.id),
+                      },
+                    }
                   : {}),
                 href: entryHref(entry.data.id),
               }}

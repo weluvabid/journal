@@ -9,7 +9,11 @@
     mermaid?: string;
   };
 
-  let { links, title, journalHref }: {
+  let {
+    links,
+    title,
+    journalHref,
+  }: {
     links: ResourceLinks;
     title: string;
     journalHref?: string;

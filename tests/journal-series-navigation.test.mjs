@@ -24,44 +24,28 @@ const categoryOrder = [
 ];
 
 test('series parts navigate to adjacent parts instead of chronological neighbours', () => {
-  const result = resolveJournalArticleNavigation(
-    'series-part-2',
-    categoryOrder,
-    categoryOrder,
-  );
+  const result = resolveJournalArticleNavigation('series-part-2', categoryOrder, categoryOrder);
 
   assert.equal(result.previous?.data.id, 'series-part-1');
   assert.equal(result.next?.data.id, 'series-part-3');
 });
 
 test('first series part falls back to chronological previous entry', () => {
-  const result = resolveJournalArticleNavigation(
-    'series-part-1',
-    categoryOrder,
-    categoryOrder,
-  );
+  const result = resolveJournalArticleNavigation('series-part-1', categoryOrder, categoryOrder);
 
   assert.equal(result.previous?.data.id, 'newest-standalone');
   assert.equal(result.next?.data.id, 'series-part-2');
 });
 
 test('last series part falls back to chronological next entry', () => {
-  const result = resolveJournalArticleNavigation(
-    'series-part-3',
-    categoryOrder,
-    categoryOrder,
-  );
+  const result = resolveJournalArticleNavigation('series-part-3', categoryOrder, categoryOrder);
 
   assert.equal(result.previous?.data.id, 'series-part-2');
   assert.equal(result.next?.data.id, 'after-series');
 });
 
 test('standalone entries retain chronological navigation', () => {
-  const result = resolveJournalArticleNavigation(
-    'middle-standalone',
-    categoryOrder,
-    categoryOrder,
-  );
+  const result = resolveJournalArticleNavigation('middle-standalone', categoryOrder, categoryOrder);
 
   assert.equal(result.previous?.data.id, 'series-part-1');
   assert.equal(result.next?.data.id, 'series-part-2');
@@ -111,7 +95,6 @@ test('missing current entry fails loudly', () => {
     /missing from its category reading order/,
   );
 });
-
 
 test('series part count includes only entries with the requested series id', () => {
   const entries = [

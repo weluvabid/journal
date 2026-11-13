@@ -30,7 +30,12 @@ export async function getStaticPaths() {
         }),
         tags: entry.data.tags,
         ...(entry.data.series
-          ? { series: { part: entry.data.series.part, totalParts: getJournalSeriesPartCount(entries, entry.data.series.id) } }
+          ? {
+              series: {
+                part: entry.data.series.part,
+                totalParts: getJournalSeriesPartCount(entries, entry.data.series.id),
+              },
+            }
           : {}),
         href: entryHref(entry.data.id),
       }));

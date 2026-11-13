@@ -52,12 +52,16 @@ const { previous: previousEntry, next: nextEntry } = resolveJournalArticleNaviga
       ></Breadcrumb.Root
     >
     <header class="mb-10 border-b border-border pb-8">
-      <div class="-mx-1 flex max-w-full flex-nowrap items-center gap-2 overflow-x-auto whitespace-nowrap px-1 text-xs text-muted-foreground [scrollbar-width:none] [&::-webkit-scrollbar]:hidden sm:mx-0 sm:flex-wrap sm:overflow-visible sm:whitespace-normal sm:px-0">
-        {entry.data.series && (
-          <Badge.Badge variant="outline">
-            Series · Part {entry.data.series.part}/{seriesPartCount}
-          </Badge.Badge>
-        )}
+      <div
+        class="-mx-1 flex max-w-full flex-nowrap items-center gap-2 overflow-x-auto whitespace-nowrap px-1 text-xs text-muted-foreground [scrollbar-width:none] [&::-webkit-scrollbar]:hidden sm:mx-0 sm:flex-wrap sm:overflow-visible sm:whitespace-normal sm:px-0"
+      >
+        {
+          entry.data.series && (
+            <Badge.Badge variant="outline">
+              Series · Part {entry.data.series.part}/{seriesPartCount}
+            </Badge.Badge>
+          )
+        }
         <Badge.Badge variant="secondary">{category.name}</Badge.Badge><Badge.Badge
           variant="outline"
           class="capitalize">{entry.data.type.replaceAll('-', ' ')}</Badge.Badge

@@ -59,7 +59,10 @@ const { Content } = await render(entry);
       </div><h1 class="mt-4 text-balance text-3xl font-semibold tracking-tight sm:text-4xl">
         {entry.data.title}
       </h1><p class="mt-5 text-base leading-8 text-muted-foreground">{entry.data.summary}</p>{
-        (entry.data.github || entry.data.stackblitz || entry.data.mermaid || entry.data.journal?.primary) && (
+        (entry.data.github ||
+          entry.data.stackblitz ||
+          entry.data.mermaid ||
+          entry.data.journal?.primary) && (
           <ResourceActions
             client:load
             links={{

@@ -29,12 +29,15 @@ export function assertUniqueSeriesParts<T extends JournalNavigationEntry>(
   for (const entry of entries) {
     const series = entry.data.series;
 
-    if (!series) continue;
+    if (!series) {
+      continue;
+    }
 
     let parts = partsBySeries.get(series.id);
 
     if (!parts) {
       parts = new Map<number, string>();
+
       partsBySeries.set(series.id, parts);
     }
 
@@ -73,9 +76,17 @@ export function resolveJournalArticleNavigation<T extends JournalNavigationEntry
     return { previous: chronologicalPrevious, next: chronologicalNext };
   }
 
-  const seriesEntries = allEntries
-    .filter((entry) => entry.data.series?.id === current.data.series?.id)
-    .sort((left, right) => left.data.series!.part - right.data.series!.part);
+  const currentSeries = current.data.series;
+  const seriesEntries = currentSeries
+    ? allEntries
+        .flatMap((entry) => {
+          const series = entry.data.series;
+
+          return series?.id === currentSeries.id ? [{ entry, part: series.part }] : [];
+        })
+        .sort((left, right) => left.part - right.part)
+        .map(({ entry }) => entry)
+    : [];
 
   const seriesIndex = seriesEntries.findIndex((entry) => entry.data.id === currentId);
 
@@ -88,7 +99,6 @@ export function resolveJournalArticleNavigation<T extends JournalNavigationEntry
     next: seriesEntries[seriesIndex + 1] ?? chronologicalNext,
   };
 }
-
 
 /** Return the number of published entries belonging to a series. */
 export function getJournalSeriesPartCount<T extends JournalNavigationEntry>(

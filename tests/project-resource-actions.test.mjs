@@ -40,16 +40,24 @@ test('Frontend Atlas project exposes the editable Mermaid diagram', async () => 
   assert.match(project, /mermaid:\s*['"]https:\/\/mermaid\.live\/edit#pako:/);
 });
 
-
 test('project schema supports an explicit primary journal entry and additional related entries', async () => {
   const schema = await read('src/content.config.ts');
   const project = await read('src/content/projects/cachewise.md');
   const page = await read('src/pages/projects/[...slug].astro');
 
-  assert.match(schema, /journal:\s*z\s*\.object\([\s\S]*?primary:\s*z\.string\(\)\.regex[\s\S]*?related:\s*z\.array\(z\.string\(\)\.regex/);
+  assert.match(
+    schema,
+    /journal:\s*z\s*\.object\([\s\S]*?primary:\s*z\.string\(\)\.regex[\s\S]*?related:\s*z\.array\(z\.string\(\)\.regex/,
+  );
   assert.ok(project.includes('journal:\n  primary: benchmarking-without-lying-to-yourself'));
-  assert.match(project, /related: \[building-a-cache-from-first-principles, cost-aware-eviction-policies\]/);
-  assert.match(page, /journalHref=\{[\s\S]*?entryHref\(entry\.data\.journal\.primary\)[\s\S]*?undefined[\s\S]*?\}/);
+  assert.match(
+    project,
+    /related: \[building-a-cache-from-first-principles, cost-aware-eviction-policies\]/,
+  );
+  assert.match(
+    page,
+    /journalHref=\{[\s\S]*?entryHref\(entry\.data\.journal\.primary\)[\s\S]*?undefined[\s\S]*?\}/,
+  );
   assert.match(page, /references\.primary, \.\.\.references\.related/);
 });
 

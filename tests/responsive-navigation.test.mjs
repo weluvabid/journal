@@ -34,7 +34,7 @@ test('desktop primary navigation and separator are hidden on mobile', () => {
 test('mobile overflow menu exposes secondary controls without duplicating primary navigation', () => {
   const menu = header.slice(header.indexOf('<DropdownMenu.Root>'));
 
-  assert.match(menu, /<DropdownMenu.Trigger[\s\S]*aria-label="More options"[\s\S]*sm:hidden/);
+  assert.match(menu, /<DropdownMenu.Trigger[\s\S]*sm:hidden[\s\S]*aria-label="More options"/);
   assert.match(menu, /Light theme|Dark theme/);
   assert.match(menu, /GitHub/);
   assert.match(menu, /Help/);
