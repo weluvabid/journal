@@ -23,7 +23,7 @@
 </script>
 
 <ContentCard {href} label={`View project ${project.title}`} class={className}>
-  <div class="pointer-events-none flex h-full min-w-0 flex-col gap-3 p-5">
+  <div class="flex h-full min-w-0 flex-col gap-3 p-5">
     <div class="flex items-center gap-2">
       <span class="text-xs tabular-nums text-muted-foreground"
         >{String(number).padStart(2, '0')}</span
@@ -34,7 +34,7 @@
       <h2 class="font-medium tracking-tight">{project.title}</h2>
       <p class="mt-2 text-sm leading-6 text-muted-foreground">{project.summary}</p>
     </div>
-    <div class="pointer-events-auto mt-auto block w-full min-w-0 max-w-full pt-1">
+    <div class="mt-auto block w-full min-w-0 max-w-full pt-1">
       <TagList tags={project.tags} label={project.title} collection="projects" />
     </div>
   </div>

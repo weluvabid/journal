@@ -65,10 +65,10 @@
     <div
       bind:this={viewport}
       role="group"
-      class="pointer-events-auto block w-full min-w-0 max-w-full snap-x snap-proximity overflow-x-auto overscroll-x-contain pb-1 focus-visible:rounded-sm focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring"
+      class="pointer-events-auto block w-fit min-w-0 max-w-full snap-x snap-proximity overflow-x-auto overscroll-x-contain pb-1 focus-visible:rounded-sm focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring"
       aria-label={`Tags for ${label}`}
     >
-      <div bind:this={track} class="flex w-max min-w-full flex-nowrap gap-2">
+      <div bind:this={track} class="flex w-max flex-nowrap gap-2">
         {#each tags as tag (tag)}
           <a
             href={tagHref(tag, collection)}
