@@ -20,7 +20,6 @@ order: 4
 
 Effects run immediately, track what they read, support cleanup, and return a disposer. Batching groups writes and flushes at the outermost boundary. Optional instrumentation exposes runtime events and ids without exposing application values. A listener that throws stays isolated from the runtime.
 
-*Example I'd add:* a computed nobody read, a write inside `batch`, and the effect log showing a single flush.
 
 ## What to explore
 

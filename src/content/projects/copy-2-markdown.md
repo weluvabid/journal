@@ -20,7 +20,6 @@ Copies a page, a selection, or a link as Markdown. Extraction and conversion run
 
 Mozilla Readability first, then a cleaned semantic root, then body. Structural filters, semantic filters, and the narrow framework-specific ones stay separate. HTML-to-Markdown doesn't depend on Chrome: GFM tables, code fences, relative URLs, protocol allowlists. Clipboard writes go through an extension-owned offscreen document, not the page DOM.
 
-*Example I'd add:* one page where Readability is right, one where the semantic fallback has to take over, and the Markdown from each.
 
 ## What to explore
 

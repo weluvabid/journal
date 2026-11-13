@@ -20,7 +20,6 @@ A fixed set of source terms maps to reserved four-word phrases. Punctuation, whi
 
 Each position draws from 64 words, so the ideal model has `64⁴` ordered phrases. The corpus scanner checks documents independently, which keeps a phrase from being stitched across a file boundary. The vocabulary is versioned. Change the mapping and you changed the protocol.
 
-*Example I'd add:* `encode` of one sentence with the comma still there, and `findCodewordCollisions` on a line that already contains a reserved phrase.
 
 ## What to explore
 

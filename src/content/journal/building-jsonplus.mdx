@@ -43,4 +43,14 @@ The decoder treats the document as untrusted. Limits (`maxNodes`, `maxEdges`, `m
 
 Encoder describes a supported graph. Decoder refuses to believe the bytes. Version 1 is the only schema. If the schema changes, the version changes. Silent reinterpretation of old documents is how serializers rot.
 
-*Example I'd add:* the shared-object-plus-cycle snippet from the README, then the node table it produces, with the two `$ref`s pointing at one index.
+```ts
+const shared = { id: 1 };
+const input = { first: shared, second: shared };
+input.self = input;
+
+const output = decode(encode(input));
+output.first === output.second; // true
+output.self === output;         // true
+```
+
+The two properties still point at one object, and the self-edge still points back to the root.

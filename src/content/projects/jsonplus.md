@@ -23,7 +23,6 @@ The encoder registers an object's identity before walking outgoing edges. The no
 
 Documented subset, not a picture of the whole runtime. Functions, symbols, arbitrary class instances, weak collections, shared or resizable buffers, and cross-realm objects are outside the contract.
 
-*Example I'd add:* one object referenced twice, one cycle, and the `$ref` nodes that show up on the wire.
 
 ## What to explore
 

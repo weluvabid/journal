@@ -12,6 +12,8 @@ featured: true
 draft: false
 ---
 
+import DiagramViewer from '@components/diagrams/DiagramViewer.svelte';
+
 A web page is not a document. The article is sitting next to nav, ads, hidden helper text, framework chrome, and whatever the app rendered into the same tree. Turning that into Markdown is an extraction problem first. Formatting is the easy half.
 
 Copy 2 Markdown does page, selection, or link, locally, in Chrome. The interesting part isn't Turndown. It's the fences around it. Page access happens because the user invoked an action. Extraction doesn't own the clipboard. The clipboard write doesn't run inside the page.
@@ -27,6 +29,8 @@ action → worker → extract HTML → markdown → offscreen clipboard
 Extraction knows about the live page. Conversion knows HTML plus a base URL. Clipboard code knows how to write text from an extension document. Mix those and the content script becomes a junk drawer.
 
 Page copy clones the document and tries Readability. Good on articles. Weak on docs sites and app UIs that don't have an article shape. If Readability doesn't return enough text, the fallback looks for `main`, then `article`, then `[role="main"]`, then body. That's a cleaned root, not "serialize the whole page."
+
+<DiagramViewer client:visible src="/diagrams/copy-2-markdown-extraction.svg" alt="Copy 2 Markdown extraction pipeline: user action, service worker, Readability, semantic fallback, Markdown conversion and clipboard write." caption="Readability is the primary path; semantic extraction is the fallback." />
 
 Filtering is split so it stays readable:
 
@@ -47,5 +51,3 @@ Conversion is Turndown plus the GFM plugin: headings, emphasis, links, images, n
 The converter takes a fragment and a base URL and doesn't import `chrome`. So the nasty HTML cases are unit tests. Playwright hits the built extension for the path that actually touches the browser.
 
 Permissions: `activeTab`, `scripting`, `clipboardWrite`, `contextMenus`, `offscreen`. No persistent host permission. No account, no backend, no analytics. The copied page stays in the browser. Restricted URLs fail with an error you can see. Chrome's own install and crash reporting are outside this boundary; I don't pretend the extension controls them.
-
-*Example I'd add:* one docs page before/after filter — the nav that got removed and the code sample that had to stay.

@@ -118,6 +118,9 @@ importers:
       svelte-infinite:
         specifier: 0.6.0
         version: 0.6.0(svelte@5.57.3(@typescript-eslint/types@8.46.0))
+      svg-pan-zoom:
+        specifier: ^3.6.2
+        version: 3.6.2
     devDependencies:
       '@astrojs/check':
         specifier: 0.9.12
@@ -2720,6 +2723,9 @@ packages:
     peerDependencies:
       '@sveltejs/kit': ^2.12.0 || ^3.0.0
       svelte: ^5.56.4
+
+  svg-pan-zoom@3.6.2:
+    resolution: {integrity: sha512-JwnvRWfVKw/Xzfe6jriFyfey/lWJLq4bUh2jwoR5ChWQuQoOH8FEh1l/bEp46iHHKHEJWIyFJETbazraxNWECg==}
 
   svgo@4.1.0:
     resolution: {integrity: sha512-bkxnTg1kSU0guhIBmibA6UUhrQmPVA1XsQLN+ylCd+UWzbnLkySOcXpyk1mrl05f+pcaCx2eHb+sp6BgMZWX+Q==}
@@ -5865,6 +5871,8 @@ snapshots:
     transitivePeerDependencies:
       - '@types/json-schema'
       - typescript
+
+  svg-pan-zoom@3.6.2: {}
 
   svgo@4.1.0:
     dependencies:

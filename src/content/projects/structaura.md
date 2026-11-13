@@ -24,7 +24,6 @@ Parser adapters are not the fingerprint. Both sides emit the same flat preorder 
 
 A fingerprint carries a format version, a language identifier, and a language-specific normalization version. Mismatched identities are rejected. You don't compare bare digests and hope. Normalization removes comments and selected syntax noise. It is not a semantic-equivalence engine.
 
-*Example I'd add:* two sources that differ only by a comment (same fingerprint), one structural edit (different fingerprint), version fields visible.
 
 ## What to explore
 

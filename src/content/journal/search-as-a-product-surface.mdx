@@ -26,4 +26,4 @@ Reduced motion stays reduced. On a small screen the list scrolls inside the surf
 
 What I'd actually measure: a handful of real queries, whether the top hit is the one I meant, whether keyboard alone finishes it, index bytes, time to first results. This corpus does not need a search cluster. If it grows a lot, then a precomputed index or a server. Not before the payload says so.
 
-*Example I'd add:* three queries side by side. Exact title, tag-only, and a common word that should lose, with the weights that produced that order.
+The ranking weights are intentionally uneven: exact title tokens score `32`, aliases `25`, tags `21`, summary `10`, and body mentions `2`. A full-title phrase match adds another `55` (or `100` for an exact title). So a query that names an article should beat an incidental body mention; the implementation, not a search service, makes that decision.

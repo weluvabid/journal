@@ -1,0 +1,16 @@
+flowchart TD
+    A["Writes"] --> B["Mutable BTreeMap<br/>memtable"]
+    B --> C{"Flush threshold reached?"}
+    C -- No --> B
+    C -- Yes --> D["Build sorted run R2"]
+    D --> E{"Run written and published?"}
+    E -- No --> F["Keep memtable intact"]
+    F --> B
+    E -- Yes --> G["Add R2 to newest-first runs"]
+    G --> H["Clear flushed memtable"]
+    H --> I{"Compaction needed?"}
+    I -- No --> J["Reads: memtable, then newest runs"]
+    I -- Yes --> K["Merge sorted runs"]
+    K --> L["Publish compacted run"]
+    L --> M["Retire replaced runs"]
+    M --> J

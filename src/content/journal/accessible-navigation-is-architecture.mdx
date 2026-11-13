@@ -28,4 +28,15 @@ A screenshot proves alignment. It does not prove a keyboard path. Tab the page. 
 
 If focus behaviour isn't part of the component contract, every page rediscovers it, and one of them gets it wrong.
 
-*Example I'd add:* skip link, sticky header, and the `scroll-margin-top` value, next to the heading actually visible after the jump.
+```html
+<a class="skip-link" href="#main">Skip to content</a>
+<main id="main">
+  <h2 id="keyboard-contract">Keyboard contract</h2>
+</main>
+```
+
+```css
+#keyboard-contract { scroll-margin-top: 6rem; }
+```
+
+The offset needs to match the actual sticky header, not a magic number copied from another layout.

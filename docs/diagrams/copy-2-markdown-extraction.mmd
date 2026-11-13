@@ -1,0 +1,12 @@
+flowchart TD
+    A["User action"] --> B["Service worker"]
+    B --> C["Extract page"]
+    C --> D["Mozilla Readability"]
+    D --> E{"Usable article found?"}
+    E -- Yes --> H["Clean extracted HTML"]
+    E -- No --> F["Semantic fallback"]
+    F --> H
+    H --> I["Turndown + GFM"]
+    I --> J["Markdown output"]
+    J --> K["Offscreen document"]
+    K --> L["Write to clipboard"]

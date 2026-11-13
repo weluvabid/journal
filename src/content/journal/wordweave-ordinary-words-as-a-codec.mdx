@@ -12,7 +12,7 @@ featured: true
 draft: false
 ---
 
-A filter that turns a message into a row of marks is an annoying constraint. It is not a cryptography problem. WordWeave is the experiment: selected terms become ordinary four-word phrases, and the punctuation, whitespace, and casing around them stay. Same vocabulary, you can put the terms back. That's reversible encoding. The vocabulary is public. If you needed a secret, this is the wrong shape, and "it looks like normal words" doesn't change that.
+A filter that turns a message into a row of marks is an annoying constraint. It is not encryption or a cryptography problem. WordWeave is the experiment: selected terms become ordinary four-word phrases, and the punctuation, whitespace, and casing around them stay. Same vocabulary, you can put the terms back. That's reversible encoding. The vocabulary is public. If you needed a secret, this is the wrong shape, and "it looks like normal words" doesn't change that.
 
 The budget is the phrase space. Each of four positions picks from 64 words.
 
@@ -35,5 +35,3 @@ const collisions = findCodewordCollisions('ordinary text to inspect');
 `VOCABULARY_VERSION` is the protocol. Change a mapping and an old phrase means something else, or nothing. Decode with the version you encoded with. There's no compatibility layer hiding in the words.
 
 The README records a stretch of trying this directly in a platform chat without hitting a block. That's a note about that attempt. Not a promise about the filter, the moderators, or next week. A phrase can pass today and fail tomorrow. Trying to get around a platform's rules can also just be against the rules, however readable the sentence is. Don't put a secret in it. Don't call it encryption, authentication, or a bypass.
-
-*Example I'd add:* one sentence, the four-word swap with the comma still there, and a second input that already contains a reserved phrase so the round-trip caveat isn't only a sentence.

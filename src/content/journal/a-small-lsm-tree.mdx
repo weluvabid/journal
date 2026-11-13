@@ -12,6 +12,8 @@ featured: true
 draft: false
 ---
 
+import DiagramViewer from '@components/diagrams/DiagramViewer.svelte';
+
 An LSM usually gets sold as "buffer the writes, flush them sorted, merge later." TinyLSM is that sentence with the annoying parts still attached: tombstones, publish-before-clear, and recovery that will not treat a filename as a valid run.
 
 Keys and values are opaque bytes. Empty keys and empty values are legal. A missing key is not an empty value, and a tombstone is not "this layer doesn't have the key."
@@ -19,6 +21,8 @@ Keys and values are opaque bytes. Empty keys and empty values are legal. A missi
 The memtable is a `BTreeMap`. Writes land there. A read checks the memtable first, then walks immutable runs newest-first and stops at the newest record. If that record is a tombstone, the key is gone even when an older run still holds a value. Drop the tombstone too early and a deleted row comes back after flush.
 
 Flush serializes an ordered snapshot into a new run and only then clears the memtable. If the write or the publish fails, the in-memory copy is still the only copy. Clearing first is how you lose data while believing you flushed.
+
+<DiagramViewer client:visible src="/diagrams/tiny-lsm-storage-lifecycle.svg" alt="TinyLSM write path showing memtable accumulation, run publication, failure retention, clearing after success and compaction." caption="The important boundary is publish first, clear second." />
 
 `Engine::new()` is memory-only. `open(path)` is the disk engine. Flush and compact require the disk one. The public API takes `&mut self`. One writer, synchronous, no lock, no background thread. Two processes on the same directory are not a supported mode.
 
@@ -34,4 +38,9 @@ The bench reports median and p95 nanoseconds per item on selected workloads. `BE
 
 What I left out, on purpose: WAL, concurrent readers, background compaction, block cache, transactions, a network protocol. An educational engine that implies those guarantees is worse than a small one that doesn't.
 
-*Example I'd add:* a flush that dies after the run file hits disk and before the memtable is cleared, with `inspect` before and after.
+```text
+Flush publishes R2:  memtable [A, B] → empty; runs [R1] → [R2, R1]
+Publish fails:       memtable [A, B] stays; runs remain [R1]
+```
+
+The memtable is cleared only after the new run is published. This describes the in-process failure path; it is not a claim of `fsync`-level crash durability.

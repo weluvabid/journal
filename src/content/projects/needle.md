@@ -20,7 +20,6 @@ A tiny eight-command language, a direct Brainfuck compiler, and a reference inte
 
 Tape, byte arithmetic, input and output, and execution limits are part of the language contract, not a comment beside it. Counted operations are atomic at the source level. Reversible history keeps bounded deltas instead of a full tape snapshot after every step. Differential tests run the reference interpreter against an independent Brainfuck runner.
 
-*Example I'd add:* a short program, one forward step and the reverse of it, with the source span still attached.
 
 ## What to explore
 

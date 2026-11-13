@@ -14,6 +14,8 @@ featured: true
 draft: false
 ---
 
+import DiagramViewer from '@components/diagrams/DiagramViewer.svelte';
+
 A source hash changes because you fixed a comment or let the formatter breathe. Correct for bytes. Useless if the question is "did the syntax change?"
 
 StructAura parses JavaScript or TypeScript with Tree-sitter, applies a small, versioned set of syntax-only normalizations, and hashes a canonical tree. Same Rust core on native and in the browser WASM build. I didn't want two fingerprint definitions that drift the moment the bindings do.
@@ -40,4 +42,15 @@ The browser package has an async `init()` because the WASM module and the gramma
 
 The contract I'd rather publish is the narrow one. Comments and some punctuation can vanish. Retained syntax changes should move the digest. Anything past that is a different tool.
 
-*Example I'd add:* the two snippets from the README (`const total = left + right` with a comment, versus the minified form) and the shared digest, then one edit that flips it.
+<DiagramViewer client:visible src="/diagrams/structaura-fingerprinting.svg" alt="StructAura fingerprinting pipeline from source parsing through normalization, canonical encoding and hashing, with unsupported input rejected." />
+
+```js
+// Same retained syntax; comments and layout differ.
+const total = left + right;
+```
+
+```js
+const total=left+right;
+```
+
+With the current JavaScript normalization version these formatting-only changes produce the same canonical fingerprint. Changing `right` to `tax` changes retained syntax and therefore the fingerprint. This is structural matching, not semantic equivalence.

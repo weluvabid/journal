@@ -41,4 +41,9 @@ LRU stays in the same type, oldest access, admit once you've made room. Same bud
 
 The score does not know future traffic, real factory time, true heap size, or whether the caller’s weights mean anything. A phase change makes yesterday's hot key useless. That's why the next note is a benchmark with a narrow claim, not a victory lap.
 
-*Example I'd add:* three entries — small/expensive, large/cheap, stale/hot — and the victim the score picks versus LRU.
+| Entry | Recency | Frequency | Rebuild cost | Size |
+|---|---:|---:|---:|---:|
+| Small report | 0.8 | 4 | 100 | 100 B |
+| Large blob | 1.0 | 1 | 1 | 1,000 B |
+
+Using the score above, the small report scores about `0.124`; the large blob about `0.001`. LRU prefers the more recently touched blob. Cost-aware scoring prefers the report per accounted byte. These are illustrative inputs, not a benchmark result.

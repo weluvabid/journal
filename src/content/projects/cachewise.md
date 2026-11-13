@@ -21,7 +21,6 @@ In-memory cache for one JavaScript agent. The default policy is cost-aware: rece
 
 Size is an estimate the caller provides. Not a hard heap cap, and I don't describe it as one. Admission picks victims before it mutates what's already resident. Per-key single-flight runs one factory, and each caller can still cancel on their own. Invalidation and a cache-wide epoch stop a late factory from writing back after `set`, `delete`, or `clear`.
 
-*Example I'd add:* a budget, an incoming estimate, the victim, and the accounted bytes before and after.
 
 ## What to explore
 

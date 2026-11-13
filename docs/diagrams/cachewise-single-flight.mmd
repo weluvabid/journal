@@ -1,0 +1,17 @@
+sequenceDiagram
+    autonumber
+    participant A as Caller A
+    participant B as Caller B
+    participant C as Cache
+    participant F as Shared factory
+
+    A->>C: getOrLoad(key)
+    C->>F: Start factory
+    B->>C: getOrLoad(key)
+    C-->>B: Join flight
+    A--xC: Abort A's signal
+    C-->>A: Reject A's wait
+    Note over C,F: Factory continues for B
+    F-->>C: Resolve value
+    C-->>B: Return value
+    Note over C: Cache only if flight is current

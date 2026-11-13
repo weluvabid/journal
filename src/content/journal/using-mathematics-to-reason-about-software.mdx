@@ -28,5 +28,3 @@ Tests too. A thousand random cases stuck in one corner, or an oracle that shares
 Big-O throws designs out. It doesn't crown a winner. A linear scan of a tiny bounded list beats a tree I have to maintain. A heap makes "next" cheap and the bookkeeping worse. TinyLSM's memtable is a `BTreeMap` because I wanted a determined order and log lookup and update. Immutable sorted runs make a read do more work. Compaction is the bill for that, not a bonus feature.
 
 Write the assumption next to the number, then check it. Capacity, then a collision scan. Complexity, then inputs at the size you actually expect. A probability, then "is the data even shaped like that?"
-
-*Example I'd add:* `64³` beside `64⁴` with the reserved-phrase count, and one birthday line with a real `N` so `√N` isn't left as a symbol.

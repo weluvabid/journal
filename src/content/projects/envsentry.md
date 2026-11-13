@@ -20,7 +20,6 @@ Compares a reference config to a target. Missing keys, duplicates, unexpected ke
 
 Core model and comparison, parsers, and the CLI stay split. Entries keep duplicate occurrences and explicit container paths, so folding into a map can't hide a repeated key. Diagnostics are deterministic and omit raw values in both text and JSON. Strict mode makes warnings fail the process without changing their severity. Check stays on structural findings.
 
-*Example I'd add:* a duplicated key and an empty value, with the diagnostic showing paths and no secret text.
 
 ## What to explore
 

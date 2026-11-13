@@ -24,5 +24,3 @@ Lint, types, tests, format, audit, the production build: different nets. Passing
 Ops counts too. Rollback, config, what it costs to stay warm, what happens when the worker is faster than the thing it writes to. FulfillmentGuard is where that stops being abstract: a message can fail three hops away from the click, and "we'll just retry" without idempotency double-applies the work.
 
 I can't promise software won't fail. I can refuse to ship a boundary I haven't looked at, and I can refuse a failure mode that pretends it succeeded.
-
-*Example I'd add:* one invalid import (QR or config) and the assertion that local state didn't change.

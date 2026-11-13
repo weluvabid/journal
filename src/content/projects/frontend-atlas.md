@@ -25,7 +25,6 @@ Carrying that to another device is a versioned QR protocol, not a login. The que
 
 Astro owns static content and routing. Svelte owns the islands. Iris is the shared UI. Search is a static JSON index, ranked in memory after it loads. The handbook can remember a reader without knowing who they are.
 
-*Example I'd add:* a short manifest, the packed payload size, and a merge onto a profile that already had a completion the QR didn't.
 
 ## What to explore
 

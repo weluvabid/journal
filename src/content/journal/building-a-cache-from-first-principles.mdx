@@ -15,6 +15,8 @@ featured: true
 draft: false
 ---
 
+import DiagramViewer from '@components/diagrams/DiagramViewer.svelte';
+
 If every value costs the same, LRU is fine. Keep what you touched recently, throw out the cold stuff when you're full. Real entries aren't like that. One result is huge and cheap to rebuild. Another is a few hundred bytes and painful. Cachewise is a TypeScript cache that refuses to pretend those are the same object.
 
 The budget is `maxBytes` plus an `estimateSize` callback. For a `Uint8Array`, `byteLength` is an honest number. For an object graph, the caller picks an accounting convention and lives with it. This is not a JavaScript heap cap. Headers, hidden slots, shared structure, closures, GC — none of that is in the estimate. `maxBytes` bounds the ledger, not RSS.
@@ -31,6 +33,8 @@ Frequency is a Count-Min Sketch, four rows of 8-bit counters by default. Width i
 
 `getOrCompute` is single-flight per key. Concurrent callers join one promise. Each caller can abort their own wait. The factory sees a different, shared signal. One waiter leaving does not cancel the others. The last waiter leaving aborts the shared signal and drops the flight. Abort is cooperative. A factory that ignores the signal keeps running; the cache can refuse to store the result, it cannot unwind side effects the factory already did.
 
+<DiagramViewer client:visible src="/diagrams/cachewise-single-flight.svg" alt="Cachewise single-flight sequence: two callers share one factory; caller A aborts its wait while caller B receives the result." />
+
 `set` or `delete` during a flight marks that flight non-cacheable so a late factory can't overwrite the explicit value. `clear()` bumps an epoch and aborts known flights. A factory that settles after clear does not repopulate the cache. The promise the caller is awaiting still settles with the factory's result. Invalidation controls admission, not what the waiter observes.
 
 One `Cache` instance, one JavaScript agent. Workers don't share flights. This is not a distributed cache.
@@ -38,5 +42,3 @@ One `Cache` instance, one JavaScript agent. Workers don't share flights. This is
 Disposal and event callbacks are synchronous, and exceptions from them are caught so a listener can't tear the state machine in half. There's an optional error hook. If the hook throws, that throw is swallowed too. Reporting must not become a second way to corrupt the map. The catch is that the callback still runs on the caller’s turn. Don't do I/O in it.
 
 Scoring details and the benchmark are the next two notes. This one is the boundary: what the cache is responsible for, and what it refuses to pretend.
-
-*Example I'd add:* two callers on one key, one aborts, the factory still completes, and only the remaining caller observes the stored value.

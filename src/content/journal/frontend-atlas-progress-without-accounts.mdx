@@ -14,16 +14,25 @@ featured: false
 draft: false
 ---
 
+import DiagramViewer from '@components/diagrams/DiagramViewer.svelte';
+
 Frontend Atlas has to remember which questions you finished and where you stopped reading. The default industry answer is an account. I didn't want the account. The site is a handbook, not a multiplayer app. Sign-up would mean auth, storage, email, deletion, and a failure mode before anyone reads a paragraph.
 
 Progress is a small record in the browser, keyed by question id. The id does not change when the title changes or the article moves. If storage is missing or the blob doesn't validate, the UI says progress isn't saved. It doesn't render a fake "0% complete" and hope.
 
-The QR isn't a login. A manifest is the ordered dictionary of ids, append-only, because an export from last month has to mean the same slots. Version 1 starts with `FATL1:` and stores two bits per question. 150 questions is the cap, so the bitset is `ceil(150 × 2 / 8) = 38` bytes before envelope and positions. Reading position is fixed-width on the side. Favourites can exist in the format without sharing bits with "done." I don't want a bookmark to count as finishing the page.
+The QR isn't a login. A manifest is the ordered dictionary of ids, append-only, because an export from last month has to mean the same slots. Version 1 starts with `FATL1:` and stores two bits per question. 150 questions is the cap, so the bitset is `ceil(150 × 2 / 8) = 38` bytes before envelope and positions. Reading position is fixed-width on the side. Favourites live in the format without sharing bits with "done." A question can be favourited without being marked complete; a bookmark does not count as finishing the page. The QR code carries that distinction too.
 
 Merge keeps local completions the incoming QR doesn't have. Replace overwrites. Both names do what they say. Version, manifest compatibility, indexes, bounds — checked before the local record changes. A corrupt image fails. It does not half-apply.
+
+<DiagramViewer client:visible src="/diagrams/frontend-atlas-progress-transfer.svg" alt="Frontend Atlas progress transfer from local completion through QR export, scan, payload validation and local import or rejection." caption="The QR is a transfer format, not an account or a sync service." />
 
 This will not follow you to a new browser by itself. Clearing site data deletes it. Both devices have to be in the room for a transfer. That is the product. Automatic sync would be a different one, and it would need the backend I was avoiding.
 
 Wire format and tests are in the repo. The decision is the small part: progress belongs to the browser you're in, plus an explicit export, not to an identity service.
 
-*Example I'd add:* encode a tiny manifest, show the `FATL1:` payload length, scan it, merge onto a profile that already had one extra completion.
+```text
+Question state: 00 not started · 01 in progress · 10 completed
+150 questions × 2 bits = 300 bits = 38 bytes (rounded up)
+```
+
+The QR also carries the manifest identity and any reading-position entries; the status bitset alone is not the whole payload. Import validates the payload before merge or replace can mutate local progress.

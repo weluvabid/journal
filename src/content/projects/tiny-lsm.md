@@ -20,7 +20,6 @@ Synchronous, single-writer educational engine for opaque byte-string keys and va
 
 Flush publishes the sorted run before it clears the memtable. Tombstones have to survive flush and compaction or a delete is optional. Run files are versioned and structurally validated on recovery. `Engine::inspect` is the deterministic look inside. Deliberately absent: a WAL, concurrent access, background maintenance, Bloom filters, a block cache, transactions.
 
-*Example I'd add:* put, delete, flush, then `inspect` showing the tombstone in the run and an empty memtable.
 
 ## What to explore
 

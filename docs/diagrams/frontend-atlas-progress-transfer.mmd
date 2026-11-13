@@ -1,0 +1,22 @@
+flowchart LR
+    subgraph S["Source device"]
+        A["Complete an item"]
+        B["Update local progress"]
+        C["Encode progress payload"]
+        D["Generate QR code"]
+        A --> B --> C --> D
+    end
+
+    D --> E["Scan QR code"]
+
+    subgraph T["Destination device"]
+        F["Read and validate payload"]
+        G{"Valid and supported?"}
+        H["Import progress locally"]
+        I["Reject without changing progress"]
+        F --> G
+        G -- Yes --> H
+        G -- No --> I
+    end
+
+    E --> F

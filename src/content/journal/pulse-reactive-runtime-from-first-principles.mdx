@@ -31,7 +31,7 @@ batch(() => {
 dispose();
 ```
 
-Push-only recomputes things nobody read. Pull-only makes every access rediscover freshness. Pulse pushes staleness and pulls computed values on read. Effects are the scheduler's problem, synchronous, after the update boundary. Nested `batch` doesn't flush early. The outer one does.
+Push-only recomputes things nobody read. The model is hybrid push-pull: writes push staleness, reads pull fresh computed values. Pull-only makes every access rediscover freshness. Pulse pushes staleness and pulls computed values on read. Effects are the scheduler's problem, synchronous, after the update boundary. Nested `batch` doesn't flush early. The outer one does.
 
 Each effect run collects a fresh dependency set and reconciles it with the old one. Conditional reads have to drop subscriptions that didn't happen this time. Leave them and you rerun forever on a branch you left.
 
@@ -43,4 +43,17 @@ What this isn't: a renderer, a component lifecycle, parallel work. An effect tha
 
 The tests I care about are the annoying graphs. Conditional deps, nested batches, cleanup order, dispose during an update, a listener that throws. Benchmarks should split runtime bookkeeping from whatever the effect did, or the numbers are just "your console.log is slow."
 
-*Example I'd add:* an effect that reads `a` or `b` depending on a flag, then the subscription list after the flag flips.
+```ts
+const usePrimary = signal(true);
+const primary = signal('A');
+const secondary = signal('B');
+
+const dispose = effect(() => {
+  console.log(usePrimary() ? primary() : secondary());
+});
+
+usePrimary.set(false); // next run drops primary and tracks secondary
+dispose();
+```
+
+The dependency set is rebuilt on each run. Once the flag flips, later writes to `primary` should no longer schedule this effect.

@@ -1,0 +1,10 @@
+flowchart TD
+    A["Source text"] --> B["Parse"]
+    B --> C["Syntax representation"]
+    C --> D["Supported normalization"]
+    D --> E["Canonical encoding"]
+    E --> F["Hash"]
+    F --> G["Fingerprint"]
+    H["Different formatting"] --> B
+    B --> I["Unsupported syntax / parse failure"]
+    I --> J["Explicit failure"]

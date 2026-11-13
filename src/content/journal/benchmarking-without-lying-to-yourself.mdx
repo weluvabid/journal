@@ -44,5 +44,3 @@ Weighted hit ratio moved in the cost-aware policy's favour on all three. Through
 What this run does not say: universal hit rate, production latency, heap behaviour, multi-process contention, or "faster on your laptop." `maxBytes` is an accounting budget, not a process RSS cap. JIT, GC and machine load move the timer. Compare policies inside one run before you compare commits. GitHub-hosted runners are convenient and they are not quiet hardware.
 
 For an application decision you still need a trace that looks like the application, and you have to time the factory, not just the cache bookkeeping.
-
-*Example I'd add:* one trial from `report.json` next to the matching CSV row, so the median isn't a magic cell.

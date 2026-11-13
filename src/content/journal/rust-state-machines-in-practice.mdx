@@ -35,4 +35,15 @@ A transition I trust is: this state, this event, either a legal next state or an
 
 Then stop. A value with no lifecycle doesn't need a ceremony enum. Encode the rules that are real.
 
-*Example I'd add:* one match that refuses `Queued` plus "complete", and a deserializer that rejects `Succeeded` with no `output_id`.
+```rust
+fn complete(state: JobState) -> Result<JobState, JobState> {
+    match state {
+        JobState::Running { .. } => Ok(JobState::Succeeded {
+            output_id: "report-42".into(),
+        }),
+        other => Err(other),
+    }
+}
+```
+
+Only `Running` can complete here. A real transition function would carry the output and failure reason from the operation rather than hard-code an id.

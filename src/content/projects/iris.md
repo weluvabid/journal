@@ -24,7 +24,6 @@ A component that only runs inside this repository isn't reusable yet. Stable exp
 
 The demo checks installation, composition, and theming. It should stay smaller than the library, not turn into a second product. Lint, format, types, and release automation protect the same boundary as the exports.
 
-*Example I'd add:* one consumer install, one composed component, and a keyboard-only pass where focus doesn't get lost.
 
 ## What to explore
 
