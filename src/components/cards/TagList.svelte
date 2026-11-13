@@ -9,8 +9,8 @@
   }
 
   let { tags = [], label, collection = 'journal' }: Props = $props();
-  let viewport: HTMLElement;
-  let track: HTMLDivElement;
+  let viewport: HTMLElement | undefined = $state();
+  let track: HTMLDivElement | undefined = $state();
   let canScrollLeft = $state(false);
   let canScrollRight = $state(false);
 
@@ -65,8 +65,7 @@
     <div
       bind:this={viewport}
       role="group"
-      tabindex="0"
-      class="pointer-events-auto block w-full min-w-0 max-w-full snap-x snap-proximity touch-pan-x overflow-x-auto overscroll-x-contain pb-1 focus-visible:rounded-sm focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring"
+      class="pointer-events-auto block w-full min-w-0 max-w-full snap-x snap-proximity overflow-x-auto overscroll-x-contain pb-1 focus-visible:rounded-sm focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring"
       aria-label={`Tags for ${label}`}
     >
       <div bind:this={track} class="flex w-max min-w-full flex-nowrap gap-2">

@@ -27,7 +27,14 @@
   onMount(() => {
     theme = getInitialTheme();
 
-    return installKeyboardController({
+    const handleDocumentKeydown = (event: KeyboardEvent): void => {
+      if (event.key === 'Escape' && mobileMenu?.open) {
+        mobileMenu.open = false;
+      }
+    };
+
+    document.addEventListener('keydown', handleDocumentKeydown);
+    const uninstallKeyboardController = installKeyboardController({
       onSearch: () => {
         helpOpen = false;
         searchOpen = true;
@@ -36,6 +43,11 @@
         helpOpen = true;
       },
     });
+
+    return () => {
+      document.removeEventListener('keydown', handleDocumentKeydown);
+      uninstallKeyboardController();
+    };
   });
 
   function handleThemeToggle(): void {
@@ -202,13 +214,7 @@
           </Tooltip.Root>
         </div>
 
-        <details
-          class="relative sm:hidden"
-          bind:this={mobileMenu}
-          onkeydown={(event) => {
-            if (event.key === 'Escape') mobileMenu.open = false;
-          }}
-        >
+        <details class="relative sm:hidden" bind:this={mobileMenu}>
           <summary
             class="flex size-10 cursor-pointer list-none items-center justify-center rounded-full text-foreground outline-none hover:bg-accent focus-visible:ring-2 focus-visible:ring-ring [&::-webkit-details-marker]:hidden"
             aria-label="More options"
