@@ -25,17 +25,7 @@
     outline-offset: 3px;
   }
 
-  #main-content:focus {
-    outline: 2px solid #6420c5;
-    outline-offset: 4px;
-    border-radius: 0.5rem;
-  }
-
-  .dark #main-content:focus {
-    outline-color: #c4b5fd;
-  }
-
-  #main-content:focus {
+  #main-content:focus-visible {
     outline: 2px solid var(--ring);
     outline-offset: 4px;
     border-radius: 0.5rem;
