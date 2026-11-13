@@ -9,6 +9,7 @@ import { categories, categoryById } from '@data/categories';
 import { entryHref, withBase } from '@lib/journal';
 import { JOURNAL_PAGE_SIZE, paginateItems } from '@lib/journal-pagination';
 import { INTENTS, pluralize } from '@lib/content-text';
+import { getJournalSeriesPartCount } from '@lib/journal-series-navigation';
 
 export async function getStaticPaths() {
   return [...categoryById.values()].map((category) => ({
@@ -18,6 +19,7 @@ export async function getStaticPaths() {
 }
 
 const { category } = Astro.props;
+const allJournalEntries = await getCollection('journal', ({ data }) => !data.draft);
 const entries = (
   await getCollection('journal', ({ data }) => !data.draft && data.category === category.id)
 ).sort(
@@ -34,6 +36,14 @@ const initialEntries = firstPage.map((entry) => ({
   date: entry.data.date.toISOString(),
   dateLabel: entry.data.date.toLocaleDateString('en', { dateStyle: 'medium', timeZone: 'UTC' }),
   tags: entry.data.tags,
+  ...(entry.data.series
+    ? {
+        series: {
+          part: entry.data.series.part,
+          totalParts: getJournalSeriesPartCount(allJournalEntries, entry.data.series.id),
+        },
+      }
+    : {}),
   href: entryHref(entry.data.id),
 }));
 const nextPageUrl =
@@ -85,6 +95,14 @@ const nextPageUrl =
                   timeZone: 'UTC',
                 }),
                 tags: entry.data.tags,
+                ...(entry.data.series
+                  ? {
+                      series: {
+                        part: entry.data.series.part,
+                        totalParts: getJournalSeriesPartCount(allJournalEntries, entry.data.series.id),
+                      },
+                    }
+                  : {}),
                 href: entryHref(entry.data.id),
               }}
               index={index + JOURNAL_PAGE_SIZE}

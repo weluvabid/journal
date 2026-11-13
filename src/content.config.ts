@@ -17,6 +17,12 @@ const journal = defineCollection({
     summary: z.string().min(30).max(240),
     date: z.coerce.date(),
     project: z.string().optional(),
+    series: z
+      .object({
+        id: z.string().regex(/^[a-z0-9]+(?:-[a-z0-9]+)*$/),
+        part: z.number().int().positive(),
+      })
+      .optional(),
     tags: z.array(z.string().min(2)).min(1).max(8),
     searchTerms: z.array(z.string().min(2).max(80)).max(12).default([]),
     links: z
@@ -44,6 +50,12 @@ const projects = defineCollection({
     demo: z.url().optional(),
     stackblitz: z.url().optional(),
     mermaid: z.url().optional(),
+    journal: z
+      .object({
+        primary: z.string().regex(/^[a-z0-9]+(?:-[a-z0-9]+)*$/),
+        related: z.array(z.string().regex(/^[a-z0-9]+(?:-[a-z0-9]+)*$/)).default([]),
+      })
+      .optional(),
     featured: z.boolean().default(false),
     order: z.number().int().nonnegative(),
   }),

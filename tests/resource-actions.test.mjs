@@ -19,19 +19,19 @@ test('article action component uses the existing Simple Icons exports', async ()
 
   assert.match(component, /import \{ Button, Tooltip \} from '@weluvabid\/iris\/components'/);
   assert.match(component, /SiGit, SiStackblitz, SiMermaid/);
-  assert.equal((component.match(/<Button\.Root/g) ?? []).length, 3);
-  assert.equal((component.match(/variant="ghost"/g) ?? []).length, 3);
-  assert.equal((component.match(/size="icon"/g) ?? []).length, 3);
+  assert.equal((component.match(/<Button\.Root/g) ?? []).length, 4);
+  assert.equal((component.match(/variant="ghost"/g) ?? []).length, 4);
+  assert.equal((component.match(/size="icon"/g) ?? []).length, 4);
   assert.equal(
-    (component.match(/class="rounded-full hover:bg-muted hover:text-foreground"/g) ?? []).length,
-    3,
+    (component.match(/rounded-full hover:bg-muted hover:text-foreground/g) ?? []).length,
+    4,
   );
   assert.doesNotMatch(component, /border border-border|rounded-md/);
   assert.equal((component.match(/target="_blank"/g) ?? []).length, 3);
   assert.equal((component.match(/rel="noopener noreferrer"/g) ?? []).length, 3);
-  assert.equal((component.match(/aria-label=/g) ?? []).length, 4);
-  assert.equal((component.match(/<Tooltip\.Root>/g) ?? []).length, 3);
-  assert.equal((component.match(/<Tooltip\.Content>/g) ?? []).length, 3);
+  assert.equal((component.match(/aria-label=/g) ?? []).length, 5);
+  assert.equal((component.match(/<Tooltip\.Root>/g) ?? []).length, 4);
+  assert.equal((component.match(/<Tooltip\.Content>/g) ?? []).length, 4);
   assert.match(component, /<Tooltip\.Provider delayDuration=\{300\}>/);
   assert.doesNotMatch(
     component,

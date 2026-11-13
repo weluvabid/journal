@@ -3,6 +3,7 @@ import { getCollection } from 'astro:content';
 import { entryHref, withBase } from '@lib/journal';
 import { groupEntriesByTag } from '@lib/journal-tags';
 import { JOURNAL_PAGE_SIZE, paginateItems } from '@lib/journal-pagination';
+import { getJournalSeriesPartCount } from '@lib/journal-series-navigation';
 
 export async function getStaticPaths() {
   const entries = (await getCollection('journal', ({ data }) => !data.draft)).sort(
@@ -28,6 +29,9 @@ export async function getStaticPaths() {
           timeZone: 'UTC',
         }),
         tags: entry.data.tags,
+        ...(entry.data.series
+          ? { series: { part: entry.data.series.part, totalParts: getJournalSeriesPartCount(entries, entry.data.series.id) } }
+          : {}),
         href: entryHref(entry.data.id),
       }));
 

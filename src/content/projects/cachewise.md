@@ -6,6 +6,9 @@ status: released
 tags: [rust, caching, benchmarking, performance]
 stack: [Rust, Caching, Benchmarking]
 github: 'https://github.com/weluvabid/cachewise'
+journal:
+  primary: benchmarking-without-lying-to-yourself
+  related: [building-a-cache-from-first-principles, cost-aware-eviction-policies]
 featured: true
 order: 1
 ---

@@ -8,26 +8,36 @@ import ResourceActions from '@components/resources/ResourceActions.svelte';
 import TagList from '@components/cards/TagList.svelte';
 import { categoryById } from '@data/categories';
 import { withBase, entryHref } from '@lib/journal';
+import {
+  assertUniqueSeriesParts,
+  getJournalSeriesPartCount,
+  resolveJournalArticleNavigation,
+} from '@lib/journal-series-navigation';
 export async function getStaticPaths() {
   const entries = await getCollection('journal', ({ data }) => !data.draft);
+  assertUniqueSeriesParts(entries);
   return entries.map((entry) => ({ params: { slug: entry.data.id }, props: { entry } }));
 }
 const { entry } = Astro.props;
 const { Content } = await render(entry);
 const category = categoryById.get(entry.data.category);
 if (!category) throw new Error(`Unknown journal category: ${entry.data.category}`);
-const groupedEntries = (
-  await getCollection('journal', ({ data }) => !data.draft && data.category === entry.data.category)
-).sort(
-  (left, right) =>
-    right.data.date.valueOf() - left.data.date.valueOf() ||
-    left.data.title.localeCompare(right.data.title),
+const publishedEntries = await getCollection('journal', ({ data }) => !data.draft);
+const groupedEntries = publishedEntries
+  .filter((item) => item.data.category === entry.data.category)
+  .sort(
+    (left, right) =>
+      right.data.date.valueOf() - left.data.date.valueOf() ||
+      left.data.title.localeCompare(right.data.title),
+  );
+const seriesPartCount = entry.data.series
+  ? getJournalSeriesPartCount(publishedEntries, entry.data.series.id)
+  : 0;
+const { previous: previousEntry, next: nextEntry } = resolveJournalArticleNavigation(
+  entry.data.id,
+  groupedEntries,
+  publishedEntries,
 );
-const currentIndex = groupedEntries.findIndex((item) => item.data.id === entry.data.id);
-if (currentIndex < 0)
-  throw new Error(`Journal entry ${entry.data.id} is missing from its category reading order`);
-const previousEntry = groupedEntries[currentIndex - 1];
-const nextEntry = groupedEntries[currentIndex + 1];
 ---
 
 <BaseLayout title={`${entry.data.title} — Journal`} description={entry.data.summary}>
@@ -42,11 +52,17 @@ const nextEntry = groupedEntries[currentIndex + 1];
       ></Breadcrumb.Root
     >
     <header class="mb-10 border-b border-border pb-8">
-      <div class="flex flex-wrap items-center gap-2 text-xs text-muted-foreground">
+      <div class="-mx-1 flex max-w-full flex-nowrap items-center gap-2 overflow-x-auto whitespace-nowrap px-1 text-xs text-muted-foreground [scrollbar-width:none] [&::-webkit-scrollbar]:hidden sm:mx-0 sm:flex-wrap sm:overflow-visible sm:whitespace-normal sm:px-0">
         <Badge.Badge variant="secondary">{category.name}</Badge.Badge><Badge.Badge
           variant="outline"
           class="capitalize">{entry.data.type.replaceAll('-', ' ')}</Badge.Badge
-        ><time datetime={entry.data.date.toISOString()}
+        >
+        {entry.data.series && (
+          <Badge.Badge variant="outline">
+            Series · Part {entry.data.series.part}/{seriesPartCount}
+          </Badge.Badge>
+        )}
+        <time datetime={entry.data.date.toISOString()}
           >{entry.data.date.toLocaleDateString('en', { dateStyle: 'long' })}</time
         >
       </div>

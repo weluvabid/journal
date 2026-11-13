@@ -11,6 +11,7 @@
     readonly date: string;
     readonly dateLabel: string;
     readonly tags: readonly string[];
+    readonly series?: { readonly part: number; readonly totalParts: number };
     readonly href: string;
   }
 
@@ -33,6 +34,11 @@
         <Badge.Badge variant="secondary" class="capitalize"
           >{entry.type.replaceAll('-', ' ')}</Badge.Badge
         >
+        {#if entry.series}
+          <Badge.Badge variant="outline">
+            Series · {entry.series.part}/{entry.series.totalParts}
+          </Badge.Badge>
+        {/if}
       </div>
       <div class="min-w-0">
         <h2 class="font-medium tracking-tight">{entry.title}</h2>
@@ -52,6 +58,13 @@
         <div class="min-w-0">
           <h2 class="font-semibold tracking-tight">{entry.title}</h2>
           <p class="mt-2 max-w-2xl text-sm leading-6 text-muted-foreground">{entry.summary}</p>
+          {#if entry.series}
+            <div class="mt-2">
+              <Badge.Badge variant="outline">
+                Series · Part {entry.series.part}/{entry.series.totalParts}
+              </Badge.Badge>
+            </div>
+          {/if}
           <div class="block w-full min-w-0 max-w-full">
             <TagList tags={entry.tags} label={entry.title} />
           </div>

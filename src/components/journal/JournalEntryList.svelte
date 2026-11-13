@@ -13,6 +13,7 @@
     readonly date: string;
     readonly dateLabel: string;
     readonly tags: readonly string[];
+    readonly series?: { readonly part: number; readonly totalParts: number };
     readonly href: string;
   }
 
@@ -88,7 +89,15 @@
           String(entry.type),
         ) &&
         Array.isArray(entry.tags) &&
-        entry.tags.every((tag) => typeof tag === 'string')
+        entry.tags.every((tag) => typeof tag === 'string') &&
+        (entry.series === undefined ||
+          (typeof entry.series === 'object' &&
+            entry.series !== null &&
+            Number.isSafeInteger((entry.series as Record<string, unknown>).part) &&
+            Number.isSafeInteger((entry.series as Record<string, unknown>).totalParts) &&
+            Number((entry.series as Record<string, unknown>).part) > 0 &&
+            Number((entry.series as Record<string, unknown>).totalParts) >=
+              Number((entry.series as Record<string, unknown>).part)))
       );
     });
   }

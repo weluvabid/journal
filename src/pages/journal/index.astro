@@ -8,6 +8,7 @@ import JournalEntryCard from '@components/cards/JournalEntryCard.svelte';
 import { categories } from '@data/categories';
 import { entryHref, withBase } from '@lib/journal';
 import { JOURNAL_PAGE_SIZE, paginateItems } from '@lib/journal-pagination';
+import { getJournalSeriesPartCount } from '@lib/journal-series-navigation';
 import { INTENTS, pluralize } from '@lib/content-text';
 
 const entries = (await getCollection('journal', ({ data }) => !data.draft)).sort(
@@ -24,6 +25,9 @@ const initialEntries = firstPage.map((entry) => ({
   date: entry.data.date.toISOString(),
   dateLabel: entry.data.date.toLocaleDateString('en', { dateStyle: 'medium', timeZone: 'UTC' }),
   tags: entry.data.tags,
+  ...(entry.data.series
+    ? { series: { part: entry.data.series.part, totalParts: getJournalSeriesPartCount(entries, entry.data.series.id) } }
+    : {}),
   href: entryHref(entry.data.id),
 }));
 const nextPageUrl = nextPage === null ? null : withBase(`/journal/data/all/${nextPage}.json`);
@@ -69,6 +73,9 @@ const nextPageUrl = nextPage === null ? null : withBase(`/journal/data/all/${nex
                   timeZone: 'UTC',
                 }),
                 tags: entry.data.tags,
+                ...(entry.data.series
+                  ? { series: { part: entry.data.series.part, totalParts: getJournalSeriesPartCount(entries, entry.data.series.id) } }
+                  : {}),
                 href: entryHref(entry.data.id),
               }}
               index={index + JOURNAL_PAGE_SIZE}

@@ -3,11 +3,36 @@ import { getCollection, render } from 'astro:content';
 import BaseLayout from '@layouts/BaseLayout.astro';
 import { Badge, Breadcrumb, Button } from '@weluvabid/iris/components';
 import { ArrowLeft, ExternalLink } from '@weluvabid/iris/lucide';
-import { withBase } from '@lib/journal';
+import { entryHref, withBase } from '@lib/journal';
 import TagList from '@components/cards/TagList.svelte';
 import ResourceActions from '@components/resources/ResourceActions.svelte';
 export async function getStaticPaths() {
-  const projects = await getCollection('projects');
+  const [projects, journalEntries] = await Promise.all([
+    getCollection('projects'),
+    getCollection('journal', ({ data }) => !data.draft),
+  ]);
+  const journalIds = new Set(journalEntries.map((entry) => entry.data.id));
+
+  for (const project of projects) {
+    const references = project.data.journal;
+    if (!references) continue;
+
+    for (const id of [references.primary, ...references.related]) {
+      if (!journalIds.has(id)) {
+        throw new Error(
+          `Project "${project.data.id}" references missing or unpublished journal entry "${id}"`,
+        );
+      }
+    }
+
+    if (
+      new Set(references.related).size !== references.related.length ||
+      references.related.includes(references.primary)
+    ) {
+      throw new Error(`Project "${project.data.id}" contains duplicate journal references`);
+    }
+  }
+
   return projects.map((entry) => ({ params: { slug: entry.data.id }, props: { entry } }));
 }
 const { entry } = Astro.props;
@@ -34,7 +59,7 @@ const { Content } = await render(entry);
       </div><h1 class="mt-4 text-balance text-3xl font-semibold tracking-tight sm:text-4xl">
         {entry.data.title}
       </h1><p class="mt-5 text-base leading-8 text-muted-foreground">{entry.data.summary}</p>{
-        (entry.data.github || entry.data.stackblitz || entry.data.mermaid) && (
+        (entry.data.github || entry.data.stackblitz || entry.data.mermaid || entry.data.journal?.primary) && (
           <ResourceActions
             client:load
             links={{
@@ -42,6 +67,9 @@ const { Content } = await render(entry);
               stackblitz: entry.data.stackblitz,
               mermaid: entry.data.mermaid,
             }}
+            journalHref={
+              entry.data.journal?.primary ? entryHref(entry.data.journal.primary) : undefined
+            }
             title={entry.data.title}
           />
         )

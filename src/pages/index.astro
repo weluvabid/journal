@@ -5,6 +5,7 @@ import { Button } from '@weluvabid/iris/components';
 import { withBase, entryHref } from '@lib/journal';
 import ProjectCard from '@components/cards/ProjectCard.svelte';
 import JournalEntryCard from '@components/cards/JournalEntryCard.svelte';
+import { getJournalSeriesPartCount } from '@lib/journal-series-navigation';
 
 const allEntries = await getCollection('journal', ({ data }) => !data.draft);
 const entries = [...allEntries].sort((a, b) => b.data.date.valueOf() - a.data.date.valueOf());
@@ -85,6 +86,14 @@ const selectedProjects = projects.slice(0, 4);
                     timeZone: 'UTC',
                   }),
                   tags: entry.data.tags,
+                  ...(entry.data.series
+                    ? {
+                        series: {
+                          part: entry.data.series.part,
+                          totalParts: getJournalSeriesPartCount(allEntries, entry.data.series.id),
+                        },
+                      }
+                    : {}),
                   href: entryHref(entry.data.id),
                 }}
                 index={index + selectedProjects.length}
