@@ -9,6 +9,7 @@
     Sun,
     Search,
     CircleHelp,
+    Ellipsis,
   } from '@weluvabid/iris/lucide';
   import { SiGithub } from '@weluvabid/iris/simple-icons';
   import { getInitialTheme, toggleTheme } from '@weluvabid/iris/theme';
@@ -21,6 +22,7 @@
   let theme = $state<'light' | 'dark'>('light');
   let searchOpen = $state(false);
   let helpOpen = $state(false);
+  let mobileMenu: HTMLDetailsElement;
 
   onMount(() => {
     theme = getInitialTheme();
@@ -52,7 +54,7 @@
     </a>
 
     <nav class="flex shrink-0 items-center gap-1" aria-label="Primary navigation">
-      <div class="hidden items-center gap-1 sm:flex" aria-label="Main sections">
+      <div class="flex items-center gap-1" aria-label="Main sections">
         <Tooltip.Root>
           <Tooltip.Trigger>
             {#snippet child({ props })}
@@ -110,7 +112,7 @@
         </Tooltip.Root>
       </div>
 
-      <span class="mx-2 hidden h-6 w-px shrink-0 bg-border sm:block" aria-hidden="true"></span>
+      <span class="mx-2 h-6 w-px shrink-0 bg-border" aria-hidden="true"></span>
 
       <div class="flex items-center gap-1" aria-label="Other controls">
         <Tooltip.Root>
@@ -132,33 +134,36 @@
           <Tooltip.Content>Search</Tooltip.Content>
         </Tooltip.Root>
 
-        <Tooltip.Root>
-          <Tooltip.Trigger>
-            {#snippet child({ props })}
-              <Button.Root
-                {...props}
-                variant="ghost"
-                size="icon"
-                class="rounded-full"
-                aria-label={theme === 'dark' ? 'Switch to light theme' : 'Switch to dark theme'}
-                aria-pressed={theme === 'dark'}
-                onclick={handleThemeToggle}
-              >
-                {#if theme === 'dark'}<Sun aria-hidden="true" />{:else}<Moon
-                    aria-hidden="true"
-                  />{/if}
-              </Button.Root>
-            {/snippet}
-          </Tooltip.Trigger>
-          <Tooltip.Content
-            >{theme === 'dark' ? 'Switch to light theme' : 'Switch to dark theme'}</Tooltip.Content
-          >
-        </Tooltip.Root>
+        <div class="hidden sm:contents">
+          <Tooltip.Root>
+            <Tooltip.Trigger>
+              {#snippet child({ props })}
+                <Button.Root
+                  {...props}
+                  variant="ghost"
+                  size="icon"
+                  class="rounded-full"
+                  aria-label={theme === 'dark' ? 'Switch to light theme' : 'Switch to dark theme'}
+                  aria-pressed={theme === 'dark'}
+                  onclick={handleThemeToggle}
+                >
+                  {#if theme === 'dark'}<Sun aria-hidden="true" />{:else}<Moon
+                      aria-hidden="true"
+                    />{/if}
+                </Button.Root>
+              {/snippet}
+            </Tooltip.Trigger>
+            <Tooltip.Content
+              >{theme === 'dark' ? 'Switch to light theme' : 'Switch to dark theme'}</Tooltip.Content
+            >
+          </Tooltip.Root>
+        </div>
 
-        <Tooltip.Root>
-          <Tooltip.Trigger>
-            {#snippet child({ props })}
-              <Button.Root
+        <div class="hidden sm:contents">
+          <Tooltip.Root>
+            <Tooltip.Trigger>
+              {#snippet child({ props })}
+                <Button.Root
                 {...props}
                 variant="ghost"
                 size="icon"
@@ -169,16 +174,18 @@
                 aria-label="Journal on GitHub (opens in a new tab)"
               >
                 <SiGithub aria-hidden="true" />
-              </Button.Root>
-            {/snippet}
-          </Tooltip.Trigger>
-          <Tooltip.Content>GitHub repository</Tooltip.Content>
-        </Tooltip.Root>
+                </Button.Root>
+              {/snippet}
+            </Tooltip.Trigger>
+            <Tooltip.Content>GitHub repository</Tooltip.Content>
+          </Tooltip.Root>
+        </div>
 
-        <Tooltip.Root>
-          <Tooltip.Trigger>
-            {#snippet child({ props })}
-              <Button.Root
+        <div class="hidden sm:contents">
+          <Tooltip.Root>
+            <Tooltip.Trigger>
+              {#snippet child({ props })}
+                <Button.Root
                 {...props}
                 variant="ghost"
                 size="icon"
@@ -188,11 +195,66 @@
                 onclick={() => (helpOpen = true)}
               >
                 <CircleHelp aria-hidden="true" />
-              </Button.Root>
-            {/snippet}
-          </Tooltip.Trigger>
-          <Tooltip.Content>Help</Tooltip.Content>
-        </Tooltip.Root>
+                </Button.Root>
+              {/snippet}
+            </Tooltip.Trigger>
+            <Tooltip.Content>Help</Tooltip.Content>
+          </Tooltip.Root>
+        </div>
+
+        <details
+          class="relative sm:hidden"
+          bind:this={mobileMenu}
+          onkeydown={(event) => {
+            if (event.key === 'Escape') mobileMenu.open = false;
+          }}
+        >
+          <summary
+            class="flex size-10 cursor-pointer list-none items-center justify-center rounded-full text-foreground outline-none hover:bg-accent focus-visible:ring-2 focus-visible:ring-ring [&::-webkit-details-marker]:hidden"
+            aria-label="More options"
+          >
+            <Ellipsis aria-hidden="true" />
+          </summary>
+          <div
+            class="absolute right-0 top-full z-50 mt-2 flex min-w-44 flex-col gap-1 rounded-xl border border-border bg-popover p-2 text-popover-foreground shadow-lg"
+            aria-label="More options"
+          >
+            <Button.Root
+              variant="ghost"
+              class="justify-start rounded-lg"
+              aria-label={theme === 'dark' ? 'Switch to light theme' : 'Switch to dark theme'}
+              onclick={() => {
+                handleThemeToggle();
+                mobileMenu.open = false;
+              }}
+            >
+              {#if theme === 'dark'}<Sun aria-hidden="true" />{:else}<Moon aria-hidden="true" />{/if}
+              <span>{theme === 'dark' ? 'Light theme' : 'Dark theme'}</span>
+            </Button.Root>
+            <Button.Root
+              variant="ghost"
+              class="justify-start rounded-lg"
+              href="https://github.com/weluvabid/journal"
+              target="_blank"
+              rel="noopener noreferrer"
+            >
+              <SiGithub aria-hidden="true" />
+              <span>GitHub</span>
+            </Button.Root>
+            <Button.Root
+              variant="ghost"
+              class="justify-start rounded-lg"
+              aria-label="Help and keyboard shortcuts"
+              onclick={() => {
+                helpOpen = true;
+                mobileMenu.open = false;
+              }}
+            >
+              <CircleHelp aria-hidden="true" />
+              <span>Help</span>
+            </Button.Root>
+          </div>
+        </details>
       </div>
     </nav>
   </SiteHeader>
