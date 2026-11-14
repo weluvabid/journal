@@ -35,6 +35,7 @@ projectDetails:
   - Vitest
   featured: true
   order: 1
+  stackblitz: https://stackblitz.com/edit/cachewise?file=index.js
   github: https://github.com/weluvabid/cachewise
   resources:
   - label: Architecture
@@ -47,32 +48,46 @@ projectDetails:
     url: https://github.com/weluvabid/cachewise/blob/main/docs/memory-accounting.md
   - label: Benchmark methodology
     url: https://github.com/weluvabid/cachewise/blob/main/docs/benchmarking.md
+  - label: Live StackBlitz demo
+    url: https://stackblitz.com/edit/cachewise?file=index.js
 ---
 
 import DiagramViewer from '@components/diagrams/DiagramViewer.svelte';
 
-If every value costs the same, LRU is fine. Keep what you touched recently, throw out the cold stuff when you're full. Real entries aren't like that. One result is huge and cheap to rebuild. Another is a few hundred bytes and painful. Cachewise is a TypeScript cache that refuses to pretend those are the same object.
+If every value costs the same, LRU is fine. Keep what you touched recently, throw out the cold stuff when you're full. Real entries aren't like that. One result is huge and cheap to rebuild. Another is a few hundred bytes and painful. Cachewise is a TypeScript cache that weighs entries by their size and the cost of rebuilding them.
 
-The budget is `maxBytes` plus an `estimateSize` callback. For a `Uint8Array`, `byteLength` is an honest number. For an object graph, the caller picks an accounting convention and lives with it. This is not a JavaScript heap cap. Headers, hidden slots, shared structure, closures, GC — none of that is in the estimate. `maxBytes` bounds the ledger, not RSS.
+The cache uses `maxBytes` as its budget and `estimateSize` to account for each value. For a `Uint8Array`, `byteLength` gives the actual size. For an object graph, the caller chooses the accounting rule. `maxBytes` tracks the sizes returned by `estimateSize`. Object headers, hidden slots, shared structure, closures and garbage-collector overhead still contribute to process RSS.
 
 TTL expires entries. `delete` removes them. `pruneExpired()` walks the map because there is no timer per entry. Idle expired rows still count toward `bytesUsed` until something touches them or you prune. I didn't want a background clock.
 
 LRU is still there as a baseline: oldest `lastAccessedAt`, and once you've made room the candidate goes in. The default policy asks a ruder question. Is this candidate worth the residents it would kick out?
 
-The score is recency, decayed, times `log2(1 + frequency)`, times `log2(1 + computeCost)`, divided by size. Logs stop one huge cost or one very hot key from owning the cache linearly. Division by size prefers estimated reuse per accounted byte. `computeCost` is a weight you pass in. The cache does not time your factory.
+The score combines recency, estimated frequency, recomputation weight and logical size:
 
-When an insert needs space, the victim set is planned before anything is removed. The candidate needs a positive score and has to beat the victims it would displace. If it can't, insert returns without touching the map. A rejected candidate leaves the cache as it was. Replacing an existing key is the same idea: the old value is left out of the capacity math and disposed only after the new one is admitted. Multi-victim selection is greedy sort-by-score, not a search over subsets.
+```text
+age     = max(0, now - lastAccessedAt)
+recency = 0.5 ^ (age / recencyHalfLife)
+reuse   = log2(1 + frequency)
+cost    = log2(1 + computeCost)
+score   = (recency × reuse × cost) / max(1, size)
+```
 
-Frequency is a Count-Min Sketch, four rows of 8-bit counters by default. Width is fixed. Unique-key churn cannot grow a counter map. Counters saturate at 255 and get halved on a half-life. Collisions overestimate. That's the sketch. Object keys go through a bounded identity table. `maxTrackedKeys` is sketch width, not "max keys in the cache."
+The half-life is fixed at 60 seconds. Every half-life, recency halves. The logarithms keep one huge cost or very hot key from dominating the score. Dividing by size favours reuse per accounted byte. `computeCost` is a weight you supply; Cachewise never times the factory. The score also uses your `estimateSize` result directly, so both values need a consistent scale.
 
-`getOrCompute` is single-flight per key. Concurrent callers join one promise. Each caller can abort their own wait. The factory sees a different, shared signal. One waiter leaving does not cancel the others. The last waiter leaving aborts the shared signal and drops the flight. Abort is cooperative. A factory that ignores the signal keeps running; the cache can refuse to store the result, it cannot unwind side effects the factory already did.
+Picking a victim and admitting a candidate are separate decisions. Residents are ordered by ascending score until enough bytes would be released. The candidate is admitted only when its score is positive and at least as high as every victim in that planned set. The plan is built before anything is removed; if admission fails, the cache is untouched. Replacing an existing key follows the same rule: the old value is excluded from the capacity calculation and disposed only after the replacement is admitted.
+
+A single-victim decision is a scan. When several victims are needed, the implementation sorts by score and compares the candidate against that set. The selection is greedy: take the lowest-scoring residents until enough space is free. Multi-victim selection pays for the sort rather than maintaining a heap of scores on every read.
+
+Frequency is a Count-Min Sketch: four rows of 8-bit counters by default, with fixed width. A map of counters would grow with every key ever seen, even while the cache stayed within its byte budget. The sketch keeps its memory fixed. Its estimate is the minimum counter across the rows; counters saturate at 255 and are halved on the half-life. Collisions can overestimate frequency. I skipped a side table for collision correction because it would bring back an unbounded structure. Object keys go through a bounded identity table; two local symbols with the same description can collide. `maxTrackedKeys` sets the sketch width; `maxBytes` controls the cache's logical capacity.
+
+`getOrCompute` is single-flight per key. Concurrent callers join one promise. Each caller can abort their own wait. The factory sees a different, shared signal. One waiter leaving does not cancel the others. The last waiter leaving aborts the shared signal and drops the flight. Abort is cooperative. If a factory ignores the signal, it keeps running. Cachewise can skip storing its result, but side effects the factory already performed remain.
 
 <DiagramViewer client:visible src="/diagrams/cachewise-single-flight.svg" alt="Cachewise single-flight sequence: two callers share one factory; caller A aborts its wait while caller B receives the result." />
 
 `set` or `delete` during a flight marks that flight non-cacheable so a late factory can't overwrite the explicit value. `clear()` bumps an epoch and aborts known flights. A factory that settles after clear does not repopulate the cache. The promise the caller is awaiting still settles with the factory's result. Invalidation controls admission, not what the waiter observes.
 
-One `Cache` instance, one JavaScript agent. Workers don't share flights. This is not a distributed cache.
+A cache instance belongs to one JavaScript agent. Workers have their own instances and their own flights.
 
-Disposal and event callbacks are synchronous, and exceptions from them are caught so a listener can't tear the state machine in half. There's an optional error hook. If the hook throws, that throw is swallowed too. Reporting must not become a second way to corrupt the map. The catch is that the callback still runs on the caller’s turn. Don't do I/O in it.
+Disposal and event callbacks run synchronously. Listener errors are caught, and the optional error hook is protected too, so reporting cannot interrupt a cache operation. The callback still runs on the caller’s turn; keep I/O out of it.
 
-Scoring details and the benchmark are the next two notes. This one is the boundary: what the cache is responsible for, and what it refuses to pretend.
+The benchmark that follows compares the policy on scan pollution, skewed expensive reuse and byte pressure.

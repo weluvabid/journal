@@ -32,14 +32,17 @@ projectDetails:
   featured: false
   order: 4
   github: https://github.com/weluvabid/pulse
+  stackblitz: https://stackblitz.com/edit/pulse?file=index.js
   resources:
   - label: Source repository
     url: https://github.com/weluvabid/pulse
+  - label: Live StackBlitz demo
+    url: https://stackblitz.com/edit/pulse?file=index.js
   - label: Package README and API example
     url: https://github.com/weluvabid/pulse#readme
 ---
 
-Frameworks make reactivity look like an API. Under it: a value changes, derived values go stale, effects run. Pulse is just that, with four functions and no component model.
+Frameworks make reactivity look like an API. Under it: a value changes, derived values go stale, effects run. Pulse keeps the API to four functions and leaves component composition to the application.
 
 `signal` is mutable state. Read it inside a computation and you subscribe. Write it and dependents are stale. `computed` is lazy. Invalidation walks the graph; the function runs when someone reads. `effect` runs immediately, tracks what it read, reruns synchronously when those deps change, and the disposer plus `onCleanup` is how you don't leak the previous run. `batch` holds the flush until the outermost batch ends, so two writes don't publish an intermediate state.
 
@@ -58,15 +61,15 @@ batch(() => {
 dispose();
 ```
 
-Push-only recomputes things nobody read. The model is hybrid push-pull: writes push staleness, reads pull fresh computed values. Pull-only makes every access rediscover freshness. Pulse pushes staleness and pulls computed values on read. Effects are the scheduler's problem, synchronous, after the update boundary. Nested `batch` doesn't flush early. The outer one does.
+A push-only system can recompute values nobody reads. A pull-only system has to check freshness on every access. Pulse splits the work: writes mark dependents stale, and reads refresh computed values when needed. Effects run synchronously through the scheduler after the update boundary. Nested `batch` calls wait; the outermost one flushes.
 
-Each effect run collects a fresh dependency set and reconciles it with the old one. Conditional reads have to drop subscriptions that didn't happen this time. Leave them and you rerun forever on a branch you left.
+Each effect run collects the dependencies it actually read and replaces its previous set. When a conditional branch changes, subscriptions from the old branch are removed, so writes to those signals stop scheduling the effect.
 
 Before a rerun, child effects are disposed and cleanups run in reverse registration order. The disposer is idempotent and pulls the effect off its dependencies. The scheduler dedupes queued effects with a `Set`. There's a bound on synchronous re-entry so a cycle doesn't pin the thread; failures get collected and the rest of the queue still gets a turn.
 
-`onReactiveEvent` sees event types and runtime ids. Not your values. Listener throws are isolated. Instrumentation that can wedge the scheduler is not instrumentation.
+`onReactiveEvent` exposes event types and runtime IDs, never application values. Listener errors are caught so instrumentation cannot interrupt the scheduler.
 
-What this isn't: a renderer, a component lifecycle, parallel work. An effect that does too much still blocks the agent. Batching doesn't make the callback cheap.
+Pulse handles reactive state and effect scheduling. Rendering and component lifecycles stay with the application. Effects run synchronously, so a slow effect still blocks the JavaScript agent; batching only controls when queued effects flush.
 
 The tests I care about are the annoying graphs. Conditional deps, nested batches, cleanup order, dispose during an update, a listener that throws. Benchmarks should split runtime bookkeeping from whatever the effect did, or the numbers are just "your console.log is slow."
 

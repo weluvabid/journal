@@ -39,9 +39,12 @@ projectDetails:
   featured: false
   order: 6
   github: https://github.com/weluvabid/structaura
+  stackblitz: https://stackblitz.com/edit/structaura?file=index.js
   resources:
   - label: Source repository
     url: https://github.com/weluvabid/structaura
+  - label: Live StackBlitz demo
+    url: https://stackblitz.com/edit/structaura?file=index.js
   - label: Architecture documentation
     url: https://github.com/weluvabid/structaura/blob/main/docs/architecture.md
   - label: Fingerprint contract
@@ -56,27 +59,27 @@ A source hash changes because you fixed a comment or let the formatter breathe. 
 
 StructAura parses JavaScript or TypeScript with Tree-sitter, applies a small, versioned set of syntax-only normalizations, and hashes a canonical tree. Same Rust core on native and in the browser WASM build. I didn't want two fingerprint definitions that drift the moment the bindings do.
 
-Matching fingerprints mean the canonical trees match for that language and that normalization version. They do not mean the programs do the same thing. No constant folding, no types, no "these functions are equivalent." If I need that I'll say so, and I won't.
+Matching fingerprints mean the canonical trees match for that language and normalization version. The fingerprint represents normalized syntax. It carries no type analysis, constant folding or proof that two functions behave the same.
 
-Native Tree-sitter and `web-tree-sitter` don't share a runtime. They share a record format. Both adapters emit a flat preorder: syntax kind, optional leaf text, and how many children were kept. The Rust core rebuilds the tree from that stream and is the only thing allowed to canonicalize, encode and hash.
+Native Tree-sitter and `web-tree-sitter` use different runtimes, but both adapters emit the same flat preorder records: syntax kind, optional leaf text and the number of retained children. The Rust core rebuilds the tree and handles canonicalization, encoding and hashing for both paths.
 
 ```text
-native parser ─┐
-               ├─ records → Rust core → fingerprint
-browser parser ┘              (wasm-bindgen on the web)
+native parser   ┐
+                ├─ records → Rust core → fingerprint
+browser parser  ┘              (wasm-bindgen on the web)
 ```
 
-The core walks with an explicit vector, reverse preorder. No recursive application-level walk, which matters once the tree is nasty. A bad record stream fails. Truncation and leftover records are errors, not "best effort" trees.
+The core rebuilds and walks the tree with an explicit vector in reverse preorder. That keeps deeply nested input out of the application call stack. Truncated records or leftover records return errors.
 
-Version 1 drops comments and some anonymous punctuation, unwraps a single parenthesized expression, and strips string delimiters without decoding escapes. Child order stays. Escape spelling stays. Two strings that mean the same thing at runtime can still hash differently. That's a choice. Changing it means bumping `normalizationVersion`, or old fingerprints lie.
+Version 1 drops comments and some anonymous punctuation, unwraps a single parenthesized expression, and strips string delimiters without decoding escapes. Child order stays. Escape spelling stays. Two strings with the same runtime meaning can still hash differently because their escape spelling is retained. Changing that rule requires a `normalizationVersion` bump so stored fingerprints keep their meaning.
 
-Encoding is boring on purpose: domain tags, fixed-width big-endian ints, length-prefixed bytes, typed properties, sorted property keys, child hashes in source order. Merkle-style, iterative. A changed descendant changes the path to the root. The root hash mixes format version, language and normalization version with the digest. `compareFingerprints` checks that identity before it looks at the hex. Don't compare bare digests across languages. A JS hash and a TS hash are different objects even if the hex collides.
+The encoder uses domain tags, fixed-width big-endian integers, length-prefixed bytes and typed properties. Property keys are sorted; child hashes stay in source order. Hashing is iterative and Merkle-style, so a changed descendant changes the hashes up to the root. The root identity includes the format version, language and normalization version. `compareFingerprints` checks those fields before comparing digests. JavaScript and TypeScript fingerprints have different identities, even when their digest strings happen to match.
 
-Recorded release-build numbers, 15 samples after warm-up: small inputs under about 116 µs median; ~64–70 KB inputs around 12–14 ms at p95. Stage timings (parse, canonicalize, encode, Merkle) are diagnostic. Don't add them up and call it the end-to-end number. Instrumentation changes the run.
+Recorded release-build numbers, 15 samples after warm-up: small inputs under about 116 µs median; ~64–70 KB inputs around 12–14 ms at p95. Stage timings for parse, canonicalization, encoding and Merkle hashing help locate work inside the pipeline. They are measured separately; instrumentation changes the run, so they cannot be added up to get the end-to-end time.
 
 The browser package has an async `init()` because the WASM module and the grammars have to load. After that, fingerprinting is synchronous. Large files belong in a worker so parsing doesn't freeze the page.
 
-The contract I'd rather publish is the narrow one. Comments and some punctuation can vanish. Retained syntax changes should move the digest. Anything past that is a different tool.
+Comments and selected punctuation are removed during normalization. Changes to the retained syntax change the digest. Semantic analysis belongs in a separate tool.
 
 <DiagramViewer client:visible src="/diagrams/structaura-fingerprinting.svg" alt="StructAura fingerprinting pipeline from source parsing through normalization, canonical encoding and hashing, with unsupported input rejected." />
 
@@ -89,4 +92,4 @@ const total = left + right;
 const total=left+right;
 ```
 
-With the current JavaScript normalization version these formatting-only changes produce the same canonical fingerprint. Changing `right` to `tax` changes retained syntax and therefore the fingerprint. This is structural matching, not semantic equivalence.
+With the current JavaScript normalization version these formatting-only changes produce the same canonical fingerprint. Changing `right` to `tax` changes retained syntax and therefore the fingerprint. The fingerprints compare normalized structure; they do not tell you whether the programs behave the same.

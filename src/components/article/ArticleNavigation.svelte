@@ -1,5 +1,5 @@
 <script lang="ts">
-  import { onMount } from 'svelte';
+  import { onMount, untrack } from 'svelte';
   import { navigate } from 'astro:transitions/client';
   import { attachArticleSwipeNavigation } from '@lib/navigation/article-gestures';
   import { parseJournalNavigationContext, resolveJournalNavigation } from '@lib/journal-navigation';
@@ -26,8 +26,8 @@
   }
 
   const { currentId, categoryId, allEntries, categoryEntries, previous, next }: Props = $props();
-  let previousTarget = $state<NavigationTarget | null>(previous);
-  let nextTarget = $state<NavigationTarget | null>(next);
+  let previousTarget = $state<NavigationTarget | null>(untrack(() => previous));
+  let nextTarget = $state<NavigationTarget | null>(untrack(() => next));
 
   onMount(() => {
     const context = parseJournalNavigationContext(window.location.search, categoryId);

@@ -20,21 +20,21 @@ draft: false
 kind: article
 ---
 
-If keyboard focus gets stuck, the page isn't done. Accessibility here isn't a last coat of paint on a finished shell. The header, landmarks, dialogs and focus order are one system. Style them in isolation and you get a menu that looks correct and strands the caret.
+If keyboard focus gets stuck, the page isn't done. In Frontend Atlas, the header, landmarks, dialogs and focus order have to work together. A menu can look finished and still leave the keyboard user stranded.
 
-Frontend Atlas didn't need a clever application chrome. It needed a small reading UI that stayed predictable when the viewport changed, when there was no pointer, and when a dialog sat on top of the article.
+Frontend Atlas needed a reading UI that stayed predictable on a narrow screen, with a keyboard, or with a dialog open over the article.
 
-Before any script runs, the document should already have a map: one primary navigation landmark, a main landmark, headings in an order that matches the page, a skip link past the repeated header. Links go somewhere. Buttons do something. A clickable `div` that imitates both is a second interaction model, and you will maintain it by hand forever.
+The page starts with semantic HTML: a primary navigation landmark, a main landmark, headings in order and a skip link past the header. Links take you somewhere; buttons do something. A clickable `div` means rebuilding keyboard behaviour that a native element already gives you.
 
-Native controls already know how to activate from the keyboard. Custom menus and dialogs are allowed when the product actually needs them. Then you own the whole contract: open, close, where focus lands, Escape, where focus returns, and a tab sequence that still makes sense. Owning half of that is worse than using the primitive.
+Native controls already handle keyboard activation. A custom menu or dialog needs the rest of the interaction worked out too: where focus goes when it opens, what Escape does, where focus returns, and how Tab moves through it. Miss one and the interaction falls apart.
 
-`open: boolean` is not the state of a responsive menu. There's a trigger, the links that exist in this viewport, and a focus location. If the menu closes because the user picked a destination or the layout collapsed, focus cannot remain on a node that just unmounted. Dialog opens, focus moves inside. Dialog closes, focus returns to the control that opened it, if that control is still there.
+`open: boolean` doesn't describe the whole responsive menu. The trigger, visible links and current focus all matter. If the user picks a destination or the layout collapses, the menu can unmount while focus is still inside it. Move focus somewhere that remains in the page. A dialog follows the same rule: focus enters when it opens and returns to its trigger when it closes, as long as that trigger still exists.
 
 Sticky headers hide fragment targets. The heading is "reached" and sitting under the bar. `scroll-margin-top` fixes that without a scroll listener. Hover-only actions disappear without a pointer. Focus rings have to stay visible in both themes. If the only signal is an animation, `prefers-reduced-motion` deletes your UI.
 
-A screenshot proves alignment. It does not prove a keyboard path. Tab the page. Activate links and buttons without a mouse. Open and dismiss dialogs. Resize while the nav is open. Follow a fragment under the sticky header. Listen to one page in a screen reader. Automated checks catch missing names. They will not catch focus returned to a button that is gone.
+Visual review catches alignment problems; keyboard and screen-reader testing catch interaction failures. Tab through the page, activate every control, open and dismiss dialogs, resize with the navigation open, and follow a fragment beneath the sticky header. Automated checks find missing accessible names. Manual testing catches focus being returned to a control that no longer exists.
 
-If focus behaviour isn't part of the component contract, every page rediscovers it, and one of them gets it wrong.
+Put focus behaviour in the component contract. Otherwise every page has to work it out again, and the details will drift.
 
 ```html
 <a class="skip-link" href="#main">Skip to content</a>
@@ -47,4 +47,4 @@ If focus behaviour isn't part of the component contract, every page rediscovers 
 #keyboard-contract { scroll-margin-top: 6rem; }
 ```
 
-The offset needs to match the actual sticky header, not a magic number copied from another layout.
+Set the offset to the actual sticky-header height.

@@ -37,6 +37,10 @@ const sourceRepository =
   projectEntry?.data.projectDetails?.github ??
   entry.data.projectDetails?.github ??
   entry.data.links?.git;
+const stackblitzDemo =
+  projectEntry?.data.projectDetails?.stackblitz ??
+  entry.data.projectDetails?.stackblitz ??
+  entry.data.links?.stackblitz;
 const allNavigationEntries = sortJournalEntriesWithSeriesGroups(publishedEntries);
 const categoryNavigationEntries = sortJournalEntriesWithSeriesGroups(
   publishedEntries.filter((item) => item.data.category === entry.data.category),
@@ -76,14 +80,6 @@ const seriesEntries = entry.data.series
           variant="outline"
           class="capitalize">{entry.data.type.replaceAll('-', ' ')}</Badge.Badge
         >
-        {projectEntry && entry.data.kind !== 'project' && (
-          <a
-            class="text-xs font-medium text-muted-foreground underline decoration-border underline-offset-4 hover:text-foreground"
-            href={entryHref(projectEntry.data.id)}
-          >
-            Project · {projectEntry.data.title}
-          </a>
-        )}
         <time datetime={entry.data.date.toISOString()}
           >{entry.data.date.toLocaleDateString('en', { dateStyle: 'long' })}</time
         >
@@ -96,6 +92,7 @@ const seriesEntries = entry.data.series
         <ResourceActions
           client:load
           git={sourceRepository}
+          stackblitz={stackblitzDemo}
           title={entry.data.title}
         />
       )}

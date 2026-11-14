@@ -20,21 +20,21 @@ draft: false
 
 An unbounded queue is how you pretend the consumer is keeping up. The difference sits in memory until latency is embarrassing or the process falls over. Backpressure is admitting the rates don't match, and choosing what a person sees when they don't. Wait, retry, get rejected, or watch the job sit.
 
-On the Shopify path the stages are ordinary and still easy to lie about. HTTP handler, publish, queue, worker, database, object storage. They do not share a speed. A worker can pull faster than the database commits. A report can be produced faster than storage will take the object. More concurrency helps until the downstream thing saturates. After that it's extra retries fighting over the same limit.
+On the Shopify path, a request moves through an HTTP handler, a publisher, Pub/Sub, a worker, the database and object storage. Each handoff has its own rate and failure modes. Each stage runs at its own rate. A worker can pull faster than the database commits. A report can be produced faster than storage will take the object. More concurrency helps until the downstream thing saturates. After that it's extra retries fighting over the same limit.
 
-So the limits have to be actual numbers. In-flight cap, bounded buffers, timeouts, payload size, and a policy for a message that cannot be processed. A cap with no policy is just a crash on a different line.
+The limits need actual numbers: in-flight work, buffer size, timeouts, payload size and what happens when a message cannot be processed. A cap with no policy is just a crash on a different line.
 
-The Shopify-facing Cloud Run service is not the Pub/Sub worker, and neither of those is a one-shot migration or maintenance job. Request lifetime and a process that sits on a subscription are different runtimes. Pull concurrency belongs on the worker. If the service starts consuming "just for this one path," there are two worker pools and only one of them is obvious.
+The Shopify-facing Cloud Run service handles HTTP requests. The Pub/Sub worker pulls and processes messages, while migrations and maintenance run as one-shot jobs. Those workloads have different lifetimes, so pull concurrency belongs on the worker. If the service starts consuming messages too, there are suddenly two worker pools to operate.
 
-I want one worker instance before any autoscaler. Throughput, backlog growth, processing time, what the database does under that. Scale from measured backlog and what one instance can finish, not from the fact that the slider goes higher.
+For the first deployment, I want to start with one worker instance. I'll measure throughput, backlog growth, processing time and database load before adding autoscaling. The number of instances should follow what one worker can finish and how quickly the backlog grows.
 
-Retries are how a small outage gets bigger. Retrying everything immediately is a self-DDoS. Backoff with jitter. A dead-letter path so a poison message doesn't sit at the head forever.
+Retries can turn a small outage into a larger one. Use backoff with jitter, and send messages that keep failing to a dead-letter path so one poison message doesn't hold up the queue.
 
-At-least-once means the same logical operation runs more than once. That's the contract, not an edge case. Handlers need a stable operation id, a uniqueness constraint, or a transition that's a no-op the second time. Ack before the write is durable and you drop work. Ack after the write, with no idempotency, and a lost ack applies it twice.
+At-least-once delivery means the same logical operation can run more than once. Build idempotency around that contract. Handlers need a stable operation id, a uniqueness constraint, or a transition that's a no-op the second time. Ack before the write is durable and you drop work. Ack after the write, with no idempotency, and a lost ack applies it twice.
 
-Cancel work whose caller is gone, when stopping is actually safe. On shutdown: stop pulling, finish or release what's in flight inside the termination budget, don't ack what you didn't finish. The gauges I care about are dull. Depth, age of the oldest message, processing time, retry count, in-flight, downstream errors. If oldest-age climbs, the queue is not "buffering."
+Cancel work after its caller has gone only when stopping it is safe. During shutdown, stop pulling new messages, then finish or release the work already in flight within the termination budget. Never acknowledge work that hasn't finished. I would watch queue depth, oldest-message age, processing time, retries, in-flight work and downstream errors. If the oldest message keeps getting older, the queue is falling behind.
 
-What overload means depends on the promise. Some requests should fail fast. Some can wait inside a bounded window. Low-priority work can be dropped. Fulfillment work shouldn't vanish. Accept it durably or fail it where someone can see. The policy has to be the one already tested with the producer faster than the consumer, for longer than a demo.
+Overload depends on what the work promises. Interactive requests can fail fast or wait briefly. Low-priority work can be dropped. Fulfillment work must be accepted durably or rejected where someone can see it. Test the overload policy with a producer that stays faster than the consumer for long enough to build a real backlog.
 
 | Workload promise | Overload policy | Required boundary |
 | --- | --- | --- |
@@ -50,4 +50,4 @@ Growth:   40 jobs/s
 10 min:   24,000 queued jobs
 ```
 
-Illustrative rates, not FulfillmentGuard measurements. If the consumer stays 40 jobs/s behind, the queue is accumulating work, not absorbing a brief burst.
+At a sustained 40 jobs/s deficit, the queue grows by 24,000 jobs in ten minutes. The example shows backlog growth when the consumer cannot catch up.

@@ -59,11 +59,13 @@ projectDetails:
 
 import DiagramViewer from '@components/diagrams/DiagramViewer.svelte';
 
-Frontend Atlas has to remember which questions you finished and where you stopped reading. The default industry answer is an account. I didn't want the account. The site is a handbook, not a multiplayer app. Sign-up would mean auth, storage, email, deletion, and a failure mode before anyone reads a paragraph.
+An account is a second product: registration, sessions, password resets, email, deletion, retention and support. Sometimes that infrastructure is justified. Remembering which questions I finished was not enough of a reason to build it. Frontend Atlas is a handbook, not a multiplayer app. I wanted the reading experience to earn that complexity first.
 
-Progress is a small record in the browser, keyed by question id. The id does not change when the title changes or the article moves. If storage is missing or the blob doesn't validate, the UI says progress isn't saved. It doesn't render a fake "0% complete" and hope.
+Frontend Atlas has to remember which questions you finished and where you stopped reading. Progress stays in the browser. Moving it to another device is a separate problem, handled by an explicit QR transfer rather than a login.
 
-The QR isn't a login. A manifest is the ordered dictionary of ids, append-only, because an export from last month has to mean the same slots. Version 1 starts with `FATL1:` and stores two bits per question. 150 questions is the cap, so the bitset is `ceil(150 × 2 / 8) = 38` bytes before envelope and positions. Reading position is fixed-width on the side. Favourites live in the format without sharing bits with "done." A question can be favourited without being marked complete; a bookmark does not count as finishing the page. The QR code carries that distinction too.
+Progress is a small, versioned record in the browser, keyed by an immutable question id. The id does not change when the title changes or the article moves. Stored data is validated on read. Missing or malformed storage is shown as unsaved progress instead of a misleading `0% complete`. Clearing site data or switching browsers loses the local copy unless it was exported.
+
+Export turns the progress record into a QR image. Its manifest is an ordered, append-only list of question IDs, so an old export keeps referring to the same questions after new ones are added. Version 1 starts with `FATL1:` and stores two bits per question. The manifest allows up to 150 questions, so the status bitset uses `ceil(150 × 2 / 8) = 38` bytes at the maximum, before the envelope and reading-position records. Reading positions use fixed-width entries alongside the bitset. The payload carries the manifest fingerprint and a checksum. Anyone with the QR image can inspect its progress data.
 
 | State | Encoded value | Meaning |
 | --- | --- | --- |
@@ -71,17 +73,15 @@ The QR isn't a login. A manifest is the ordered dictionary of ids, append-only, 
 | In progress | `01` | Started, not completed. |
 | Completed | `10` | Marked finished. |
 
-Merge keeps local completions the incoming QR doesn't have. Replace overwrites. Both names do what they say. Version, manifest compatibility, indexes, bounds — checked before the local record changes. A corrupt image fails. It does not half-apply.
+Merge keeps completions from either snapshot and takes the higher reading position when both contain one. Replace uses the imported snapshot. Before local progress changes, import checks the format version, manifest fingerprint, indexes and bounds. A corrupt image is rejected before it can partially update the stored record.
 
-<DiagramViewer client:visible src="/diagrams/frontend-atlas-progress-transfer.svg" alt="Frontend Atlas progress transfer from local completion through QR export, scan, payload validation and local import or rejection." caption="The QR is a transfer format, not an account or a sync service." />
+<DiagramViewer client:visible src="/diagrams/frontend-atlas-progress-transfer.svg" alt="Frontend Atlas progress transfer from local completion through QR export, scan, payload validation and local import or rejection." caption="QR export and import move progress between browsers." />
 
-This will not follow you to a new browser by itself. Clearing site data deletes it. Both devices have to be in the room for a transfer. That is the product. Automatic sync would be a different one, and it would need the backend I was avoiding.
+Moving progress is a manual transfer. After import, the two browsers can change independently until someone exports and imports again. Both devices need to be available for that transfer. Automatic sync, shared workspaces and recovery after a wiped device would need a server, which I haven't built for this handbook.
 
-Wire format and tests are in the repo. The decision is the small part: progress belongs to the browser you're in, plus an explicit export, not to an identity service.
+The wire format and its tests live in the repo. Progress stays in the current browser, with QR export and import for moving it to another device.
 
 ```text
 Question state: 00 not started · 01 in progress · 10 completed
 150 questions × 2 bits = 300 bits = 38 bytes (rounded up)
 ```
-
-The QR also carries the manifest identity and any reading-position entries; the status bitset alone is not the whole payload. Import validates the payload before merge or replace can mutate local progress.

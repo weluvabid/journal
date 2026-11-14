@@ -18,7 +18,7 @@ featured: false
 draft: false
 ---
 
-A pile of booleans will happily be `is_running` and `is_done` at once. The compiler doesn't care. An enum does, because those states are alternatives, not flags you can combine by accident.
+A pile of booleans will happily be `is_running` and `is_done` at once. The compiler doesn't care. An enum makes those states mutually exclusive, so the type cannot represent both at once.
 
 ```rust
 #[derive(Debug)]
@@ -30,9 +30,9 @@ enum JobState {
 }
 ```
 
-Success carries an output id. Failure carries a reason. You can't build "succeeded, no output, still queued." Adding a variant is annoying on purpose. Every match that understood the old set has to look at the new one.
+Success carries an output ID and failure carries a reason. The type rules out combinations such as a succeeded job with no output that is still queued. Adding a variant forces every exhaustive match to handle the new state.
 
-I don't reach for typestate unless the sequence is actually fixed. A builder that must not run until the required config exists is a decent typestate. A job that moves because an outside event arrived, or because persisted state says so, is a runtime enum. The next event isn't visible to the compiler. Pretending it is just hides the illegal state in a conversion you forget to test.
+I use typestate when the sequence is fixed. A builder that must not run until the required config exists is a decent typestate. A job that moves because an outside event arrived, or because persisted state says so, is a runtime enum. The next event comes from outside the program, so a runtime enum represents that lifecycle more directly.
 
 | Approach | Best fit | What the type system can enforce |
 | --- | --- | --- |
@@ -41,9 +41,9 @@ I don't reach for typestate unless the sequence is actually fixed. A builder tha
 
 Ownership is the other half. If the transition takes `self` and returns the next state, the old value is gone. Borrow when the caller is only looking. The signature should say which of the three this is: observe, mutate, consume.
 
-Async is that machine, generated. The future stores what has to live across an `.await`. `Pending` means not done, poll again after the waker fires. `Ready` is the output, and that poll used up the progress. `Pin` is there because the future can point into itself across the suspension. Less magic once you treat it as states plus a scheduler.
+Async is that machine, generated. The future stores what has to live across an `.await`. `Pending` means the future needs another poll after its waker fires. `Ready` is the output, and that poll used up the progress. `Pin` is there because the future can point into itself across the suspension. Less magic once you treat it as states plus a scheduler.
 
-A transition I trust is: this state, this event, either a legal next state or an error with a name. Tests list the legal ones and reject the rest. If you persist it, decode is part of the machine. Bytes that parse are not a `JobState`. Old shapes, a field that doesn't belong on `Queued`, a success with no id. Reject those at the boundary.
+A transition I trust is: this state, this event, either a legal next state or an error with a name. Tests list the legal ones and reject the rest. If you persist it, decode is part of the machine. Parsing bytes is only the first step. Validate the decoded shape before constructing `JobState`: reject old variants, fields that don't belong on `Queued`, and a success state without an ID.
 
 Then stop. A value with no lifecycle doesn't need a ceremony enum. Encode the rules that are real.
 

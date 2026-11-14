@@ -1,12 +1,14 @@
 <script lang="ts">
   import { Button, Tooltip } from '@weluvabid/iris/components';
-  import { SiGit } from '@weluvabid/iris/simple-icons';
+  import { SiGit, SiStackblitz } from '@weluvabid/iris/simple-icons';
 
   let {
     git,
+    stackblitz,
     title,
   }: {
     git: string;
+    stackblitz?: string;
     title: string;
   } = $props();
 </script>
@@ -32,5 +34,26 @@
       </Tooltip.Trigger>
       <Tooltip.Content>Source repository</Tooltip.Content>
     </Tooltip.Root>
+    {#if stackblitz}
+      <Tooltip.Root>
+        <Tooltip.Trigger>
+          {#snippet child({ props })}
+            <Button.Root
+              {...props}
+              href={stackblitz}
+              target="_blank"
+              rel="noopener noreferrer"
+              variant="ghost"
+              size="icon"
+              class="rounded-full hover:bg-muted hover:text-foreground"
+              aria-label="Open StackBlitz demo (opens in a new tab)"
+            >
+              <SiStackblitz class="size-5" aria-hidden="true" />
+            </Button.Root>
+          {/snippet}
+        </Tooltip.Trigger>
+        <Tooltip.Content>Live demo on StackBlitz</Tooltip.Content>
+      </Tooltip.Root>
+    {/if}
   </nav>
 </Tooltip.Provider>

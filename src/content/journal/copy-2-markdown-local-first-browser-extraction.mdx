@@ -47,9 +47,9 @@ projectDetails:
 
 import DiagramViewer from '@components/diagrams/DiagramViewer.svelte';
 
-A web page is not a document. The article is sitting next to nav, ads, hidden helper text, framework chrome, and whatever the app rendered into the same tree. Turning that into Markdown is an extraction problem first. Formatting is the easy half.
+A web page contains more than the article: navigation, ads, hidden helper text and framework UI all share the same tree. Copying it as Markdown starts with finding the content. Formatting is the easy half.
 
-Copy 2 Markdown does page, selection, or link, locally, in Chrome. The interesting part isn't Turndown. It's the fences around it. Page access happens because the user invoked an action. Extraction doesn't own the clipboard. The clipboard write doesn't run inside the page.
+Copy 2 Markdown handles page, selection and link actions locally in Chrome. Turndown handles the HTML-to-Markdown conversion; the harder work is keeping page access, extraction and clipboard writing in their own places. Page access starts with a user action, and the clipboard write happens in an extension-owned document.
 
 Popup, context menu, or shortcut. The MV3 service worker checks the URL, injects the bundled content script if it isn't there yet, sends a typed message. The popup uses that same path. There isn't a second extractor hiding in the popup.
 
@@ -59,28 +59,28 @@ Page and selection return HTML. Conversion turns the fragment into Markdown. An 
 action → worker → extract HTML → markdown → offscreen clipboard
 ```
 
-Extraction knows about the live page. Conversion knows HTML plus a base URL. Clipboard code knows how to write text from an extension document. Mix those and the content script becomes a junk drawer.
+The extractor works with the live page. The converter takes HTML and a base URL. Clipboard code writes from the extension document. Keeping those jobs separate stops the content script from turning into a junk drawer.
 
-Page copy clones the document and tries Readability. Good on articles. Weak on docs sites and app UIs that don't have an article shape. If Readability doesn't return enough text, the fallback looks for `main`, then `article`, then `[role="main"]`, then body. That's a cleaned root, not "serialize the whole page."
+Page copy clones the document and tries Readability first. It works well on articles, while documentation sites and app UIs often need the fallback. When Readability returns too little text, the extractor checks `main`, then `article`, then `[role="main"]`, and finally the cleaned body. It copies the selected content root rather than serializing the whole page.
 
 <DiagramViewer client:visible src="/diagrams/copy-2-markdown-extraction.svg" alt="Copy 2 Markdown extraction pipeline: user action, service worker, Readability, semantic fallback, Markdown conversion and clipboard write." caption="Readability is the primary path; semantic extraction is the fallback." />
 
-Filtering is split so it stays readable:
+Filtering has separate rules for:
 
 - structural: scripts, styles, templates, embeds, forms, native controls
 - semantic: toolbars, menus, tablists, tooltips
 - framework: a short list of known UI patterns
 
-A class name is not proof an element is chrome. Docs are built with the same component libraries as the chrome around them. Framework rules stay in their own list so they don't melt into one giant selector.
+Framework rules target known UI patterns rather than removing every element with a familiar class. Documentation sites use the same component libraries for content and controls, so broad selectors would delete useful material. Keeping these rules separate makes them easier to inspect.
 
-Readability runs on a detached clone, so it can't see computed style. The extractor compares the live tree to the clone and drops elements that are actually hidden. Clipping, absolute positioning, a 1px box, or a utility class is not enough by itself. Visible content uses those too.
+Readability runs on a detached clone and cannot see computed styles. Before parsing, the extractor compares the live page with the clone and removes elements that match the hidden-content checks. Clipping, absolute positioning, a 1px box or a utility class can also be used for visible content, so the extractor checks the combined visibility and layout pattern.
 
-Selection copy does not run the article pipeline. It clones the selected ranges. If the live selection is gone but the action still has a selection string, that string goes in as text. Empty selection is an error, not a silent empty clipboard.
+Selection copy has its own path: it clones the selected ranges instead of running page extraction. If the live selection has disappeared but the action still carries the selected text, the extension inserts that text directly. An empty selection returns an error instead of writing a blank clipboard.
 
 Extracted HTML caps at 5 MB. Thin pages fail visibly.
 
 Conversion is Turndown plus the GFM plugin: headings, emphasis, links, images, nested lists, tasks, quotes, fences, rules, tables. Extra rules for strikethrough, lazy image `src`, language hints, fence length, table pipes, whitespace. Relative URLs resolve against the page. Links allow `http:`, `https:`, `mailto:`, `tel:`. Images allow `http:` and `https:` only. Credentials in the URL get dropped. Remote images are not fetched. The Markdown keeps a destination, not a blob.
 
-The converter takes a fragment and a base URL and doesn't import `chrome`. So the nasty HTML cases are unit tests. Playwright hits the built extension for the path that actually touches the browser.
+The converter takes an HTML fragment and a base URL. It has no Chrome API dependency, so HTML edge cases can run as unit tests. Playwright exercises the built extension for the parts that touch the browser.
 
-Permissions: `activeTab`, `scripting`, `clipboardWrite`, `contextMenus`, `offscreen`. No persistent host permission. No account, no backend, no analytics. The copied page stays in the browser. Restricted URLs fail with an error you can see. Chrome's own install and crash reporting are outside this boundary; I don't pretend the extension controls them.
+The extension requests `activeTab`, `scripting`, `clipboardWrite`, `contextMenus` and `offscreen`. It has no persistent host permission, account system, backend or analytics service. Copied content stays in the browser, and restricted URLs return a visible error.

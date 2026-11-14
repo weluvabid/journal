@@ -39,17 +39,17 @@ projectDetails:
     url: https://github.com/weluvabid/wordweave#collision-analysis
 ---
 
-A filter that turns a message into a row of marks is an annoying constraint. It is not encryption or a cryptography problem. WordWeave is the experiment: selected terms become ordinary four-word phrases, and the punctuation, whitespace, and casing around them stay. Same vocabulary, you can put the terms back. That's reversible encoding. The vocabulary is public. If you needed a secret, this is the wrong shape, and "it looks like normal words" doesn't change that.
+I started WordWeave after running into a chat filter that replaced messages with `#####`. It maps selected terms to ordinary four-word phrases while preserving punctuation, whitespace and casing. The mapping is reversible, and the vocabulary is public, so anyone with it can decode the phrases.
 
 The budget is the phrase space. Each of four positions picks from 64 words.
 
 `64⁴ = 16,777,216`
 
-Six bits a position, 24 if you pretend the picks are uniform and independent. The fourth word is the point, not decoration. Three positions is `64³ = 262,144`. Four is 64 times that. Drop 64 reserved phrases into the three-word space and they take a much fatter fraction than the same 64 inside four-word phrases. Lower reserved fraction by 64. That's the model of the space, not a claim about English. Real words aren't uniform, positions in actual sentences aren't independent, and which words I picked changes the odds. Combinatorics sizes the toy. A corpus says whether this vocabulary survives text.
+Each position contributes six bits if the choices are uniform and independent. Three positions give `64³ = 262,144` phrases; four give `64⁴ = 16,777,216`, a 64-fold increase. The same 64 reserved phrases therefore occupy 64 times less of the four-word space. That's the combinatorial model. The corpus scan checks how the chosen vocabulary behaves in real text, where word frequencies and sentence positions are far from uniform or independent.
 
-The scanner walks documents separately, so a phrase can't get assembled across a file boundary. The checked-in corpus is 135 documents and 643,164 tokens. Technical docs, literature, conversation samples. The scan on record found zero reserved-phrase collisions in that set.
+The scanner resets for each document, so phrases never span file boundaries. The checked-in corpus is 135 documents and 643,164 tokens. Technical docs, literature, conversation samples. The scan on record found zero reserved-phrase collisions in that set.
 
-Zero is not "impossible." It's "not in these documents, with this token mix." When one shows up, `findCodewordCollisions` reports the phrase and an offset in JavaScript UTF-16 code units. The unit matters because decode is exact. A reserved phrase *is* encoded content. So `decode(encode(text)) === text` only when the input didn't already contain one. That's the footgun. The round trip is defined that way. It isn't a bug you patch by being clever at the edges.
+If a reserved phrase appears, `findCodewordCollisions` reports the phrase and its offset in JavaScript UTF-16 code units. That matters because decoding is exact: a reserved phrase is indistinguishable from encoded content. Consequently, `decode(encode(text)) === text` only holds when the input contains no reserved phrase. The collision check exposes that condition before encoding.
 
 ```ts
 import { decode, encode, findCodewordCollisions } from 'wordweave';
@@ -61,4 +61,4 @@ const collisions = findCodewordCollisions('ordinary text to inspect');
 
 `VOCABULARY_VERSION` is the protocol. Change a mapping and an old phrase means something else, or nothing. Decode with the version you encoded with. There's no compatibility layer hiding in the words.
 
-The README records a stretch of trying this directly in a platform chat without hitting a block. That's a note about that attempt. Not a promise about the filter, the moderators, or next week. A phrase can pass today and fail tomorrow. Trying to get around a platform's rules can also just be against the rules, however readable the sentence is. Don't put a secret in it. Don't call it encryption, authentication, or a bypass.
+I also tried the phrases in the platform chat that inspired the project. That test only tells me how the phrases behaved in that chat at the time. The vocabulary is public, so anyone who has it can decode them; WordWeave provides no confidentiality or authentication.

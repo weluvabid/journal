@@ -26,18 +26,18 @@ featured: true
 draft: false
 ---
 
-This site is articles and project notes. Visitors read them. I publish by changing a file. I didn't want a database, an admin, and a content API in front of that.
+This site is articles and project notes. People come here to read them, and I publish by changing files in the repo. A database, admin panel and content API would add a lot of machinery to a simple publishing flow.
 
-Astro builds the pages. MDX and Markdown live in the repo. The collection schema fails the build if frontmatter is wrong — a missing field is a CI problem, not a surprise in production. Git is the review tool. Diffs, revert, no migration. The cost is that "publish" means build and deploy. There is no live editor, and I don't miss it for this.
+Astro builds the pages. MDX and Markdown live in the repo. The collection schema catches invalid frontmatter during the build, so a missing field fails CI before deployment. Git is the review tool. Diffs, revert, no migration. The cost is that "publish" means build and deploy. There is no live editor, and I don't miss it for this.
 
-The browser gets HTML. Svelte hydrates where something is actually interactive: search, theme, keyboard shortcuts, the list that grows as you scroll. Not the article body.
+The browser gets HTML. Svelte hydrates the header controls, search, keyboard shortcuts and the list that loads more entries as you scroll. Article content stays static.
 
-Search is a JSON index generated with the site. The dialog fetches it when you open search, then ranks locally. No search box that round-trips to a server for a corpus this size. The index is titles, summaries, tags, search terms, routes. Not the full article text glued into the first paint.
+Search uses a JSON index generated with the site. The header loads it when the page hydrates, and the dialog ranks results locally. The index contains titles, summaries, tags, search terms, routes and normalized searchable text built from each article. Search can rank a query from the index without fetching each destination page.
 
 The first page of the journal is useful by itself. More entries load as you go. Generating one giant archive page because it was easy would just ship the archive to everyone.
 
-Static does not mean the UI is free. Focus, keyboard, theme persistence, small screens — still work. I hit a mobile Safari paint bug that didn't show up on desktop. The fix stayed on that rendering path. A site-wide animation "just in case" would have been me not understanding the bug.
+Static delivery still leaves the UI work: focus, keyboard behaviour, theme persistence and small screens. I hit a mobile Safari paint bug that didn't show up on desktop. The fix stayed on that rendering path. A site-wide animation "just in case" would have been me not understanding the bug.
 
 Type is the product. Monochrome, small accents, no layout competing with the note.
 
-If I later need accounts, per-user state, or content that changes between deploys, that's a service. It isn't a reason to pretend this site already has one.
+The current publishing flow has no accounts or per-user state. If the site grows to need those, I'll add a service for that work; they aren't part of the system today.

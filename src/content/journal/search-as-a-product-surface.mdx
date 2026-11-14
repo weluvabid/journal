@@ -20,18 +20,18 @@ draft: false
 kind: article
 ---
 
-Once there are more pages than a sidebar can hold, search is how the site feels. A bad list makes a careful library look like a junk drawer. I treat it as a surface, not a box I bolt on after the pages exist.
+Once there are more pages than a sidebar can hold, search becomes part of how the site feels. A bad result list makes a useful library look like a junk drawer, so I build search alongside the content.
 
-Frontend Atlas and this journal stay mostly static. The index is its own payload: stable id, title, summary, tags, search terms, route. I don't want every article body downloaded so someone can type three letters. Ranking only sees the index.
+Frontend Atlas and this journal are mostly static. Search uses a JSON index with each entry's stable ID, title, summary, tags, search terms, normalized searchable text and route. The searchable text is generated from the article content, so the ranking code can work locally without fetching each article page.
 
-Search terms exist because I name a thing one way and a reader types another. Extra recall, not a hidden keyword dump. Title and summary are what a person actually reads in the row. An exact title should beat an accidental mention. A tag hit can beat a common word buried in a long summary. Same query, same order, every visit. If the order wobbles I can't tell whether a tweak worked.
+Search terms give readers another way to find something when they use a different name from mine. Title and summary are what a person actually reads in the row. An exact title should beat an accidental mention. A tag hit can beat a common word buried in a long summary. Same query, same order, every visit. If the order wobbles I can't tell whether a tweak worked.
 
-The scorer stays boring. A few field weights. I look at queries that should hit and ones that shouldn't, and I move a weight when a real mismatch shows up. More constants isn't a better engine while the corpus still fits in one JSON file.
+I keep the scorer small, with a few field weights. I try queries that should find a result and queries that should not; when a real mismatch shows up, I adjust the relevant weight. More constants won't make a better engine while the corpus fits in one JSON file.
 
-Keyboard is the product, not a nicety. Open, type, move, activate, leave. No pointer. Focus doesn't jump when the list shrinks. Empty query, no matches, and "index still loading" are three different states. A blank panel is me failing to say which one.
+Keyboard support is part of the search flow. Open it, type, move through results, activate one, close it. You can do the whole thing without a pointer, and focus stays put when the list changes. Empty query, no matches, and "index still loading" are three different states. A blank panel is me failing to say which one.
 
-Reduced motion stays reduced. On a small screen the list scrolls inside the surface, and the surface has an exit. A modal you can't dismiss is slower than just scrolling the index.
+Reduced motion stays reduced. On a small screen the list scrolls inside the surface, and the surface has an exit. I keep the modal easy to dismiss; on a small screen, scrolling the index is often quicker.
 
-What I'd actually measure: a handful of real queries, whether the top hit is the one I meant, whether keyboard alone finishes it, index bytes, time to first results. This corpus does not need a search cluster. If it grows a lot, then a precomputed index or a server. Not before the payload says so.
+What I'd actually measure: a handful of real queries, whether the top hit is the one I meant, whether keyboard alone finishes it, index bytes, time to first results. The current corpus fits the generated JSON index. If the payload grows, I'll measure it before adding a precomputed index or a server.
 
-The ranking weights are intentionally uneven: exact title tokens score `32`, aliases `25`, tags `21`, summary `10`, and body mentions `2`. A full-title phrase match adds another `55` (or `100` for an exact title). So a query that names an article should beat an incidental body mention; the implementation, not a search service, makes that decision.
+The ranking weights favour metadata over body mentions: exact title tokens score `32`, aliases `25`, tags `21`, summary `10`, and body mentions `2`. A full-title phrase match adds `55`, or `100` when the query exactly matches the title. That gives a named article a clear lead over an incidental mention in its body.

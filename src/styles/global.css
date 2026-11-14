@@ -83,10 +83,11 @@
   }
 
   .prose-journal table {
-    @apply my-7 block w-full max-w-full overflow-x-auto rounded-lg border border-border text-left text-sm leading-6;
+    @apply my-7 w-full max-w-full rounded-lg border border-border text-left text-sm leading-6;
+    display: table;
+    table-layout: auto;
     border-collapse: separate;
     border-spacing: 0;
-    scrollbar-width: thin;
   }
 
   .prose-journal thead {
@@ -95,7 +96,9 @@
 
   .prose-journal th,
   .prose-journal td {
-    @apply whitespace-nowrap border-b border-r border-border px-4 py-3 align-top;
+    @apply border-b border-r border-border px-4 py-3 align-top;
+    white-space: normal;
+    overflow-wrap: anywhere;
   }
 
   .prose-journal th:last-child,
