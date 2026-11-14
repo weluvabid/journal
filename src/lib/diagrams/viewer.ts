@@ -11,10 +11,13 @@ export async function createDiagramViewer(
   }
 
   const document = element.contentDocument;
+  const svg = document?.querySelector('svg');
 
-  if (!document?.querySelector('svg')) {
+  if (!svg) {
     throw new Error('The embedded document does not contain an SVG.');
   }
+
+  svg.style.touchAction = 'none';
 
   const { default: createPanZoom } = await import('svg-pan-zoom');
 

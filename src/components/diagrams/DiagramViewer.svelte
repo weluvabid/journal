@@ -1,7 +1,7 @@
 <script lang="ts">
   import { onMount } from 'svelte';
   import { Button, Skeleton } from '@weluvabid/iris/components';
-  import { Maximize, Minimize, RotateCcw, ZoomIn, ZoomOut } from '@weluvabid/iris/lucide';
+  import { ExternalLink, RotateCcw, ZoomIn, ZoomOut } from '@weluvabid/iris/lucide';
   import { createDiagramViewer, fitDiagramViewer } from '@lib/diagrams/viewer';
   import type { DiagramViewer as Viewer } from '@lib/diagrams/viewer';
 
@@ -14,7 +14,6 @@
   let { src, alt, caption }: Props = $props();
 
   let objectElement: HTMLObjectElement;
-  let viewerElement: HTMLDivElement;
   let stageElement: HTMLDivElement;
   let viewer: Viewer | null = null;
   let initialization: Promise<void> | null = null;
@@ -24,8 +23,6 @@
   let ready = $state(false);
   let failed = $state(false);
   let controlsFailed = $state(false);
-  let isFullscreen = $state(false);
-  let fullscreenFailed = $state(false);
 
   function initializeViewer(): Promise<void> {
     if (viewer || initialization || failed) {
@@ -99,23 +96,6 @@
     viewer?.reset();
   }
 
-  async function toggleFullscreen(): Promise<void> {
-    fullscreenFailed = false;
-
-    try {
-      if (document.fullscreenElement === viewerElement) {
-        await document.exitFullscreen();
-      } else if (!document.fullscreenElement) {
-        await viewerElement.requestFullscreen();
-      } else {
-        await document.exitFullscreen();
-        await viewerElement.requestFullscreen();
-      }
-    } catch {
-      fullscreenFailed = true;
-    }
-  }
-
   function scheduleDiagramFit(): void {
     if (fitFrame !== null) {
       cancelAnimationFrame(fitFrame);
@@ -128,16 +108,9 @@
     });
   }
 
-  function handleFullscreenChange(): void {
-    isFullscreen = document.fullscreenElement === viewerElement;
-
-    scheduleDiagramFit();
-  }
-
   onMount(() => {
     objectElement.addEventListener('load', handleObjectLoad);
     objectElement.addEventListener('error', handleLoadError);
-    document.addEventListener('fullscreenchange', handleFullscreenChange);
 
     // The SVG may finish loading before this component hydrates. If it has not
     // loaded yet, bound the wait so blocked resources cannot leave a spinner
@@ -165,7 +138,6 @@
       resizeObserver.disconnect();
       objectElement.removeEventListener('load', handleObjectLoad);
       objectElement.removeEventListener('error', handleLoadError);
-      document.removeEventListener('fullscreenchange', handleFullscreenChange);
       viewer?.destroy();
 
       viewer = null;
@@ -174,10 +146,7 @@
 </script>
 
 <figure class="my-8 min-w-0">
-  <div
-    bind:this={viewerElement}
-    class="diagram-viewer overflow-hidden rounded-xl border border-border bg-muted/20"
-  >
+  <div class="diagram-viewer overflow-hidden rounded-xl border border-border bg-muted/20">
     <div class="flex items-center justify-end gap-2 border-b border-border px-2 py-2 sm:px-3">
       {#if !ready && !failed && !controlsFailed}
         <Skeleton.Root
@@ -229,33 +198,24 @@
             <RotateCcw class="size-4" aria-hidden="true" />
           </Button.Root>
           <Button.Root
-            type="button"
+            href={src}
+            target="_blank"
+            rel="noopener noreferrer"
             variant="ghost"
             size="icon"
             class="rounded-md"
-            aria-label={isFullscreen ? 'Exit fullscreen' : 'View diagram fullscreen'}
-            title={isFullscreen ? 'Exit fullscreen' : 'Fullscreen'}
-            disabled={failed}
-            onclick={toggleFullscreen}
+            aria-label="Open diagram in new tab"
+            title="Open in new tab"
           >
-            {#if isFullscreen}
-              <Minimize class="size-4" aria-hidden="true" />
-            {:else}
-              <Maximize class="size-4" aria-hidden="true" />
-            {/if}
+            <ExternalLink class="size-4" aria-hidden="true" />
           </Button.Root>
         </div>
-      {/if}
-      {#if fullscreenFailed}
-        <span class="sr-only" role="alert"
-          >Fullscreen mode is unavailable in this browser context.</span
-        >
       {/if}
     </div>
 
     <div
       bind:this={stageElement}
-      class="diagram-stage relative h-[min(68vh,42rem)] min-h-64 w-full overflow-hidden bg-white [touch-action:none]"
+      class="diagram-stage relative h-[min(68vh,42rem)] min-h-64 w-full overflow-hidden bg-white"
       aria-busy={!ready && !failed && !controlsFailed}
     >
       <object
@@ -292,22 +252,3 @@
     </figcaption>
   {/if}
 </figure>
-
-<style>
-  .diagram-viewer:fullscreen {
-    display: flex;
-    width: 100vw;
-    height: 100vh;
-    max-height: none;
-    flex-direction: column;
-    border: 0;
-    border-radius: 0;
-    background: var(--background);
-  }
-
-  .diagram-viewer:fullscreen .diagram-stage {
-    min-height: 0;
-    height: auto;
-    flex: 1;
-  }
-</style>
