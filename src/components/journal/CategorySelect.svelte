@@ -21,8 +21,8 @@
   let canScrollLeft = $state(false);
   let canScrollRight = $state(false);
 
-  const normalizedBase = base.replace(/^\/+|\/+$/gu, '');
-  const prefix = normalizedBase ? `/${normalizedBase}` : '';
+  const normalizedBase = $derived(base.replace(/^\/+|\/+$/gu, ''));
+  const prefix = $derived(normalizedBase ? `/${normalizedBase}` : '');
 
   function categoryHref(value: string): string {
     return value === 'all'

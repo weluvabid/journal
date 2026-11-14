@@ -10,6 +10,7 @@ import { categoryById } from '@data/categories';
 import { withBase, entryHref } from '@lib/journal';
 import {
   assertUniqueSeriesParts,
+  getJournalSeriesEntries,
   getJournalSeriesPartCount,
   resolveJournalArticleNavigation,
 } from '@lib/journal-series-navigation';
@@ -36,8 +37,10 @@ const seriesPartCount = entry.data.series
 const { previous: previousEntry, next: nextEntry } = resolveJournalArticleNavigation(
   entry.data.id,
   groupedEntries,
-  publishedEntries,
 );
+const seriesEntries = entry.data.series
+  ? getJournalSeriesEntries(publishedEntries, entry.data.series.id)
+  : [];
 ---
 
 <BaseLayout title={`${entry.data.title} — Journal`} description={entry.data.summary}>
@@ -84,6 +87,37 @@ const { previous: previousEntry, next: nextEntry } = resolveJournalArticleNaviga
       }
     </header>
     <div class="prose-journal"><Content /></div>
+    {
+      seriesEntries.length > 1 && (
+        <nav class="mt-10 border-t border-border pt-6" aria-label="Articles in this series">
+          <h2 class="text-sm font-semibold text-foreground">More in this series</h2>
+          <ol class="mt-3 space-y-2">
+            {seriesEntries.map((seriesEntry) => (
+              <li>
+                {seriesEntry.data.id === entry.data.id ? (
+                  <span
+                    class="flex items-baseline gap-2 text-sm font-medium text-foreground"
+                    aria-current="page"
+                  >
+                    <span class="shrink-0 text-muted-foreground">{seriesEntry.data.series!.part}.</span>
+                    {seriesEntry.data.title}
+                    <span class="text-xs font-normal text-muted-foreground">Current</span>
+                  </span>
+                ) : (
+                  <a
+                    class="flex items-baseline gap-2 text-sm text-muted-foreground underline-offset-4 hover:text-foreground hover:underline"
+                    href={entryHref(seriesEntry.data.id)}
+                  >
+                    <span class="shrink-0">{seriesEntry.data.series!.part}.</span>
+                    {seriesEntry.data.title}
+                  </a>
+                )}
+              </li>
+            ))}
+          </ol>
+        </nav>
+      )
+    }
     <div class="mt-10">
       <Button.Root variant="ghost" href={withBase(`/journal/category/${category.id}/`)}
         ><ArrowLeft class="size-4" aria-hidden="true" />Back to {category.name}</Button.Root

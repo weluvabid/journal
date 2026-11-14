@@ -54,13 +54,12 @@ export function assertUniqueSeriesParts<T extends JournalNavigationEntry>(
 }
 
 /**
- * Prefer adjacent parts within a series. At either series boundary, fall back
- * to the existing category chronology. Standalone entries retain that order.
+ * Resolve previous and next entries using the category's chronological order.
+ * Series ordering is handled separately by the article-level series index.
  */
 export function resolveJournalArticleNavigation<T extends JournalNavigationEntry>(
   currentId: string,
   categoryEntries: readonly T[],
-  allEntries: readonly T[],
 ): JournalNavigationTarget<T> {
   const currentIndex = categoryEntries.findIndex((entry) => entry.data.id === currentId);
 
@@ -68,35 +67,9 @@ export function resolveJournalArticleNavigation<T extends JournalNavigationEntry
     throw new Error(`Journal entry "${currentId}" is missing from its category reading order`);
   }
 
-  const current = categoryEntries[currentIndex];
-  const chronologicalPrevious = categoryEntries[currentIndex - 1];
-  const chronologicalNext = categoryEntries[currentIndex + 1];
-
-  if (!current.data.series) {
-    return { previous: chronologicalPrevious, next: chronologicalNext };
-  }
-
-  const currentSeries = current.data.series;
-  const seriesEntries = currentSeries
-    ? allEntries
-        .flatMap((entry) => {
-          const series = entry.data.series;
-
-          return series?.id === currentSeries.id ? [{ entry, part: series.part }] : [];
-        })
-        .sort((left, right) => left.part - right.part)
-        .map(({ entry }) => entry)
-    : [];
-
-  const seriesIndex = seriesEntries.findIndex((entry) => entry.data.id === currentId);
-
-  if (seriesIndex < 0) {
-    throw new Error(`Journal series "${current.data.series.id}" does not contain "${currentId}"`);
-  }
-
   return {
-    previous: seriesEntries[seriesIndex - 1] ?? chronologicalPrevious,
-    next: seriesEntries[seriesIndex + 1] ?? chronologicalNext,
+    previous: categoryEntries[currentIndex - 1],
+    next: categoryEntries[currentIndex + 1],
   };
 }
 
@@ -106,4 +79,15 @@ export function getJournalSeriesPartCount<T extends JournalNavigationEntry>(
   seriesId: string,
 ): number {
   return entries.reduce((count, entry) => count + Number(entry.data.series?.id === seriesId), 0);
+}
+
+/** Return published entries in explicit series-part order. */
+export function getJournalSeriesEntries<T extends JournalNavigationEntry>(
+  entries: readonly T[],
+  seriesId: string,
+): T[] {
+  return entries
+    .filter((entry) => entry.data.series?.id === seriesId)
+    .slice()
+    .sort((left, right) => left.data.series!.part - right.data.series!.part);
 }
