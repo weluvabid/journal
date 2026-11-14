@@ -51,8 +51,8 @@ I’ve kept the visual design simple with light and dark themes using the same t
 
 The demo shows how the package can be installed, composed and themed. If the demo becomes more interesting than the library I’ve accidentally created a second product.
 
-The package boundary is the product. It has clear exports, peer dependencies and no styles that dig into unknown parts of the repo. It can be installed as a tarball into an empty project. Version `0.4.1` on npm was the first useful checkpoint. The component set can be expanded without affecting the package boundary.
+The package boundary is the product. It has clear exports, peer dependencies and no styles that dig into unknown parts of the repo. Version `0.4.1` on npm was the first useful checkpoint.
 
-A component is reusable if it has clear responsibilities in its API, you know how it will behave with accessibility, it has clear dependencies and can be tested for failure. I’ll test the package by installing the tarball.
+I check the published package by packing it into a tarball and installing it in an isolated Svelte app. The consumer check verifies the public exports and component subpaths, runs Svelte type checking and a production build, and checks that Tailwind utilities and theme fonts make it into the build.
 
 I want to keep Iris small and composable. The primitives should be clear and the next application should have its own identity. Success is having another repo that can take the dialog and understand what it is doing.

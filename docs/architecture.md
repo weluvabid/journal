@@ -11,8 +11,6 @@ Journal is a static-first Astro site. Astro generates editorial, category, tag a
 - Svelte islands power navigation, search, keyboard shortcuts, pagination and resource tooltips.
 - A generated, versioned JSON search index is fetched on demand by the search dialog.
 
-There is no application server, database, authentication, account system or reading-progress subsystem.
-
 ## Content boundaries
 
 - `src/content/journal/` contains all journal entries and canonical project articles.

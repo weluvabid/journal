@@ -54,3 +54,5 @@ The cost-aware policy had a higher weighted hit ratio on all three workloads. Th
 `maxBytes` is the cache's accounting budget. Process RSS also includes the runtime and object overhead. JIT, GC and machine load affect the timings, so only compare policies within the same run. GitHub-hosted runners are convenient, but noisy.
 
 To make a decision for your application, use a trace from that application and measure the factory itself, not just the cache bookkeeping.
+
+That is the next step for Cachewise too. I want to run it against real access traces, include the time spent rebuilding values, and see how the policies behave over longer runs as the workload changes. It would also be useful to compare results across different cache sizes and Node.js versions. The current numbers give me a repeatable starting point; application traces will show where the policy is actually useful.

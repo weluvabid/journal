@@ -53,7 +53,7 @@ The Copy 2 Markdown extension handles page, selection and link actions locally i
 
 The action can come from the popup, context menu or shortcut. The MV3 service worker checks the URL, injects the bundled content script if it has not already been injected, and sends a typed message. The popup follows the same path. There is no second extractor in the popup.
 
-Page and selection actions return HTML, which is then converted to Markdown. The clipboard is written by an offscreen document owned by the extension. Link copying can happen in the service worker. If we only want to copy the URL, there is no need to traverse the DOM.
+Page and selection actions return HTML, which is then converted to Markdown. The clipboard is written by an offscreen document owned by the extension. Link copying can happen in the service worker. If I only want to copy the URL, there is no need to traverse the DOM.
 
 ```text
 action → worker → extract HTML → markdown → offscreen clipboard
@@ -89,3 +89,11 @@ Turndown is used with the GFM plugin. It handles headings, emphasis, links, imag
 The converter takes an HTML fragment and a base URL. It has no dependency on Chrome APIs, so HTML edge cases can be tested with unit tests. Playwright is used to test the built extension and the parts that interact with the browser.
 
 The extension requires `activeTab`, `scripting`, `clipboardWrite`, `contextMenus` and `offscreen` permissions. It does not request persistent host permissions, and there is no account system, backend or analytics service. The content is copied within the browser. If the URL is restricted, the extension shows an explicit error.
+
+## Where it could go next
+
+The extraction rules will always have to deal with pages that were not part of the original test set. I'd like to grow the fixture collection with more documentation sites and app-style pages, then use those cases to improve the fallback and filtering rules without removing useful content. The hidden-content checks are another area worth testing against more layout patterns.
+
+I'd also like to spend more time on large pages and awkward selections. The current size limit gives the extractor a clear boundary, but testing bigger documents would help show where extraction and conversion start to get expensive. Selection copying has its own edge cases too, especially when a page changes or clears the selection while the action is being handled.
+
+Those are useful next steps because they build on the parts that already make Copy 2 Markdown work: getting the right content, keeping the filters conservative and keeping conversion separate from the page.

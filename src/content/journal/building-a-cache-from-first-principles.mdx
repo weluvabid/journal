@@ -94,4 +94,8 @@ Each cache instance is specific to one JavaScript agent. Workers will have their
 
 The dispose and event callbacks will run synchronously. Any errors thrown by a listener will be caught. The optional error hook will also be protected. This means reporting an error won't interrupt a cache operation. The callback will still be called on the caller's turn. Don't do any I/O.
 
-The benchmark below shows how the policy performs with scan pollution, skewed expensive reuse and byte pressure.
+There is more I want to explore here. The frequency sketch has fixed memory use, but its width and aging rate affect how well it tracks changing access patterns. It would be useful to try different settings against longer workloads and see when old frequency information should fade away.
+
+I would also like to compare the current admission rule with other ways of deciding whether a new value should enter the cache. Expiration could use a scheduled cleanup pass instead of relying on callers to invoke `pruneExpired()`.
+
+The next article looks at the benchmarks and what they can tell us about the policy.

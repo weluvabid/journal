@@ -79,8 +79,6 @@ The release build numbers were recorded. Small inputs had a median time of aroun
 
 The browser package has an async `init()` because the WASM module and grammars need to be loaded. Once it has been initialised, fingerprinting is synchronous. Large files should be run in a worker to avoid freezing the page.
 
-Comments and some punctuation are removed. Changes to the remaining syntax will change the digest. Semantic analysis should be done in another tool.
-
 <DiagramViewer
   client:visible
   src="/diagrams/structaura-fingerprinting.svg"
@@ -97,3 +95,11 @@ const total = left + right;
 ```
 
 For the current JavaScript normalization version, these formatting changes produce the same canonical fingerprint. Changing `right` to `tax` changes the remaining syntax, so the fingerprint changes too. The fingerprints describe the normalized structure; they don't tell you whether the programs are equivalent.
+
+## Where StructAura could go next
+
+There are a few areas I'd like to explore next. Adding more language support is one of them. The parser adapters already give each language a way to produce the records consumed by the Rust core, so another language could follow the same path.
+
+I'd also like to look at larger files and more varied source code in the benchmarks. The current measurements give me a starting point, but I want to understand how parsing, rebuilding the canonical tree and hashing behave as inputs grow. Running the browser work in a worker is another useful direction for keeping larger files from blocking the page.
+
+One interesting possibility is incremental fingerprinting. Since the hashes are built from a Merkle tree, an edit might only require recalculating the hashes for the parts of the tree that changed and their parents. The hard part is knowing which parts can be reused safely after parsing and normalization. That would be worth exploring before making any changes to the current fingerprint contract.

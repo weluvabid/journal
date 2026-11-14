@@ -4,7 +4,8 @@ title: 'WordWeave: A Reversible Codec Made from Ordinary Words'
 type: deep-dive
 category: systems-engineering
 summary: Exploring a deterministic word-phrase alphabet, its combinatorial capacity,
-  collision analysis and the protocol constraints of reversible text encoding.
+  entropy-guided vocabulary selection, collision analysis and the protocol constraints
+  of reversible text encoding.
 date: 2026-11-13
 project: wordweave
 tags:
@@ -45,7 +46,17 @@ The vocabulary gives us a limited dictionary. Each of the four words in a phrase
 
 `64⁴ = 16,777,216`
 
-That gives us six bits per word if the choices are uniform and independent. Three words give `64³ = 262,144` phrases. Moving to four words increases that space by a factor of 64, to `16,777,216`. The same 64 reserved phrases therefore occupy 64 times less of the four-word space. That's the combinatorial part. The corpus scan checks how the vocabulary behaves in actual text, where word frequencies and positions are much less uniform or independent.
+That gives us six bits per position, or 24 bits of combinatorial capacity, if the choices are uniform and independent. Three words give `64³ = 262,144` phrases. Moving to four words increases that space by a factor of 64, to `16,777,216`. With 64 reserved phrases, those phrases occupy 64 / 64⁴ of the possible four-word combinations: 1 in 262,144 under a uniform model. That's the combinatorial capacity. Natural language doesn't choose every word combination with equal probability, so capacity alone doesn't tell us how often an ordinary sentence will contain one of the reserved phrases.
+
+That is where entropy-guided vocabulary selection matters. Shannon entropy, `H(X) = -Σ p(x) log₂ p(x)`, measures the average uncertainty in a distribution. For one particular phrase, its surprisal is `I(c) = -log₂ P(c)`: the less likely that phrase is in ordinary text, the more information it carries and the less likely it is to appear accidentally. The probability of a four-word phrase depends on the words together:
+
+`P(c) = P(w₁) × P(w₂ | w₁) × P(w₃ | w₁, w₂) × P(w₄ | w₁, w₂, w₃)`
+
+The collision probability at a four-word window is the sum of those probabilities across the 64 reserved phrases:
+
+`P(collision) = Σ P(c)` for each reserved phrase `c`.
+
+I chose words for each position with that in mind. The goal was to keep the phrases readable while making the complete four-word sequences unusual in ordinary writing. This is why four arbitrary words are not interchangeable with the selected vocabulary: common word combinations carry more probability mass, while high-surprisal sequences are less likely to appear by accident. The position-specific vocabularies shape that probability; the corpus scan checks the resulting phrases against real text.
 
 The scanner resets between documents, so phrases never cross file boundaries. The checked-in corpus contains 135 documents and 643,164 tokens. They include technical documents, literature and conversation examples. No collisions were found in that corpus scan.
 
@@ -61,4 +72,4 @@ const collisions = findCodewordCollisions('ordinary text to inspect');
 
 `VOCABULARY_VERSION` defines the protocol. If the mapping changes, an old phrase may mean something different or nothing at all. The dictionary has to be decoded using the same version that was used to encode it.
 
-I also tried the phrases in the platform chat that inspired the project. That only tells me how they behaved in that chat at the time. The vocabulary is public, so anyone with it can decode the phrases. WordWeave provides no confidentiality or authentication.
+I also tried the phrases in the platform chat that inspired the project. The vocabulary is public, so anyone with it can decode the phrases. WordWeave provides no confidentiality or authentication.

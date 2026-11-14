@@ -54,15 +54,15 @@ All keys and values are opaque byte slices. Keys and values can be empty. An emp
 
 The memtable is a `BTreeMap`. When reading, the memtable will be checked first. Then the immutable runs will be scanned in order from newest to oldest. The newest entry will take priority. If the newest entry is a tombstone then the key will not exist. If a tombstone is removed too early during compaction then an older value can become visible again.
 
-The flush function takes an ordered snapshot and serialises it to a new run. The memtable will not be cleared until after the run has been published. If there is an error while writing or publishing then the memtable will still be available. We don’t want to clear the memtable as we will lose our only live copy.
+The flush function takes an ordered snapshot and serialises it to a new run. The memtable will not be cleared until after the run has been published. If there is an error while writing or publishing then the memtable will still be available. Clearing the memtable here would lose the only live copy.
 
-| Operation  | Data path                                                    | Failure or guarantee                                            |
-| ---------- | ------------------------------------------------------------ | --------------------------------------------------------------- |
-| Write      | Update the in-memory `BTreeMap` memtable.                    | No disk run is created until flush.                             |
-| Read       | Check the memtable, then immutable runs newest-first.        | A newest tombstone hides older values.                          |
-| Flush      | Serialize and publish a sorted run, then clear the memtable. | A failed write or publish leaves the memtable intact.           |
-| Recovery   | Parse every discovered run before opening the engine.        | Malformed or truncated runs fail recovery.                      |
-| Compaction | K-way merge sorted runs; the higher generation wins.         | Tombstones remain; there is no snapshot-aware safe-drop policy. |
+| Operation  | Data path                                                    | Failure or guarantee                                  |
+| ---------- | ------------------------------------------------------------ | ----------------------------------------------------- |
+| Write      | Update the in-memory `BTreeMap` memtable.                    | No disk run is created until flush.                   |
+| Read       | Check the memtable, then immutable runs newest-first.        | A newest tombstone hides older values.                |
+| Flush      | Serialize and publish a sorted run, then clear the memtable. | A failed write or publish leaves the memtable intact. |
+| Recovery   | Parse every discovered run before opening the engine.        | Malformed or truncated runs fail recovery.            |
+| Compaction | K-way merge sorted runs; the higher generation wins.         | Tombstones are retained during compaction.            |
 
 <DiagramViewer
   client:visible
@@ -71,23 +71,25 @@ The flush function takes an ordered snapshot and serialises it to a new run. The
   caption="The important boundary is publish first, clear second."
 />
 
-`Engine::new()` creates an in-memory engine. To create a disk-backed engine we would call `open(path)`. We need the disk-backed engine to perform flushes and compaction. The public API takes `&mut self` so it is designed to be a single writer. There is no locking or background thread. Having two processes running against the same directory is not supported.
+`Engine::new()` creates an in-memory engine. For a disk-backed engine, I use `open(path)`. Flushes and compaction operate on the disk-backed engine. The public API takes `&mut self`, so TinyLSM has a single-writer model. Multiple processes sharing the same directory aren't supported.
 
-Runs are immutable once published. TinyLSM will parse all runs it finds when opening the engine. If there are any issues with the headers, unknown tags, unsorted keys, incomplete records or trailing bytes then recovery will fail.
+Runs are immutable once published. When opening the engine, TinyLSM parses every run it finds. Invalid headers, unknown tags, unsorted keys, incomplete records and trailing bytes cause recovery to fail.
 
-When looking up a value it could scan through multiple runs. There is no Bloom filter or block index.
+Compaction is a k-way merge of sorted runs rather than loading all the data into a map and sorting it. If multiple runs contain the same key, the record with the highest generation wins, including a tombstone. This preserves deletion semantics.
 
-Compaction is a k-way merge of sorted runs. It will not load all the data into a map and sort it. If there are multiple runs with the same key then the record with the highest generation (including a tombstone) will be used. TinyLSM maintains deletion semantics as there are no snapshots or leveled compaction to determine if a tombstone can be safely removed.
-
-`Engine::inspect` allows tests to see what has been persisted rather than guessing based on the return from `get`. Errors are typed. Adversarial tests will pass malformed files to recovery.
-
-The benchmark shows the median and p95 of how many nanoseconds it took to process each item in the selected workloads. `BENCH_ITEMS` and `BENCH_SAMPLES` can be changed to alter the size of the workload and samples.
-
-This version only handles the synchronous single-writer path. I have not included WAL, concurrent readers, background compaction, block caching, transactions or network protocol.
+The benchmark reports median and p95 nanoseconds per item for the selected workloads. `BENCH_ITEMS` and `BENCH_SAMPLES` control the workload size and number of samples.
 
 ```text
 Flush publishes R2:  memtable [A, B] → empty; runs [R1] → [R2, R1]
 Publish fails:       memtable [A, B] stays; runs remain [R1]
 ```
 
-The run file is synced before renaming. Syncing the parent directory is still on my durability TODO list.
+The run file is synced before it is renamed. Syncing the parent directory after publication is a useful next step for strengthening crash durability.
+
+## Where TinyLSM could go next
+
+Bloom filters would help skip runs that cannot contain a requested key. Block indexes could narrow reads to the relevant part of a run instead of scanning through the whole file. Both would become more useful as the number and size of runs grow.
+
+A write-ahead log would give the engine a recovery path for recent writes before they are flushed into immutable runs. Background compaction and a leveled run layout could help keep read and write amplification under control as the database grows. Concurrent readers and a block cache are other natural extensions.
+
+There is plenty more to explore, but these are the next improvements that build directly on the storage engine that's here now.

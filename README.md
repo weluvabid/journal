@@ -1,6 +1,15 @@
 # Journal
 
-A personal engineering journal and project portfolio. Journal records the reasoning behind the work: experiments, implementation notes, technical deep dives and retrospectives.
+A personal engineering journal and project portfolio. I use it to write about the software I build, the decisions behind it, the experiments that shape it and the things I learn along the way.
+
+Journal entries and project pages share one content collection. The site generates the journal, project archive, category and tag pages from that content.
+
+## What you'll find
+
+- Engineering notes, build logs, technical deep dives and retrospectives.
+- Project pages with implementation details and links to source repositories.
+- Search, category and tag browsing.
+- Keyboard navigation and accessible interactive components.
 
 ## Stack
 
@@ -30,7 +39,7 @@ git submodule update --init --recursive
 
 ## Content
 
-Journal entries live in `src/content/journal/*.mdx`. Each entry has validated frontmatter:
+Journal entries live in `src/content/journal/*.mdx`. Each entry has frontmatter:
 
 ```yaml
 ---
@@ -51,4 +60,12 @@ Supported entry types: `engineering-note`, `build-log`, `deep-dive`, `retrospect
 
 Supported categories: `systems-engineering`, `frontend-engineering`, `product-engineering`, `engineering-thinking`.
 
-Projects are canonical Journal entries, not a second content collection. Mark the primary article with `kind: project`, set its stable `project` ID, add the `project` tag, and put status, stack, repository links and curated repository resources in `projectDetails`. Related articles use the same `project` ID but keep `kind: article`. The Projects archive and the resource section at the end of the canonical article are generated from that single record. See `docs/content-architecture.md` for the schema.
+## Documentation
+
+- [Architecture](docs/architecture.md) — runtime, content and UI boundaries.
+- [Content architecture](docs/content-architecture.md) — collections, project associations and frontmatter.
+- [Accessibility](docs/accessibility.md) — keyboard, focus and assistive-technology behaviour.
+- [Performance](docs/performance.md) — rendering, loading and performance decisions.
+- [Security and privacy](docs/security-and-privacy.md) — site security headers and data handling.
+- [Development](docs/development.md) — checks, tests and local workflows.
+- [Diagram sources](docs/diagrams/README.md) — editable Mermaid sources and generated SVGs.

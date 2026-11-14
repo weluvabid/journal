@@ -96,3 +96,11 @@ output.self === output; // true
 ```
 
 The two properties still point to the same object, and the self-reference still points back to the root.
+
+## Where JSON+ could go next
+
+There's still room to take JSON+ further. I'd like to test it against more real data, especially large graphs and binary-heavy values, and see where encoding and decoding spend their time. The current benchmarks cover plain object trees, cyclic graphs and shared binary buffers. More varied inputs would make it easier to see how the format behaves as graph shape and size change.
+
+A streaming API is another possibility for large documents, although graph references and validation make that more involved than writing chunks of JSON. I'd also like to run the same round-trip and malformed-input tests across more browser runtimes. Any new value types or wire changes would need to fit the versioning rules rather than quietly changing what version 1 means.
+
+For now, the useful part of JSON+ is that it keeps object identity in the data instead of trying to flatten a graph into a tree. That's the part I'd keep building on.

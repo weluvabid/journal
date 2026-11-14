@@ -3,7 +3,7 @@
 Journal is statically generated and served from Cloudflare's edge network.
 
 - No runtime database or server rendering.
-- Search index is generated at build time and fetched on demand by the existing search dialog.
+- Search index is generated at build time and fetched when the hydrated header mounts; the parsed index is cached and reused for subsequent searches.
 - Interactive Svelte components are hydrated only where needed.
 - Content pages are generated as static HTML.
 - Images and fonts should remain local where licensing permits.
