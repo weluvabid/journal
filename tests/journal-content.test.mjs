@@ -52,7 +52,7 @@ test('placeholder drafts and merged source articles are no longer separate entri
   const merged = {
     'frontend-atlas-progress-without-accounts.mdx': ['An account is a second product', 'immutable question id'],
     'building-iris.mdx': ['keyboard behaviour', 'accessible name'],
-    'building-a-cache-from-first-principles.mdx': ['recencyHalfLife', 'Count-Min Sketch', 'knapsack search'],
+    'building-a-cache-from-first-principles.mdx': ['recencyHalfLife', 'Count-Min Sketch', 'selection is greedy'],
   };
 
   for (const [filename, phrases] of Object.entries(merged)) {

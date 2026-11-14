@@ -4,16 +4,18 @@ import { readFile } from 'node:fs/promises';
 
 const read = (path) => readFile(new URL(`../${path}`, import.meta.url), 'utf8');
 
-test('header uses a text Journal wordmark instead of the retired ghost mark', async () => {
+test('header uses the shared ghost mark as the Journal home link', async () => {
   const header = await read('src/components/site/JournalHeader.svelte');
-  assert.match(header, />\s*Journal\s*</);
-  assert.match(header, /aria-label="Journal home"/);
-  assert.doesNotMatch(header, /GhostMark|ghost-link/);
+  assert.match(header, /import GhostMark from '@components\/brand\/GhostMark\.svelte'/u);
+  assert.match(header, /<GhostMark\b/u);
+  assert.match(header, /aria-label="Journal home"/u);
+  assert.match(header, /href=\{withBase\('\/'\)\}/u);
 });
 
-test('footer retains the GitHub link without the retired ghost mark', async () => {
+test('footer retains the GitHub link and shared ghost mark', async () => {
   const footer = await read('src/components/site/JournalFooter.svelte');
-  assert.match(footer, /SiGithub/);
-  assert.match(footer, /https:\/\/github\.com\/weluvabid\/journal/);
-  assert.doesNotMatch(footer, /GhostMark|ghost-link/);
+  assert.match(footer, /SiGithub/u);
+  assert.match(footer, /https:\/\/github\.com\/weluvabid\/journal/u);
+  assert.match(footer, /import GhostMark from '@components\/brand\/GhostMark\.svelte'/u);
+  assert.match(footer, /<GhostMark\b/u);
 });

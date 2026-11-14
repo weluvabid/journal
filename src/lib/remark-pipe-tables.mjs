@@ -1,10 +1,20 @@
 const TABLE_SEPARATOR = /^\s*\|?\s*:?-{3,}:?\s*(?:\|\s*:?-{3,}:?\s*)+\|?\s*$/u;
 
+/**
+ * @typedef {{ type: 'text', value: string }} TextNode
+ * @typedef {{ type: 'tableCell', children: TextNode[] }} TableCellNode
+ * @typedef {{ type: 'tableRow', children: TableCellNode[] }} TableRowNode
+ * @typedef {{ type: 'table', align: Array<'left' | 'center' | 'right'>, children: TableRowNode[], position?: unknown }} TableNode
+ * @typedef {{ type: string, children?: AstNode[], value?: string, position?: unknown }} AstNode
+ */
+
+/** @param {string} row */
 function splitCells(row) {
   const trimmed = row.trim().replace(/^\|/u, '').replace(/\|$/u, '');
   return trimmed.split('|').map((cell) => cell.trim());
 }
 
+/** @param {string} separator @returns {Array<'left' | 'center' | 'right'>} */
 function parseAlignment(separator) {
   return splitCells(separator).map((cell) => {
     const left = cell.startsWith(':');
@@ -15,6 +25,7 @@ function parseAlignment(separator) {
   });
 }
 
+/** @param {string} line @param {number} expectedCells @returns {TableRowNode | null} */
 function toRow(line, expectedCells) {
   const cells = splitCells(line);
   if (cells.length !== expectedCells) return null;
@@ -28,8 +39,14 @@ function toRow(line, expectedCells) {
   };
 }
 
+/** @param {AstNode} node @returns {node is TextNode} */
+function isTextNode(node) {
+  return node.type === 'text' && typeof node.value === 'string';
+}
+
+/** @param {AstNode} node @returns {TableNode | null} */
 function convertParagraph(node) {
-  if (!Array.isArray(node.children) || !node.children.every((child) => child.type === 'text')) {
+  if (!Array.isArray(node.children) || !node.children.every(isTextNode)) {
     return null;
   }
 
@@ -41,8 +58,17 @@ function convertParagraph(node) {
   const align = parseAlignment(lines[1]);
   if (header.length < 2 || header.length !== align.length) return null;
 
-  const rows = [toRow(lines[0], header.length), ...lines.slice(2).map((line) => toRow(line, header.length))];
-  if (rows.some((row) => row === null)) return null;
+  /** @type {TableRowNode[]} */
+  const rows = [];
+  const headerRow = toRow(lines[0], header.length);
+  if (!headerRow) return null;
+  rows.push(headerRow);
+
+  for (const line of lines.slice(2)) {
+    const row = toRow(line, header.length);
+    if (!row) return null;
+    rows.push(row);
+  }
 
   return {
     type: 'table',
@@ -52,8 +78,9 @@ function convertParagraph(node) {
   };
 }
 
+/** @param {AstNode} node */
 function transform(node) {
-  if (!node || !Array.isArray(node.children)) return;
+  if (!Array.isArray(node.children)) return;
 
   for (let index = 0; index < node.children.length; index += 1) {
     const child = node.children[index];
@@ -69,6 +96,7 @@ function transform(node) {
 /**
  * Minimal pipe-table support for Journal MDX content.
  * Handles plain-text GFM table rows and column alignment without adding a runtime dependency.
+ * @returns {(tree: AstNode) => void}
  */
 export default function remarkPipeTables() {
   return (tree) => transform(tree);

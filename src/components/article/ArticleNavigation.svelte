@@ -16,7 +16,7 @@
     url: string;
   }
 
-  interface Props {
+  export interface Props {
     currentId: string;
     categoryId: string;
     allEntries: Entry[];
