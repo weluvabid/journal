@@ -24,11 +24,31 @@ test('the five architecture diagrams use the shared pan-and-zoom viewer', async 
   const headers = await readFile(join(root, 'public/_headers'), 'utf8');
 
   assert.match(viewerModule, /svg-pan-zoom/);
-  assert.match(viewer, /role="status"[\s\S]*?aria-label="Preparing diagram controls"/);
+  assert.match(
+    viewer,
+    /<Skeleton[\s\S]*?class="h-9 w-\[156px\] rounded-md"[\s\S]*?role="status"[\s\S]*?aria-label="Loading diagram controls"/,
+  );
+  assert.doesNotMatch(viewer, /Preparing diagram controls|animate-spin/);
   assert.match(viewer, /disabled={!ready}/);
   assert.doesNotMatch(viewer, /Loading diagram…/);
   assert.doesNotMatch(viewer, /absolute inset-x-4 top-1\/2/);
   assert.match(viewer, /setTimeout\(handleLoadError, 10_000\)/);
+  assert.match(viewer, /viewerElement\.requestFullscreen\(\)/);
+  assert.match(viewer, /document\.exitFullscreen\(\)/);
+  assert.match(viewer, /fullscreenchange/);
+  assert.match(viewer, /new ResizeObserver\(scheduleDiagramFit\)/);
+  assert.match(viewer, /function scheduleDiagramFit\(\)/);
+  assert.match(viewer, /requestAnimationFrame\(/);
+  assert.match(viewer, /fitDiagramViewer\(viewer\)/);
+  assert.match(
+    viewerModule,
+    /viewer\.resize\(\);[\s\S]*viewer\.fit\(\);[\s\S]*viewer\.center\(\);/,
+  );
+  assert.match(viewer, /:fullscreen/);
+  assert.match(
+    viewer,
+    /aria-label=\{isFullscreen \? 'Exit fullscreen' : 'View diagram fullscreen'\}/,
+  );
   assert.match(viewer, /function handleObjectLoad\(\)/);
   assert.match(headers, /Content-Security-Policy: frame-ancestors 'self'/);
   assert.doesNotMatch(headers, /X-Frame-Options: DENY/);
