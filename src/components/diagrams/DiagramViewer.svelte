@@ -1,4 +1,4 @@
-onMount(() => <script lang="ts">
+<script lang="ts">
   import { onMount } from 'svelte';
   import { Button, Skeleton } from '@weluvabid/iris/components';
   import { ExternalLink, RotateCcw, ZoomIn, ZoomOut } from '@weluvabid/iris/lucide';
@@ -37,14 +37,11 @@ onMount(() => <script lang="ts">
     }
 
     abortController = new AbortController();
-
-    initialization = createDiagramViewer(
-      panzoomElement,
-      stageElement,
-      abortController.signal,
-    )
+    initialization = createDiagramViewer(panzoomElement, stageElement, abortController.signal)
       .then((instance) => {
-        if (!instance) return;
+        if (!instance) {
+          return;
+        }
 
         viewer = instance;
         ready = true;
@@ -66,9 +63,12 @@ onMount(() => <script lang="ts">
   }
 
   function clearLoadTimeout(): void {
-    if (loadTimeout === null) return;
+    if (loadTimeout === null) {
+      return;
+    }
 
     clearTimeout(loadTimeout);
+
     loadTimeout = null;
   }
 
@@ -77,15 +77,18 @@ onMount(() => <script lang="ts">
 
     if (!objectElement.contentDocument?.querySelector('svg')) {
       failed = true;
+
       return;
     }
 
     failed = false;
+
     void initializeViewer();
   }
 
   function handleLoadError(): void {
     clearLoadTimeout();
+
     failed = true;
   }
 
@@ -108,6 +111,7 @@ onMount(() => <script lang="ts">
 
     fitFrame = requestAnimationFrame(() => {
       fitFrame = null;
+
       fitDiagramViewer(viewer);
     });
   }
@@ -133,16 +137,16 @@ onMount(() => <script lang="ts">
     let lastHeight = stageElement.getBoundingClientRect().height;
 
     const resizeObserver = new ResizeObserver(([entry]) => {
-      if (!entry) return;
+      if (!entry) {
+        return;
+      }
 
       const { width, height } = entry.contentRect;
 
-      if (
-        Math.abs(width - lastWidth) > 1 ||
-        Math.abs(height - lastHeight) > 1
-      ) {
+      if (Math.abs(width - lastWidth) > 1 || Math.abs(height - lastHeight) > 1) {
         lastWidth = width;
         lastHeight = height;
+
         scheduleDiagramFit();
       }
     });
@@ -159,6 +163,7 @@ onMount(() => <script lang="ts">
 
       if (fitFrame !== null) {
         cancelAnimationFrame(fitFrame);
+
         fitFrame = null;
       }
 
@@ -293,4 +298,4 @@ onMount(() => <script lang="ts">
       {caption}
     </figcaption>
   {/if}
-</figure>);
+</figure>

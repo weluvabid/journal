@@ -24,7 +24,7 @@ test('the five architecture diagrams use the shared pan-and-zoom viewer', async 
   const headers = await readFile(join(root, 'public/_headers'), 'utf8');
 
   assert.match(viewerModule, /@panzoom\/panzoom/);
-  assert.match(viewerModule, /panOnlyWhenZoomed: true/);
+  assert.match(viewerModule, /pinchAndPan: true/);
   assert.match(viewerModule, /stage\.addEventListener\('wheel', viewer\.zoomWithWheel/);
   assert.match(viewerModule, /stage\.addEventListener\('dblclick', handleDiagramDoubleClick/);
   assert.match(viewerModule, /viewer\?\.zoomToPoint\(viewer\.getScale\(\) \* 1\.2, event\)/);
@@ -49,14 +49,20 @@ test('the five architecture diagrams use the shared pan-and-zoom viewer', async 
     viewer,
     /requestFullscreen|exitFullscreen|fullscreenchange|fullscreen-fallback|:fullscreen/,
   );
-  assert.match(viewer, /new ResizeObserver\(scheduleDiagramFit\)/);
+  assert.match(viewer, /new ResizeObserver\(\(\[entry\]\) =>/);
   assert.match(viewer, /bind:this=\{panzoomElement\}/);
+  assert.match(
+    viewer,
+    /stageElement\.addEventListener\('touchmove', preventNativeTouch, \{\s*passive: false,\s*\}\)/,
+  );
+  assert.match(viewer, /stageElement\.removeEventListener\('touchmove', preventNativeTouch\)/);
+  assert.match(viewer, /function preventNativeTouch\(event: TouchEvent\)/);
   assert.match(viewer, /pointer-events-none block size-full/);
   assert.match(viewer, /destroyDiagramViewer\(viewer, stageElement\)/);
   assert.match(viewer, /function scheduleDiagramFit\(\)/);
   assert.match(viewer, /requestAnimationFrame\(/);
   assert.match(viewer, /fitDiagramViewer\(viewer\)/);
-  assert.match(viewerModule, /viewer\.reset\(\{ animate: false \}\)/);
+  assert.match(viewerModule, /viewer\?\.reset\(\{ animate: false \}\)/);
   assert.match(viewer, /function handleObjectLoad\(\)/);
   assert.match(headers, /Content-Security-Policy: frame-ancestors 'self'/);
   assert.doesNotMatch(headers, /X-Frame-Options: DENY/);

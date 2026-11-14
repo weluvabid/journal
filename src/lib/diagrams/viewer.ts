@@ -7,9 +7,12 @@ const diagramViewers = new WeakMap<HTMLElement, DiagramViewer>();
 function handleDiagramDoubleClick(event: MouseEvent): void {
   const stage = event.currentTarget;
 
-  if (!(stage instanceof HTMLElement)) return;
+  if (!(stage instanceof HTMLElement)) {
+    return;
+  }
 
   const viewer = diagramViewers.get(stage);
+
   viewer?.zoomToPoint(viewer.getScale() * 1.2, event);
 }
 
@@ -18,7 +21,9 @@ export async function createDiagramViewer(
   stage: HTMLDivElement,
   signal: AbortSignal,
 ): Promise<DiagramViewer | null> {
-  if (signal.aborted) return null;
+  if (signal.aborted) {
+    return null;
+  }
 
   const object = element.querySelector('object');
 
@@ -28,20 +33,18 @@ export async function createDiagramViewer(
 
   const { default: createPanZoom } = await import('@panzoom/panzoom');
 
-  if (signal.aborted) return null;
+  if (signal.aborted) {
+    return null;
+  }
 
   const viewer = createPanZoom(element, {
     minScale: 0.5,
     maxScale: 12,
     step: 0.2,
     pinchAndPan: true,
-    //touchAction: 'none',
   });
 
-  stage.addEventListener('wheel', viewer.zoomWithWheel, {
-    passive: false,
-  });
-
+  stage.addEventListener('wheel', viewer.zoomWithWheel, { passive: false });
   stage.addEventListener('dblclick', handleDiagramDoubleClick);
 
   diagramViewers.set(stage, viewer);
@@ -54,7 +57,9 @@ export function fitDiagramViewer(viewer: DiagramViewer | null): void {
 }
 
 export function destroyDiagramViewer(viewer: DiagramViewer | null, stage: HTMLDivElement): void {
-  if (!viewer) return;
+  if (!viewer) {
+    return;
+  }
 
   stage.removeEventListener('wheel', viewer.zoomWithWheel);
   stage.removeEventListener('dblclick', handleDiagramDoubleClick);
@@ -62,4 +67,3 @@ export function destroyDiagramViewer(viewer: DiagramViewer | null, stage: HTMLDi
   diagramViewers.delete(stage);
   viewer.destroy();
 }
-
