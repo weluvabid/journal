@@ -146,7 +146,7 @@
 
     <div
       bind:this={stageElement}
-      class="relative h-[min(68vh,42rem)] min-h-64 w-full overflow-hidden bg-background [touch-action:none]"
+      class="relative h-[min(68vh,42rem)] min-h-64 w-full overflow-hidden bg-white [touch-action:none]"
       aria-busy={!ready && !failed}
     >
       <object
@@ -154,7 +154,7 @@
         data={src}
         type="image/svg+xml"
         aria-label={alt}
-        class="block size-full"
+        class="block size-full bg-white"
       >
         <a href={src} target="_blank" rel="noopener noreferrer">Open diagram: {alt}</a>
       </object>
