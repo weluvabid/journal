@@ -27,21 +27,21 @@ draft: false
 kind: article
 ---
 
-A cache benchmark can flatter whatever policy you just wrote. I set up Cachewise's runs so both policies see the the same deterministic requests and logical capacity, with recency, recomputation cost and size pulling in different directions.
+A cache benchmark is easy to bias. In Cachewise, I set it up so both policies see the same deterministic requests and logical capacity. Recency, recomputation cost and size pull in different directions.
 
-`computeCost` is a weight the caller supplies. The bench does not run the expensive work. That keeps the factory from dominating the timer while the cache policy is measured. A higher weighted hit ratio only translates into lower application latency when the real recomputation cost is measured too.
+`computeCost` is passed in, and the expensive operation is not executed. This means the factory does not skew the time taken by the cache policy. A better weighted hit ratio will only translate into less work in the application if the actual recomputation cost is measured too.
 
-I kept the benchmark to three workloads:
+The benchmark uses three scenarios:
 
-- **Scan pollution.** A hot, expensive set sits near capacity while a large fraction of requests are cheap one-off keys. Does scan traffic kick out the entries you actually wanted to keep?
-- **Skewed expensive reuse.** Access piles onto a small head of the key space, and that head is expensive. Sizes vary.
-- **Byte pressure.** Small expensive entries fight large cheap ones for the same byte budget.
+- **Scan pollution.** A set of expensive hot items stays close to capacity while a large proportion of requests go to cheap, single-use keys. Are the items you want to keep being evicted by the scan traffic?
+- **Skewed expensive reuse.** A small part of the keyspace gets most of the requests. Those keys are expensive, and their sizes vary.
+- **Byte pressure.** A small number of expensive items compete with large, cheap items for the same byte budget.
 
-The clock is logical, so recency decay and sketch aging don't depend on the scheduler being in a good mood. Policy order alternates across trials so one policy doesn't always run warm. Warm-up runs are excluded from the measured samples. The report keeps the runtime, the machine, and every trial. JSON for the raw run, CSV if you want to argue with it in a notebook, Markdown for the short table.
+The clock is logical. Recency decay and sketch aging are not affected by the scheduler. The policies are rotated so neither one is always running first. Warm-up runs are not counted. The report includes the runtime, machine and all measured runs. The raw run is available as JSON. The CSV is there if you want to argue with the results in a notebook, and the Markdown gives a quick summary table.
 
-The number I care about first is weighted hit ratio: cost-weight served by hits, over cost-weight requested. Raw hit ratio is context. A hit on an expensive key saves more work than a hit on a cheap one. Throughput and batch p50/p95 are there because the policy itself costs CPU. Those percentiles come from batch averages, so they describe batch timing rather than individual operations. Evictions and rejections show whether the cache made room or refused the insert.
+The first thing I look at is the weighted hit ratio. It is the total cost weight of items served by hits divided by the total cost weight of all requested items. That gives some context to the ordinary hit ratio: a hit on an expensive item saves more work than a hit on a cheap one. Throughput and batch p50/p95 are included too. These values are based on batch averages, so they give an indication of batch speed rather than the latency of individual operations. The eviction and rejection counts show whether items were evicted to make room or whether an incoming item was rejected.
 
-One checked-in run, Node.js 26.13.0, Apple M4 Max, 100,000 ops, 256 KiB logical budget, seven measured trials, two warm-ups:
+An example run is committed. It used Node.js 26.13.0 on an Apple M4 Max, with 100,000 operations, a 256 KiB logical budget, seven measured runs and two warm-up runs.
 
 | Workload               |    LRU | Cost-aware |
 | ---------------------- | -----: | ---------: |
@@ -49,8 +49,8 @@ One checked-in run, Node.js 26.13.0, Apple M4 Max, 100,000 ops, 256 KiB logical 
 | Skewed expensive reuse | 58.93% |     91.69% |
 | Byte pressure          | 80.94% |     99.44% |
 
-The cost-aware policy had a higher weighted hit ratio on all three workloads. Throughput was slower on the first two and faster on byte pressure.
+The cost-aware policy had a higher weighted hit ratio on all three workloads. Throughput was slower on the first two scenarios but faster for byte pressure.
 
-`maxBytes` is the cache's accounting budget. Process RSS also includes runtime and object overhead. JIT, GC and machine load affect timings, so compare policies within the same run before comparing commits. GitHub-hosted runners are convenient, but noisy.
+`maxBytes` is the cache's accounting budget. Process RSS also includes the runtime and object overhead. JIT, GC and machine load affect the timings, so only compare policies within the same run. GitHub-hosted runners are convenient, but noisy.
 
-For an application decision, use a trace from that application and measure the factory itself, not just the cache bookkeeping.
+To make a decision for your application, use a trace from that application and measure the factory itself, not just the cache bookkeeping.

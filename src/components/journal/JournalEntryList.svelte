@@ -77,10 +77,10 @@
 
       nextPageUrl = payload.nextPageUrl;
 
+      loaderState.loaded();
+
       if (nextPageUrl === null) {
         loaderState.complete();
-      } else {
-        loaderState.loaded();
       }
     } catch (error) {
       if (!destroyed) {
@@ -129,6 +129,10 @@
         <p class="text-sm text-muted-foreground">More entries couldn't be loaded.</p>
         <Button.Root type="button" variant="outline" onclick={attemptLoad}>Try again</Button.Root>
       </div>
+    {/snippet}
+
+    {#snippet noResults()}
+      <p class="py-4 text-center text-xs text-muted-foreground">No entries found.</p>
     {/snippet}
 
     {#snippet noData()}

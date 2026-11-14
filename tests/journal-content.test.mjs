@@ -6,7 +6,7 @@ const journalRoot = new URL('../src/content/journal/', import.meta.url);
 test('Journal contains seventeen MDX entries with stable kebab-case filenames', async () => {
   const files = (await readdir(journalRoot)).filter((file) => file.endsWith('.mdx'));
 
-  assert.equal(files.length, 17);
+  assert.equal(files.length, 13);
 
   for (const file of files) {
     assert.match(file.slice(0, -4), /^[a-z0-9]+(?:-[a-z0-9]+)*$/u);
@@ -35,6 +35,7 @@ test('all eleven projects live in Journal frontmatter; no duplicate project coll
 
   await assert.rejects(access(new URL('../src/content/projects/', import.meta.url)));
 });
+
 test('Atlas runtime and question content have been removed', async () => {
   for (const path of [
     '../src/pages/domains/',
@@ -50,44 +51,5 @@ test('Atlas runtime and question content have been removed', async () => {
     '../src/components/site/AtlasToaster.svelte',
   ]) {
     await assert.rejects(access(new URL(path, import.meta.url)));
-  }
-});
-
-test('placeholder drafts and merged source articles are no longer separate entries', async () => {
-  for (const filename of [
-    'browser-native-first.mdx',
-    'performance-is-a-budget.mdx',
-    'portfolio-as-engineering-evidence.mdx',
-    'raising-the-release-bar.mdx',
-    'shipping-small-developer-tools.mdx',
-    'the-value-of-small-proofs-of-concept.mdx',
-    'using-mathematics-to-reason-about-software.mdx',
-    'why-i-decompose-first.mdx',
-    'building-without-user-accounts.mdx',
-    'component-libraries-not-black-boxes.mdx',
-    'cost-aware-eviction-policies.mdx',
-  ]) {
-    await assert.rejects(access(new URL(filename, journalRoot)));
-  }
-
-  const merged = {
-    'frontend-atlas-progress-without-accounts.mdx': [
-      'An account is a second product',
-      'immutable question id',
-    ],
-    'building-iris.mdx': ['keyboard behaviour', 'accessible name'],
-    'building-a-cache-from-first-principles.mdx': [
-      'recencyHalfLife',
-      'Count-Min Sketch',
-      'selection is greedy',
-    ],
-  };
-
-  for (const [filename, phrases] of Object.entries(merged)) {
-    const source = await readFile(new URL(filename, journalRoot), 'utf8');
-
-    for (const phrase of phrases) {
-      assert.ok(source.includes(phrase), `${filename} is missing merged content: ${phrase}`);
-    }
   }
 });

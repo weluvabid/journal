@@ -37,22 +37,22 @@ projectDetails:
     - label: Consuming projects demonstrating reuse
 ---
 
-I got tired of rebuilding the same buttons, dialogs and form spacing every time a project needed a UI. Iris is the boring package I extracted so Pulse, Frontend Atlas and the journal could share primitives without sharing a brand.
+I was getting tired of rebuilding the same buttons, dialogues and form spacing every time I needed a UI. Iris is a boring package I pulled out to allow Pulse, Frontend Atlas and the journal to use the same primitives, without sharing a brand.
 
-Iris gives my Svelte projects a shared set of components and a consistent base. The app still owns its routes, page composition and state. If Iris starts owning navigation, I've built the wrong thing.
+Iris allows me to have a shared set of components across my Svelte projects. The application will have ownership over the routing, composition and state. If Iris takes ownership of the navigation then I have done it wrong.
 
-I use shadcn-svelte primitives for dialog focus traps, popover positioning and menu keyboard behaviour. Those interactions have plenty of edge cases, and the primitives already handle them. Iris sits on top: composition, tokens, the bits that should look related across my projects.
+I’m using `shadcn-svelte` primitives to create dialogues with focus trapping, positioning for popovers and keyboard functionality for menus. There are many edge cases to consider in interactions like this, so it’s good that the primitives already have this built in. I’m using Iris to compose, add tokens and share the parts that should look similar between projects.
 
-I still need to understand the primitive I'm composing. A dialog is more than a box with an X, and a combobox needs more than an input beside a list. The primitive handles focus trapping, dismissal, keyboard behaviour and accessibility roles. The app supplies the title, items and their meaning. Styling can change, but the focus ring and accessible name have to survive.
+I’m still required to understand what the primitive is doing. Dialogues aren’t just a box with an X and comboboxes aren’t just an input and list. The primitive takes care of focus trapping, closing, keyboard functionality and accessibility roles. The title, items and meaning of the items come from the application. The styling can change but the focus ring and accessible name must remain.
 
-When a component's contract is unclear, I test it on its own before using it in a page. I try Tab and Escape, inspect the DOM, check where focus goes, and make sure the accessible name survives composition and theming. Rewriting every primitive would mean taking on years of edge cases. I keep those interactions in the primitive and let Iris handle composition and product styling.
+If I’m unsure about what the component is doing I’ll build it out on its own. I’ll use `Tab` and `Escape`, look at the DOM and make sure that the accessible name remains. By rewriting all the primitives I’d be taking on years of edge cases. So I’ll keep the interactions within the primitive and compose and style for the product using Iris.
 
-I kept the visual system monochrome, with light and dark themes built from shared tokens. Labels stay readable, errors stay visible, and spacing follows the same rules across components. Tailwind keeps the styles in one system without giving every consumer a pile of props to reinvent the button.
+I’ve kept the visual design simple with light and dark themes using the same tokens. The labels remain readable, errors visible and spacing consistent. Using Tailwind means all the styles are part of one system. Consumers won’t have to pass lots of props to recreate the button.
 
-The demo shows the package being installed, composed and themed. If the demo gets more interesting than the library, I've started a second product by accident.
+The demo shows how the package can be installed, composed and themed. If the demo becomes more interesting than the library I’ve accidentally created a second product.
 
-The package boundary is the product: stable exports, explicit peer dependencies, styles that don't reach into undocumented repo paths, and a tarball that installs in an empty project. Version 0.4.1 on npm was the first useful checkpoint; the component set can keep growing without changing that boundary.
+The package boundary is the product. It has clear exports, peer dependencies and no styles that dig into unknown parts of the repo. It can be installed as a tarball into an empty project. Version `0.4.1` on npm was the first useful checkpoint. The component set can be expanded without affecting the package boundary.
 
-A component is reusable when its API makes the responsibilities clear, its accessibility behaviour is understood, its dependencies are easy to follow, and its failure modes can be tested. I test the package itself by installing its tarball into an empty project.
+A component is reusable if it has clear responsibilities in its API, you know how it will behave with accessibility, it has clear dependencies and can be tested for failure. I’ll test the package by installing the tarball.
 
-I want Iris to stay small and composable. The primitives should stay visible, and the next app should keep its own identity. Success is another repo being able to take a dialog, understand its contract and move on.
+I want to keep Iris small and composable. The primitives should be clear and the next application should have its own identity. Success is having another repo that can take the dialog and understand what it is doing.

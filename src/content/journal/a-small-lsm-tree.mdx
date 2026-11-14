@@ -48,13 +48,13 @@ projectDetails:
 
 import DiagramViewer from '@components/diagrams/DiagramViewer.svelte';
 
-An LSM usually gets reduced to three steps: buffer writes, flush them in sorted order, merge later. TinyLSM also has to get the details right: tombstones, publishing a run before clearing the memtable, and checking each run's contents during recovery instead of trusting its filename.
+There are three phases to the LSM: write to a buffer, flush to a sorted run, and merge. TinyLSM handles tombstone records, makes sure the run is published before the memtable is cleared, and checks that each run contains the expected data during recovery.
 
-Keys and values are opaque byte slices. Empty keys and empty values are both valid. A missing key is not the same thing as an empty value. A tombstone is a record too: it says the key was deleted, not that this layer has never seen it.
+All keys and values are opaque byte slices. Keys and values can be empty. An empty value is not the same as a missing key. Tombstone records are used to show that a key has been deleted.
 
-The memtable is a `BTreeMap`. Writes go there. Reads check it first, then walk immutable runs from newest to oldest. The newest record wins. If that record is a tombstone, the key is gone even if an older run still contains a value. Drop the tombstone too early and the deleted row comes back.
+The memtable is a `BTreeMap`. When reading, the memtable will be checked first. Then the immutable runs will be scanned in order from newest to oldest. The newest entry will take priority. If the newest entry is a tombstone then the key will not exist. If a tombstone is removed too early during compaction then an older value can become visible again.
 
-Flush serializes an ordered snapshot into a new run. The memtable is cleared only after that run has been published. If writing or publishing fails, the memtable remains available; clearing it first would throw away the only live copy before the replacement is ready.
+The flush function takes an ordered snapshot and serialises it to a new run. The memtable will not be cleared until after the run has been published. If there is an error while writing or publishing then the memtable will still be available. We don’t want to clear the memtable as we will lose our only live copy.
 
 | Operation  | Data path                                                    | Failure or guarantee                                            |
 | ---------- | ------------------------------------------------------------ | --------------------------------------------------------------- |
@@ -71,23 +71,23 @@ Flush serializes an ordered snapshot into a new run. The memtable is cleared onl
   caption="The important boundary is publish first, clear second."
 />
 
-`Engine::new()` creates an in-memory engine. For a disk-backed engine, use `open(path)`. Flush and compaction require the disk-backed engine. The public API takes `&mut self`, so the model is single-writer and synchronous: no locking, no background thread. Running two processes against the same directory is not supported.
+`Engine::new()` creates an in-memory engine. To create a disk-backed engine we would call `open(path)`. We need the disk-backed engine to perform flushes and compaction. The public API takes `&mut self` so it is designed to be a single writer. There is no locking or background thread. Having two processes running against the same directory is not supported.
 
-Once published, a run is immutable. When opening the engine, TinyLSM parses every discovered run before returning an engine. Bad headers, unknown tags, out-of-order keys, truncated records or trailing bytes make recovery fail.
+Runs are immutable once published. TinyLSM will parse all runs it finds when opening the engine. If there are any issues with the headers, unknown tags, unsorted keys, incomplete records or trailing bytes then recovery will fail.
 
-A lookup may inspect several runs. There is no Bloom filter or block index, so reads can involve walking multiple runs.
+When looking up a value it could scan through multiple runs. There is no Bloom filter or block index.
 
-Compaction is a k-way merge of already-sorted runs. It does not dump everything into a map and sort it again. If multiple runs contain the same key, the record from the highest generation wins, including a tombstone. TinyLSM preserves deletion semantics through compaction. There are no snapshots or leveled compaction, so it has no basis for deciding that a tombstone is safe to drop.
+Compaction is a k-way merge of sorted runs. It will not load all the data into a map and sort it. If there are multiple runs with the same key then the record with the highest generation (including a tombstone) will be used. TinyLSM maintains deletion semantics as there are no snapshots or leveled compaction to determine if a tombstone can be safely removed.
 
-`Engine::inspect` lets tests examine what was persisted instead of inferring it from `get`. Errors are typed, and adversarial tests feed malformed files through recovery.
+`Engine::inspect` allows tests to see what has been persisted rather than guessing based on the return from `get`. Errors are typed. Adversarial tests will pass malformed files to recovery.
 
-The benchmark reports median and p95 nanoseconds per item for selected workloads. `BENCH_ITEMS` and `BENCH_SAMPLES` control the workload size and sample count.
+The benchmark shows the median and p95 of how many nanoseconds it took to process each item in the selected workloads. `BENCH_ITEMS` and `BENCH_SAMPLES` can be changed to alter the size of the workload and samples.
 
-This version covers the synchronous single-writer path. I have left the WAL, concurrent readers, background compaction, block cache, transactions and network protocol out of it.
+This version only handles the synchronous single-writer path. I have not included WAL, concurrent readers, background compaction, block caching, transactions or network protocol.
 
 ```text
 Flush publishes R2:  memtable [A, B] → empty; runs [R1] → [R2, R1]
 Publish fails:       memtable [A, B] stays; runs remain [R1]
 ```
 
-The run file is synced before rename. Parent-directory sync is still on the durability backlog.
+The run file is synced before renaming. Syncing the parent directory is still on my durability TODO list.

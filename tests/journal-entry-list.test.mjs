@@ -37,3 +37,17 @@ test('journal pagination aborts an active request when its component is destroye
   assert.match(component, /signal: controller\.signal/);
   assert.match(component, /window\.clearTimeout\(timeoutId\)/);
 });
+
+test('journal pagination marks the final successful page as loaded before completion', async () => {
+  const component = await read('src/components/journal/JournalEntryList.svelte');
+  const loadedIndex = component.indexOf('loaderState.loaded();');
+  const completeIndex = component.indexOf('loaderState.complete();');
+
+  assert.notEqual(loadedIndex, -1);
+  assert.notEqual(completeIndex, -1);
+  assert.ok(loadedIndex < completeIndex);
+  assert.match(component, /\{#snippet noResults\(\)\}/);
+  assert.match(component, /No entries found\./);
+  assert.match(component, /\{#snippet noData\(\)\}/);
+  assert.match(component, /You've reached the end\./);
+});

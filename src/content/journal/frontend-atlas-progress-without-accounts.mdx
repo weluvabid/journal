@@ -59,13 +59,13 @@ projectDetails:
 
 import DiagramViewer from '@components/diagrams/DiagramViewer.svelte';
 
-An account is a second product: registration, sessions, password resets, email, deletion, retention and support. Sometimes that infrastructure is justified. Remembering which questions I finished was not enough of a reason to build it. Frontend Atlas is a handbook, not a multiplayer app. I wanted the reading experience to earn that complexity first.
+An account is a second product: registration, sessions, password recovery, email, deletion, persistence and support. Sometimes that infrastructure is justified, but I didn't feel that remembering which questions were completed was a good enough reason. Frontend Atlas is a reference guide, not a multiplayer application. I wanted the reading experience to earn that complexity first.
 
-Frontend Atlas has to remember which questions you finished and where you stopped reading. Progress stays in the browser. Moving it to another device is a separate problem, handled by an explicit QR transfer rather than a login.
+Frontend Atlas needs to remember which questions have been completed and where the reader stopped. Progress is stored in the browser. It won't move between devices automatically, but it can be transferred explicitly using a QR code.
 
-Progress is a small, versioned record in the browser, keyed by an immutable question id. The id does not change when the title changes or the article moves. Stored data is validated on read. Missing or malformed storage is shown as unsaved progress instead of a misleading `0% complete`. Clearing site data or switching browsers loses the local copy unless it was exported.
+Progress is a small, versioned store keyed by an immutable question id. The title can change or the article can move; the ID stays the same. Data is validated when it is read. If nothing is stored or the data is invalid, the guide shows no saved progress. Clearing site data or changing browsers will lose the local copy unless it has been exported.
 
-Export turns the progress record into a QR image. Its manifest is an ordered, append-only list of question IDs, so an old export keeps referring to the same questions after new ones are added. Version 1 starts with `FATL1:` and stores two bits per question. The manifest allows up to 150 questions, so the status bitset uses `ceil(150 × 2 / 8) = 38` bytes at the maximum, before the envelope and reading-position records. Reading positions use fixed-width entries alongside the bitset. The payload carries the manifest fingerprint and a checksum. Anyone with the QR image can inspect its progress data.
+Progress can be exported as a QR code. The manifest is an ordered, append-only list of question IDs. That way, an older export still refers to the same questions even after new ones have been added. Version 1 starts with `FATL1:`. Each question uses two bits. The manifest supports up to 150 questions, so the status bitset uses at most `ceil(150 × 2 / 8) = 38` bytes. Reading positions are stored separately using fixed-width entries. The payload also contains the manifest fingerprint and a checksum. Anyone with access to the QR code can inspect its progress data.
 
 | State       | Encoded value | Meaning                 |
 | ----------- | ------------- | ----------------------- |
@@ -73,7 +73,7 @@ Export turns the progress record into a QR image. Its manifest is an ordered, ap
 | In progress | `01`          | Started, not completed. |
 | Completed   | `10`          | Marked finished.        |
 
-Merge keeps completions from either snapshot and takes the higher reading position when both contain one. Replace uses the imported snapshot. Before local progress changes, import checks the format version, manifest fingerprint, indexes and bounds. A corrupt image is rejected before it can partially update the stored record.
+Merge takes the completed questions from both snapshots. If both snapshots have a reading position, the higher one is kept. Replace uses the imported snapshot as-is. Before applying any changes, the import checks the format version, manifest fingerprint, indexes and bounds. If the QR image is corrupt, it is rejected before the stored progress is changed.
 
 <DiagramViewer
   client:visible
@@ -82,9 +82,9 @@ Merge keeps completions from either snapshot and takes the higher reading positi
   caption="QR export and import move progress between browsers."
 />
 
-Moving progress is a manual transfer. After import, the two browsers can change independently until someone exports and imports again. Both devices need to be available for that transfer. Automatic sync, shared workspaces and recovery after a wiped device would need a server, which I haven't built for this handbook.
+Progress has to be transferred manually. After importing it, the two browsers can be changed independently until the progress is exported and imported again. Both devices need to be available for the transfer. Automatic sync, shared workspaces and recovery after a wiped device would need a server. I haven't built that for this reference guide.
 
-The wire format and its tests live in the repo. Progress stays in the current browser, with QR export and import for moving it to another device.
+The wire format and its tests are in the repo. Progress stays in the current browser and can be exported or imported as a QR code.
 
 ```text
 Question state: 00 not started · 01 in progress · 10 completed

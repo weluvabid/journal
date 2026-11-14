@@ -39,17 +39,17 @@ projectDetails:
       url: https://github.com/weluvabid/wordweave#collision-analysis
 ---
 
-I started WordWeave after running into a chat filter that replaced messages with `#####`. It maps selected terms to ordinary four-word phrases while preserving punctuation, whitespace and casing. The mapping is reversible, and the vocabulary is public, so anyone with it can decode the phrases.
+WordWeave started when I ran into a chat filter that replaced messages with `#####`. It takes selected terms and replaces them with ordinary four-word phrases, while preserving punctuation, whitespace and casing. The mapping is reversible, and the vocabulary is public, so anyone with access to it can decode the phrases.
 
-The budget is the phrase space. Each of four positions picks from 64 words.
+The vocabulary gives us a limited dictionary. Each of the four words in a phrase has 64 options.
 
 `64⁴ = 16,777,216`
 
-Each position contributes six bits if the choices are uniform and independent. Three positions give `64³ = 262,144` phrases; four give `64⁴ = 16,777,216`, a 64-fold increase. The same 64 reserved phrases therefore occupy 64 times less of the four-word space. That's the combinatorial model. The corpus scan checks how the chosen vocabulary behaves in real text, where word frequencies and sentence positions are far from uniform or independent.
+That gives us six bits per word if the choices are uniform and independent. Three words give `64³ = 262,144` phrases. Moving to four words increases that space by a factor of 64, to `16,777,216`. The same 64 reserved phrases therefore occupy 64 times less of the four-word space. That's the combinatorial part. The corpus scan checks how the vocabulary behaves in actual text, where word frequencies and positions are much less uniform or independent.
 
-The scanner resets for each document, so phrases never span file boundaries. The checked-in corpus is 135 documents and 643,164 tokens. Technical docs, literature, conversation samples. The scan on record found zero reserved-phrase collisions in that set.
+The scanner resets between documents, so phrases never cross file boundaries. The checked-in corpus contains 135 documents and 643,164 tokens. They include technical documents, literature and conversation examples. No collisions were found in that corpus scan.
 
-If a reserved phrase appears, `findCodewordCollisions` reports the phrase and its offset in JavaScript UTF-16 code units. That matters because decoding is exact: a reserved phrase is indistinguishable from encoded content. Consequently, `decode(encode(text)) === text` only holds when the input contains no reserved phrase. The collision check exposes that condition before encoding.
+If a reserved phrase is found, `findCodewordCollisions` reports the phrase and its offset in JavaScript UTF-16 code units. The offset matters because decoding has to be exact. A reserved phrase looks the same as encoded content, so `decode(encode(text)) === text` only holds when the input contains no reserved phrase. The collision check tells us when that condition isn't met.
 
 ```ts
 import { decode, encode, findCodewordCollisions } from 'wordweave';
@@ -59,6 +59,6 @@ const original = decode(encoded);
 const collisions = findCodewordCollisions('ordinary text to inspect');
 ```
 
-`VOCABULARY_VERSION` is the protocol. Change a mapping and an old phrase means something else, or nothing. Decode with the version you encoded with. There's no compatibility layer hiding in the words.
+`VOCABULARY_VERSION` defines the protocol. If the mapping changes, an old phrase may mean something different or nothing at all. The dictionary has to be decoded using the same version that was used to encode it.
 
-I also tried the phrases in the platform chat that inspired the project. That test only tells me how the phrases behaved in that chat at the time. The vocabulary is public, so anyone who has it can decode them; WordWeave provides no confidentiality or authentication.
+I also tried the phrases in the platform chat that inspired the project. That only tells me how they behaved in that chat at the time. The vocabulary is public, so anyone with it can decode the phrases. WordWeave provides no confidentiality or authentication.
