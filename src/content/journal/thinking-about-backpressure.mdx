@@ -36,6 +36,13 @@ Cancel work whose caller is gone, when stopping is actually safe. On shutdown: s
 
 What overload means depends on the promise. Some requests should fail fast. Some can wait inside a bounded window. Low-priority work can be dropped. Fulfillment work shouldn't vanish. Accept it durably or fail it where someone can see. The policy has to be the one already tested with the producer faster than the consumer, for longer than a demo.
 
+| Workload promise | Overload policy | Required boundary |
+| --- | --- | --- |
+| Interactive request | Fail fast or wait within a bounded window | Explicit timeout and concurrency limit. |
+| Retryable background work | Retry with backoff and jitter | Stable operation identity and idempotent handling. |
+| Low-priority disposable work | Drop when capacity is exhausted | Make the drop policy observable. |
+| Fulfillment-critical work | Accept durably or reject visibly | Never silently discard accepted work. |
+
 ```text
 Publish: 120 jobs/s
 Commit:   80 jobs/s

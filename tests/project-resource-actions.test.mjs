@@ -50,13 +50,10 @@ test('each project has exactly one canonical journal entry and related articles 
   }
 });
 
-test('project resources are rendered at the end of the canonical journal article', async () => {
+test('project metadata remains the source of truth without rendering a duplicate project block in articles', async () => {
   const page = await read('src/pages/journal/[...slug].astro');
-  const component = await read('src/components/projects/ProjectResources.astro');
-  assert.match(page, /entry\.data\.kind === 'project'[\s\S]*?<ProjectResources details=\{entry\.data\.projectDetails\}/);
-  assert.match(component, /Repository notes and resources/);
-  assert.match(component, /details\.stack\.map/);
-  assert.match(component, /details\.resources\.map/);
+  assert.match(page, /projectEntry\?\.data\.projectDetails\?\.github/);
+  assert.doesNotMatch(page, /ProjectResources|Repository notes and resources/);
 });
 
 test('Projects archive is generated from canonical journal entries', async () => {

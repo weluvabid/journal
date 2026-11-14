@@ -72,6 +72,13 @@ Allocating before wiring is why forward refs and cycles are normal. It's also wh
 
 Supported: ordinary objects and null-prototype objects, sparse arrays, `Date`, `RegExp` (including `lastIndex` as a graph edge), `Map` and `Set` in insertion order, `ArrayBuffer`, typed arrays, `DataView`. Views share backing-buffer identity. Buffers are allocated before views so the offset is real.
 
+| Value family | Version 1 support | Preserved contract |
+| --- | --- | --- |
+| Objects and arrays | Ordinary and null-prototype objects; sparse arrays | Graph identity, cycles and array holes. |
+| Built-ins | `Date`, `RegExp`, `Map`, `Set` | Map/Set insertion order; RegExp `lastIndex`. |
+| Binary data | `ArrayBuffer`, typed arrays, `DataView` | Shared backing-buffer identity, offsets and view lengths. |
+| Unsupported values | Functions, symbols, DOM nodes, weak collections, arbitrary classes | Rejected rather than silently flattened. |
+
 Accessors are not invoked on purpose. Descriptors, extensibility and arbitrary prototypes are not preserved. Restored data properties come back writable and configurable. Proxies are outside the contract; reflecting on one can run traps, and I can't promise a hostile proxy is side-effect free. Resizable buffers and `SharedArrayBuffer` are unsupported.
 
 The decoder treats the document as untrusted. Limits (`maxNodes`, `maxEdges`, `maxBinaryBytes`, string length, collection size, input and output chars) fail with `RESOURCE_LIMIT_EXCEEDED`. They are work bounds, not a precise heap budget.

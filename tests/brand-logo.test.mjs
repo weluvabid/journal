@@ -1,41 +1,19 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { readFileSync } from 'node:fs';
+import { readFile } from 'node:fs/promises';
 
-const header = readFileSync(
-  new URL('../src/components/site/JournalHeader.svelte', import.meta.url),
-  'utf8',
-);
-const footer = readFileSync(
-  new URL('../src/components/site/JournalFooter.svelte', import.meta.url),
-  'utf8',
-);
-const ghost = readFileSync(
-  new URL('../src/components/brand/GhostMark.svelte', import.meta.url),
-  'utf8',
-);
+const read = (path) => readFile(new URL(`../${path}`, import.meta.url), 'utf8');
 
-for (const [name, source] of [
-  ['header', header],
-  ['footer', footer],
-]) {
-  test(`${name} uses the shared animated ghost mark`, () => {
-    assert.match(source, /GhostMark/);
-    assert.match(source, /gradientId=/);
-    assert.doesNotMatch(source, />\s*fa\s*</);
-  });
-}
-
-test('footer ghost and GitHub icons use matching 24px dimensions', () => {
-  assert.match(footer, /ghost-link inline-flex size-10/);
-  assert.match(footer, /<GhostMark class="h-7 w-auto"/);
-  assert.match(footer, /<SiGithub class="size-6"/);
+test('header uses a text Journal wordmark instead of the retired ghost mark', async () => {
+  const header = await read('src/components/site/JournalHeader.svelte');
+  assert.match(header, />\s*Journal\s*</);
+  assert.match(header, /aria-label="Journal home"/);
+  assert.doesNotMatch(header, /GhostMark|ghost-link/);
 });
 
-test('ghost animation includes idle, blink, twinkle, hover wink and reduced-motion support', () => {
-  assert.match(ghost, /ghost-float/);
-  assert.match(ghost, /ghost-blink/);
-  assert.match(ghost, /ghost-twinkle/);
-  assert.match(ghost, /ghost-wink-eye/);
-  assert.match(ghost, /prefers-reduced-motion: reduce/);
+test('footer retains the GitHub link without the retired ghost mark', async () => {
+  const footer = await read('src/components/site/JournalFooter.svelte');
+  assert.match(footer, /SiGithub/);
+  assert.match(footer, /https:\/\/github\.com\/weluvabid\/journal/);
+  assert.doesNotMatch(footer, /GhostMark|ghost-link/);
 });

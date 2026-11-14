@@ -26,6 +26,15 @@ Not an anti-library rant. A "name the missing capability" rant.
 
 These APIs are not the same in a page, an extension, a service worker and a frame. Permissions differ. Lifecycles differ. Hiding that behind a dependency usually means the abstraction is lying about the environment.
 
+| Capability | Browser API | Constraint to handle |
+| --- | --- | --- |
+| Parse URLs and query strings | `URL`, `URLSearchParams` | Validate the expected origin and parameters. |
+| Write to the clipboard | `navigator.clipboard` | Secure context, permission and user-gesture rules apply. |
+| Select or download files | File input, `Blob`, object URLs | Picker support and download lifecycle vary by context. |
+| Move work off the main thread | Web Workers | Messages need validation; workers have separate lifecycles. |
+| Cancel asynchronous work | `AbortController` | Cancellation is cooperative; consumers must observe the signal. |
+| Clone supported data | `structuredClone` | Only its defined value set is supported; it is not a universal object copier. |
+
 Copy 2 Markdown is the concrete case. Tab access is `activeTab` after the user invokes the action. The clipboard write happens in an extension-owned offscreen document, not in the page. Extraction and Turndown don't need a server. Adding one would mean someone's copied page content leaves the browser, which is the opposite of the product.
 
 A platform API tells you *how*. It does not decide *whether*. Clipboard writes still need a user gesture and a visible failure. A worker still needs a validated message and a rule for stale results. `localStorage` still needs a version, a quota failure path, and a defined response to garbage.

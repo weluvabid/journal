@@ -56,6 +56,14 @@ The memtable is a `BTreeMap`. Writes land there. A read checks the memtable firs
 
 Flush serializes an ordered snapshot into a new run and only then clears the memtable. If the write or the publish fails, the in-memory copy is still the only copy. Clearing first is how you lose data while believing you flushed.
 
+| Operation | Data path | Failure or guarantee |
+| --- | --- | --- |
+| Write | Update the in-memory `BTreeMap` memtable. | No disk run is created until flush. |
+| Read | Check memtable, then immutable runs newest-first. | A newest tombstone hides older values. |
+| Flush | Serialize and publish a sorted run, then clear memtable. | Failed write/publish leaves the memtable intact. |
+| Recovery | Parse every discovered run before opening the engine. | Malformed or truncated runs fail recovery. |
+| Compaction | K-way merge sorted runs; higher generation wins. | Tombstones remain; no snapshots or safe-drop policy. |
+
 <DiagramViewer client:visible src="/diagrams/tiny-lsm-storage-lifecycle.svg" alt="TinyLSM write path showing memtable accumulation, run publication, failure retention, clearing after success and compaction." caption="The important boundary is publish first, clear second." />
 
 `Engine::new()` is memory-only. `open(path)` is the disk engine. Flush and compact require the disk one. The public API takes `&mut self`. One writer, synchronous, no lock, no background thread. Two processes on the same directory are not a supported mode.

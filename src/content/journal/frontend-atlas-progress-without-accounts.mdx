@@ -65,6 +65,12 @@ Progress is a small record in the browser, keyed by question id. The id does not
 
 The QR isn't a login. A manifest is the ordered dictionary of ids, append-only, because an export from last month has to mean the same slots. Version 1 starts with `FATL1:` and stores two bits per question. 150 questions is the cap, so the bitset is `ceil(150 × 2 / 8) = 38` bytes before envelope and positions. Reading position is fixed-width on the side. Favourites live in the format without sharing bits with "done." A question can be favourited without being marked complete; a bookmark does not count as finishing the page. The QR code carries that distinction too.
 
+| State | Encoded value | Meaning |
+| --- | --- | --- |
+| Not started | `00` | No progress recorded. |
+| In progress | `01` | Started, not completed. |
+| Completed | `10` | Marked finished. |
+
 Merge keeps local completions the incoming QR doesn't have. Replace overwrites. Both names do what they say. Version, manifest compatibility, indexes, bounds — checked before the local record changes. A corrupt image fails. It does not half-apply.
 
 <DiagramViewer client:visible src="/diagrams/frontend-atlas-progress-transfer.svg" alt="Frontend Atlas progress transfer from local completion through QR export, scan, payload validation and local import or rejection." caption="The QR is a transfer format, not an account or a sync service." />

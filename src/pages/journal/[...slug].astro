@@ -5,7 +5,6 @@ import { Badge, Breadcrumb, Button } from '@weluvabid/iris/components';
 import { ArrowLeft } from '@weluvabid/iris/lucide';
 import ArticleNavigation from '@components/article/ArticleNavigation.svelte';
 import ResourceActions from '@components/resources/ResourceActions.svelte';
-import ProjectResources from '@components/projects/ProjectResources.astro';
 import TagList from '@components/cards/TagList.svelte';
 import { categoryById } from '@data/categories';
 import { withBase, entryHref } from '@lib/journal';
@@ -34,6 +33,10 @@ const projectEntry = entry.data.project
       (item) => item.data.kind === 'project' && item.data.project === entry.data.project,
     )
   : undefined;
+const sourceRepository =
+  projectEntry?.data.projectDetails?.github ??
+  entry.data.projectDetails?.github ??
+  entry.data.links?.git;
 const allNavigationEntries = sortJournalEntriesWithSeriesGroups(publishedEntries);
 const categoryNavigationEntries = sortJournalEntriesWithSeriesGroups(
   publishedEntries.filter((item) => item.data.category === entry.data.category),
@@ -89,14 +92,16 @@ const seriesEntries = entry.data.series
         {entry.data.title}
       </h1>
       <p class="mt-5 text-base leading-8 text-muted-foreground">{entry.data.summary}</p>
+      {sourceRepository && (
+        <ResourceActions
+          client:load
+          git={sourceRepository}
+          title={entry.data.title}
+        />
+      )}
       <div class="block w-full min-w-0 max-w-full">
         <TagList tags={entry.data.tags} label={entry.data.title} />
       </div>
-      {
-        entry.data.links && (
-          <ResourceActions client:load links={entry.data.links} title={entry.data.title} />
-        )
-      }
     </header>
     <div class="prose-journal"><Content /></div>
     {
@@ -131,9 +136,6 @@ const seriesEntries = entry.data.series
         </nav>
       )
     }
-    {entry.data.kind === 'project' && entry.data.projectDetails && (
-      <ProjectResources details={entry.data.projectDetails} title={entry.data.title} />
-    )}
     <div class="mt-10">
       <Button.Root variant="ghost" href={withBase(`/journal/category/${category.id}/`)}
         ><ArrowLeft class="size-4" aria-hidden="true" />Back to {category.name}</Button.Root

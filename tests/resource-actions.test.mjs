@@ -4,65 +4,32 @@ import { readFile } from 'node:fs/promises';
 
 const read = (path) => readFile(new URL(`../${path}`, import.meta.url), 'utf8');
 
-test('journal schema accepts optional external resource links', async () => {
+test('journal schema retains optional external resource metadata', async () => {
   const schema = await read('src/content.config.ts');
-
   assert.match(schema, /links:\s*z\s*\.object\(/);
-
   for (const key of ['git', 'stackblitz', 'mermaid']) {
     assert.match(schema, new RegExp(`${key}: z\\.url\\(\\)\\.optional\\(\\)`));
   }
 });
 
-test('article action component uses the existing Simple Icons exports', async () => {
+test('article source action reuses the existing Git icon and renders only that action', async () => {
   const component = await read('src/components/resources/ResourceActions.svelte');
-
   assert.match(component, /import \{ Button, Tooltip \} from '@weluvabid\/iris\/components'/);
-  assert.match(component, /SiGit, SiStackblitz, SiMermaid/);
-  assert.equal((component.match(/<Button\.Root/g) ?? []).length, 3);
-  assert.equal((component.match(/variant="ghost"/g) ?? []).length, 3);
-  assert.equal((component.match(/size="icon"/g) ?? []).length, 3);
-  assert.equal(
-    (component.match(/rounded-full hover:bg-muted hover:text-foreground/g) ?? []).length,
-    3,
-  );
-  assert.doesNotMatch(component, /border border-border|rounded-md/);
-  assert.equal((component.match(/target="_blank"/g) ?? []).length, 3);
-  assert.equal((component.match(/rel="noopener noreferrer"/g) ?? []).length, 3);
-  assert.equal((component.match(/aria-label=/g) ?? []).length, 4);
-  assert.equal((component.match(/<Tooltip\.Root>/g) ?? []).length, 3);
-  assert.equal((component.match(/<Tooltip\.Content>/g) ?? []).length, 3);
-  assert.match(component, /<Tooltip\.Provider delayDuration=\{300\}>/);
-  assert.doesNotMatch(
-    component,
-    /title="(?:Source repository|Open in StackBlitz|Open Mermaid diagram)"/,
-  );
-  assert.match(component, /\{#if links\.git\}/);
-  assert.match(component, /\{#if links\.stackblitz\}/);
-  assert.match(component, /\{#if links\.mermaid\}/);
+  assert.match(component, /import \{ SiGit \} from '@weluvabid\/iris\/simple-icons'/);
+  assert.equal((component.match(/<Button\.Root/g) ?? []).length, 1);
+  assert.match(component, /href=\{git\}/);
+  assert.match(component, /target="_blank"/);
+  assert.match(component, /rel="noopener noreferrer"/);
+  assert.match(component, /aria-label="Source repository \(opens in a new tab\)"/);
+  assert.doesNotMatch(component, /SiStackblitz|SiMermaid|StackBlitz|Mermaid diagram/);
 });
 
-test('article page renders resource actions only when frontmatter supplies links', async () => {
+test('article page resolves one repository URL from canonical project metadata or article links', async () => {
   const page = await read('src/pages/journal/[...slug].astro');
-
-  assert.match(
-    page,
-    /import ResourceActions from '@components\/resources\/ResourceActions\.svelte'/,
-  );
-  assert.match(
-    page,
-    /entry\.data\.links && \([\s\S]*?<ResourceActions client:load links=\{entry\.data\.links}/,
-  );
-});
-
-test('StackBlitz and source repository links are attached to relevant articles', async () => {
-  const toolsArticle = await read('src/content/journal/shipping-small-developer-tools.mdx');
-  const platformArticle = await read('src/content/journal/designing-a-static-content-platform.mdx');
-
-  assert.match(toolsArticle, /git: https:\/\/github\.com\/weluvabid\/jsonplus/);
-  assert.match(
-    toolsArticle,
-    /stackblitz: https:\/\/stackblitz\.com\/edit\/jsonplus\?file=index\.js/,
-  );
-  assert.match(platformArticle, /git: https:\/\/github\.com\/weluvabid\/journal/);
+  assert.match(page, /projectEntry\?\.data\.projectDetails\?\.github/);
+  assert.match(page, /entry\.data\.projectDetails\?\.github/);
+  assert.match(page, /entry\.data\.links\?\.git/);
+  assert.match(page, /<ResourceActions[\s\S]*?git=\{sourceRepository\}/);
+  assert.match(page, /<p class="mt-5 text-base leading-8 text-muted-foreground">\{entry\.data\.summary\}<\/p>[\s\S]*?<ResourceActions/);
+  assert.doesNotMatch(page, /ProjectResources|entry\.data\.links &&/);
 });
