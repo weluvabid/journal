@@ -25,7 +25,7 @@
             rel="noopener noreferrer"
             variant="ghost"
             size="icon"
-            class="rounded-full hover:bg-muted hover:text-foreground"
+            class="rounded-full"
             aria-label="Source repository (opens in a new tab)"
           >
             <SiGit class="size-5" aria-hidden="true" />
@@ -45,7 +45,7 @@
               rel="noopener noreferrer"
               variant="ghost"
               size="icon"
-              class="rounded-full hover:bg-muted hover:text-foreground"
+              class="rounded-full"
               aria-label="Open StackBlitz demo (opens in a new tab)"
             >
               <SiStackblitz class="size-5" aria-hidden="true" />

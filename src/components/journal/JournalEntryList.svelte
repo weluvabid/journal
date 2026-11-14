@@ -1,5 +1,6 @@
 <script lang="ts">
   import { onDestroy, untrack } from 'svelte';
+  import { Button } from '@weluvabid/iris/components';
   import { SvelteSet } from 'svelte/reactivity';
   import { InfiniteLoader, LoaderState } from 'svelte-infinite';
   import JournalEntryCard from '@components/cards/JournalEntryCard.svelte';
@@ -105,13 +106,9 @@
     {#snippet error(attemptLoad)}
       <div class="flex flex-col items-center gap-3 py-4 text-center" role="alert">
         <p class="text-sm text-muted-foreground">More entries couldn't be loaded.</p>
-        <button
-          type="button"
-          class="rounded-lg border border-border px-3 py-2 text-sm font-medium text-foreground transition-colors hover:bg-muted focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring"
-          onclick={attemptLoad}
-        >
+        <Button.Root type="button" variant="outline" onclick={attemptLoad}>
           Try again
-        </button>
+        </Button.Root>
       </div>
     {/snippet}
 
