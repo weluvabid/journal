@@ -22,10 +22,10 @@
     "hooks:install": "sh ./scripts/install-hooks.sh"
   },
   "dependencies": {
+    "@panzoom/panzoom": "4.6.2",
     "@weluvabid/iris": "0.4.1",
     "svelte": "^5.0.0",
-    "svelte-infinite": "0.6.0",
-    "svg-pan-zoom": "^3.6.2"
+    "svelte-infinite": "0.6.0"
   },
   "devDependencies": {
     "@astrojs/check": "0.9.12",

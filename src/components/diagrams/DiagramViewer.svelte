@@ -1,8 +1,12 @@
-<script lang="ts">
+onMount(() => <script lang="ts">
   import { onMount } from 'svelte';
   import { Button, Skeleton } from '@weluvabid/iris/components';
   import { ExternalLink, RotateCcw, ZoomIn, ZoomOut } from '@weluvabid/iris/lucide';
-  import { createDiagramViewer, fitDiagramViewer } from '@lib/diagrams/viewer';
+  import {
+    createDiagramViewer,
+    destroyDiagramViewer,
+    fitDiagramViewer,
+  } from '@lib/diagrams/viewer';
   import type { DiagramViewer as Viewer } from '@lib/diagrams/viewer';
 
   interface Props {
@@ -14,12 +18,15 @@
   let { src, alt, caption }: Props = $props();
 
   let objectElement: HTMLObjectElement;
+  let panzoomElement: HTMLDivElement;
   let stageElement: HTMLDivElement;
+
   let viewer: Viewer | null = null;
   let initialization: Promise<void> | null = null;
   let abortController: AbortController | null = null;
   let loadTimeout: ReturnType<typeof setTimeout> | null = null;
   let fitFrame: number | null = null;
+
   let ready = $state(false);
   let failed = $state(false);
   let controlsFailed = $state(false);
@@ -30,11 +37,14 @@
     }
 
     abortController = new AbortController();
-    initialization = createDiagramViewer(objectElement, abortController.signal)
+
+    initialization = createDiagramViewer(
+      panzoomElement,
+      stageElement,
+      abortController.signal,
+    )
       .then((instance) => {
-        if (!instance) {
-          return;
-        }
+        if (!instance) return;
 
         viewer = instance;
         ready = true;
@@ -56,43 +66,38 @@
   }
 
   function clearLoadTimeout(): void {
-    if (loadTimeout !== null) {
-      clearTimeout(loadTimeout);
+    if (loadTimeout === null) return;
 
-      loadTimeout = null;
-    }
+    clearTimeout(loadTimeout);
+    loadTimeout = null;
   }
 
   function handleObjectLoad(): void {
     clearLoadTimeout();
 
-    // A load event does not guarantee that the embedded document is usable.
     if (!objectElement.contentDocument?.querySelector('svg')) {
       failed = true;
-
       return;
     }
 
     failed = false;
-
     void initializeViewer();
   }
 
   function handleLoadError(): void {
     clearLoadTimeout();
-
     failed = true;
   }
 
-  function zoomIn() {
+  function zoomIn(): void {
     viewer?.zoomIn();
   }
 
-  function zoomOut() {
+  function zoomOut(): void {
     viewer?.zoomOut();
   }
 
-  function resetView() {
+  function resetView(): void {
     viewer?.reset();
   }
 
@@ -103,25 +108,49 @@
 
     fitFrame = requestAnimationFrame(() => {
       fitFrame = null;
-
       fitDiagramViewer(viewer);
     });
+  }
+
+  function preventNativeTouch(event: TouchEvent): void {
+    if (event.cancelable) {
+      event.preventDefault();
+    }
   }
 
   onMount(() => {
     objectElement.addEventListener('load', handleObjectLoad);
     objectElement.addEventListener('error', handleLoadError);
 
-    // The SVG may finish loading before this component hydrates. If it has not
-    // loaded yet, bound the wait so blocked resources cannot leave a spinner
-    // visible forever when the browser omits an error event.
+    // The SVG may load before component hydration.
     if (objectElement.contentDocument?.querySelector('svg')) {
       void initializeViewer();
     } else {
       loadTimeout = setTimeout(handleLoadError, 10_000);
     }
 
-    const resizeObserver = new ResizeObserver(scheduleDiagramFit);
+    let lastWidth = stageElement.getBoundingClientRect().width;
+    let lastHeight = stageElement.getBoundingClientRect().height;
+
+    const resizeObserver = new ResizeObserver(([entry]) => {
+      if (!entry) return;
+
+      const { width, height } = entry.contentRect;
+
+      if (
+        Math.abs(width - lastWidth) > 1 ||
+        Math.abs(height - lastHeight) > 1
+      ) {
+        lastWidth = width;
+        lastHeight = height;
+        scheduleDiagramFit();
+      }
+    });
+
+    // Prevent Safari's native touch handling from taking over diagram gestures.
+    stageElement.addEventListener('touchmove', preventNativeTouch, {
+      passive: false,
+    });
 
     resizeObserver.observe(stageElement);
 
@@ -130,15 +159,18 @@
 
       if (fitFrame !== null) {
         cancelAnimationFrame(fitFrame);
-
         fitFrame = null;
       }
 
       abortController?.abort();
+
+      stageElement.removeEventListener('touchmove', preventNativeTouch);
       resizeObserver.disconnect();
+
       objectElement.removeEventListener('load', handleObjectLoad);
       objectElement.removeEventListener('error', handleLoadError);
-      viewer?.destroy();
+
+      destroyDiagramViewer(viewer, stageElement);
 
       viewer = null;
     };
@@ -156,10 +188,11 @@
         />
       {:else}
         {#if controlsFailed}
-          <span class="sr-only" role="alert"
-            >Diagram controls could not be initialized. The diagram remains available.</span
-          >
+          <span class="sr-only" role="alert">
+            Diagram controls could not be initialized. The diagram remains available.
+          </span>
         {/if}
+
         <div class="flex items-center gap-1" role="group" aria-label="Diagram controls">
           <Button.Root
             type="button"
@@ -173,6 +206,7 @@
           >
             <ZoomOut class="size-4" aria-hidden="true" />
           </Button.Root>
+
           <Button.Root
             type="button"
             variant="ghost"
@@ -185,6 +219,7 @@
           >
             <ZoomIn class="size-4" aria-hidden="true" />
           </Button.Root>
+
           <Button.Root
             type="button"
             variant="ghost"
@@ -197,6 +232,7 @@
           >
             <RotateCcw class="size-4" aria-hidden="true" />
           </Button.Root>
+
           <Button.Root
             href={src}
             target="_blank"
@@ -215,18 +251,22 @@
 
     <div
       bind:this={stageElement}
-      class="diagram-stage relative h-[min(68vh,42rem)] min-h-64 w-full overflow-hidden bg-white"
+      class="diagram-stage relative h-[min(68vh,42rem)] min-h-64 w-full overscroll-contain overflow-hidden bg-white"
       aria-busy={!ready && !failed && !controlsFailed}
     >
-      <object
-        bind:this={objectElement}
-        data={src}
-        type="image/svg+xml"
-        aria-label={alt}
-        class="block size-full bg-white"
-      >
-        <a href={src} target="_blank" rel="noopener noreferrer">Open diagram: {alt}</a>
-      </object>
+      <div bind:this={panzoomElement} class="size-full">
+        <object
+          bind:this={objectElement}
+          data={src}
+          type="image/svg+xml"
+          aria-label={alt}
+          class="pointer-events-none block size-full bg-white"
+        >
+          <a href={src} target="_blank" rel="noopener noreferrer">
+            Open diagram: {alt}
+          </a>
+        </object>
+      </div>
 
       {#if failed}
         <div
@@ -234,6 +274,7 @@
           role="alert"
         >
           <p>The interactive diagram couldn't be loaded.</p>
+
           <a
             href={src}
             target="_blank"
@@ -246,9 +287,10 @@
       {/if}
     </div>
   </div>
+
   {#if caption}
     <figcaption class="mt-2 text-center text-xs leading-5 text-muted-foreground">
       {caption}
     </figcaption>
   {/if}
-</figure>
+</figure>);

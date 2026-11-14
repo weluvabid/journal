@@ -1,52 +1,65 @@
-import type svgPanZoom from 'svg-pan-zoom';
+import type { PanzoomObject } from '@panzoom/panzoom';
 
-export type DiagramViewer = ReturnType<typeof svgPanZoom>;
+export type DiagramViewer = PanzoomObject;
+
+const diagramViewers = new WeakMap<HTMLElement, DiagramViewer>();
+
+function handleDiagramDoubleClick(event: MouseEvent): void {
+  const stage = event.currentTarget;
+
+  if (!(stage instanceof HTMLElement)) return;
+
+  const viewer = diagramViewers.get(stage);
+  viewer?.zoomToPoint(viewer.getScale() * 1.2, event);
+}
 
 export async function createDiagramViewer(
-  element: HTMLObjectElement,
+  element: HTMLDivElement,
+  stage: HTMLDivElement,
   signal: AbortSignal,
 ): Promise<DiagramViewer | null> {
-  if (signal.aborted) {
-    return null;
-  }
+  if (signal.aborted) return null;
 
-  const document = element.contentDocument;
-  const svg = document?.querySelector('svg');
+  const object = element.querySelector('object');
 
-  if (!svg) {
+  if (!object?.contentDocument?.querySelector('svg')) {
     throw new Error('The embedded document does not contain an SVG.');
   }
 
-  svg.style.touchAction = 'none';
+  const { default: createPanZoom } = await import('@panzoom/panzoom');
 
-  const { default: createPanZoom } = await import('svg-pan-zoom');
+  if (signal.aborted) return null;
 
-  if (signal.aborted) {
-    return null;
-  }
-
-  return createPanZoom(element, {
-    panEnabled: true,
-    zoomEnabled: true,
-    controlIconsEnabled: false,
-    dblClickZoomEnabled: true,
-    mouseWheelZoomEnabled: true,
-    preventMouseEventsDefault: true,
-    zoomScaleSensitivity: 0.2,
-    minZoom: 0.5,
-    maxZoom: 12,
-    fit: true,
-    contain: true,
-    center: true,
+  const viewer = createPanZoom(element, {
+    minScale: 0.5,
+    maxScale: 12,
+    step: 0.2,
+    pinchAndPan: true,
+    //touchAction: 'none',
   });
+
+  stage.addEventListener('wheel', viewer.zoomWithWheel, {
+    passive: false,
+  });
+
+  stage.addEventListener('dblclick', handleDiagramDoubleClick);
+
+  diagramViewers.set(stage, viewer);
+
+  return viewer;
 }
 
 export function fitDiagramViewer(viewer: DiagramViewer | null): void {
-  if (!viewer) {
-    return;
-  }
-
-  viewer.resize();
-  viewer.fit();
-  viewer.center();
+  viewer?.reset({ animate: false });
 }
+
+export function destroyDiagramViewer(viewer: DiagramViewer | null, stage: HTMLDivElement): void {
+  if (!viewer) return;
+
+  stage.removeEventListener('wheel', viewer.zoomWithWheel);
+  stage.removeEventListener('dblclick', handleDiagramDoubleClick);
+
+  diagramViewers.delete(stage);
+  viewer.destroy();
+}
+
