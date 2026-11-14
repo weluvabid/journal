@@ -1,5 +1,7 @@
 <script lang="ts">
   import { onMount, tick } from 'svelte';
+  import { categoryHref } from '@lib/category-href';
+  import { getHorizontalScrollState, observeHorizontalScroll } from '@lib/horizontal-scroll';
 
   interface CategoryOption {
     readonly id: string;
@@ -21,89 +23,37 @@
   let canScrollLeft = $state(false);
   let canScrollRight = $state(false);
 
-  const normalizedBase = $derived(base.replace(/^\/+|\/+$/gu, ''));
-  const prefix = $derived(normalizedBase ? `/${normalizedBase}` : '');
-
-  function categoryHref(value: string): string {
-    return value === 'all'
-      ? `${prefix}/journal/`
-      : `${prefix}/journal/category/${encodeURIComponent(value)}/`;
-  }
-
-  function updateScrollAffordances() {
-    if (!viewport) {
-      return;
-    }
-
-    const maxScrollLeft = Math.max(0, viewport.scrollWidth - viewport.clientWidth);
-
-    canScrollLeft = maxScrollLeft > 1 && viewport.scrollLeft > 1;
-    canScrollRight = maxScrollLeft > 1 && viewport.scrollLeft < maxScrollLeft - 1;
-  }
-
-  function revealCurrentCategory() {
-    if (!viewport) {
-      return;
-    }
-
-    const active = viewport.querySelector<HTMLElement>('[aria-current="page"]');
-
-    if (!active) {
-      return;
-    }
-
-    const viewportRect = viewport.getBoundingClientRect();
-    const activeRect = active.getBoundingClientRect();
-    const fullyVisible =
-      activeRect.left >= viewportRect.left && activeRect.right <= viewportRect.right;
-
-    if (!fullyVisible) {
-      const centeredLeft =
-        viewport.scrollLeft +
-        activeRect.left -
-        viewportRect.left -
-        (viewport.clientWidth - activeRect.width) / 2;
-      const maxScrollLeft = Math.max(0, viewport.scrollWidth - viewport.clientWidth);
-
-      viewport.scrollLeft = Math.max(0, Math.min(centeredLeft, maxScrollLeft));
-    }
-
-    updateScrollAffordances();
+  function syncScrollState(state: { canScrollLeft: boolean; canScrollRight: boolean }) {
+    canScrollLeft = state.canScrollLeft;
+    canScrollRight = state.canScrollRight;
   }
 
   onMount(() => {
-    if (!viewport || !track) {
-      return;
-    }
+    let cleanup: (() => void) | undefined;
+    let cancelled = false;
 
-    viewport.addEventListener('scroll', updateScrollAffordances, { passive: true });
-    void tick().then(revealCurrentCategory);
-
-    if (typeof ResizeObserver !== 'undefined') {
-      const resizeObserver = new ResizeObserver(revealCurrentCategory);
-
-      resizeObserver.observe(viewport);
-      resizeObserver.observe(track);
-      updateScrollAffordances();
-
-      return () => {
-        viewport.removeEventListener('scroll', updateScrollAffordances);
-        resizeObserver.disconnect();
-      };
-    }
-
-    window.addEventListener('resize', revealCurrentCategory);
-    updateScrollAffordances();
+    void tick().then(() => {
+      if (cancelled || !viewport || !track) return;
+      cleanup = observeHorizontalScroll(viewport, track, syncScrollState, {
+        revealSelector: '[aria-current="page"]',
+      });
+    });
 
     return () => {
-      viewport.removeEventListener('scroll', updateScrollAffordances);
-      window.removeEventListener('resize', revealCurrentCategory);
+      cancelled = true;
+      cleanup?.();
     };
   });
 
   $effect(() => {
     void categories;
-    void tick().then(updateScrollAffordances);
+    void current;
+    void tick().then(() => {
+      if (viewport && track) {
+        // The observer handles resize and scroll; this refreshes after category changes.
+        syncScrollState(getHorizontalScrollState(viewport));
+      }
+    });
   });
 </script>
 
@@ -115,7 +65,7 @@
   >
     <div bind:this={track} class="flex w-max min-w-full flex-nowrap gap-2">
       <a
-        href={categoryHref('all')}
+        href={categoryHref('all', base)}
         aria-current={current === 'all' ? 'page' : undefined}
         class="inline-flex shrink-0 snap-start items-center rounded-full border border-border px-2.5 py-1 text-xs text-foreground no-underline transition-colors hover:bg-muted focus-visible:outline-2 focus-visible:outline-offset-[-2px] focus-visible:outline-ring"
         class:bg-muted={current === 'all'}
@@ -124,7 +74,7 @@
       </a>
       {#each categories as category (category.id)}
         <a
-          href={categoryHref(category.id)}
+          href={categoryHref(category.id, base)}
           aria-current={current === category.id ? 'page' : undefined}
           class="inline-flex shrink-0 snap-start items-center rounded-full border border-border px-2.5 py-1 text-xs text-foreground no-underline transition-colors hover:bg-muted focus-visible:outline-2 focus-visible:outline-offset-[-2px] focus-visible:outline-ring"
           class:bg-muted={current === category.id}

@@ -8,9 +8,9 @@ test('journal categories are compact horizontal navigation chips, not a select c
   const component = await read('src/components/journal/CategorySelect.svelte');
 
   assert.match(component, /<nav[^>]+aria-label="Journal categories"/);
-  assert.match(component, /href=\{categoryHref\('all'\)\}/);
+  assert.match(component, /href=\{categoryHref\('all', base\)\}/);
   assert.match(component, /All entries/);
-  assert.match(component, /href=\{categoryHref\(category\.id\)\}/);
+  assert.match(component, /href=\{categoryHref\(category\.id, base\)\}/);
   assert.match(component, /aria-current=\{current === category\.id \? 'page' : undefined\}/);
   assert.match(component, /flex w-max min-w-full flex-nowrap gap-2/);
   assert.match(component, /px-2\.5 py-1 text-xs/);
@@ -21,15 +21,13 @@ test('journal categories are compact horizontal navigation chips, not a select c
 test('category navigation exposes independent left and right scroll shadows', async () => {
   const component = await read('src/components/journal/CategorySelect.svelte');
 
-  assert.match(component, /canScrollLeft = maxScrollLeft > 1 && viewport\.scrollLeft > 1/);
+  assert.match(component, /observeHorizontalScroll/);
   assert.match(
     component,
-    /canScrollRight = maxScrollLeft > 1 && viewport\.scrollLeft < maxScrollLeft - 1/,
+    /getHorizontalScrollState/,
   );
-  assert.match(component, /ResizeObserver/);
-  assert.match(component, /revealCurrentCategory/);
-  assert.match(component, /querySelector<HTMLElement>\('\[aria-current="page"\]'\)/);
-  assert.match(component, /viewport\.scrollLeft = Math\.max/);
+  assert.match(component, /revealSelector: '\[aria-current=\"page\"\]'/);
+  assert.match(await read('src/lib/horizontal-scroll.ts'), /viewport\.scrollLeft = Math\.max/);
   assert.match(component, /shadow-\[inset_12px_0/);
   assert.match(component, /shadow-\[inset_-12px_0/);
   assert.match(component, /motion-safe:transition-opacity/);

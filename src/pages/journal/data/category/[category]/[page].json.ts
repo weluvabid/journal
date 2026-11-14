@@ -2,6 +2,7 @@ import type { APIRoute } from 'astro';
 import { getCollection } from 'astro:content';
 import { categoryById } from '@data/categories';
 import { entryHref, withBase } from '@lib/journal';
+import { serializeJournalEntries } from '@lib/journal-list/serialize-entry';
 import { JOURNAL_PAGE_SIZE, paginateItems } from '@lib/journal-pagination';
 import {
   getJournalSeriesPartCount,
@@ -20,27 +21,11 @@ export async function getStaticPaths() {
 
     for (let page = 2; page <= pageCount; page += 1) {
       const { items: pageEntries, nextPage } = paginateItems(entries, page);
-      const items = pageEntries.map((entry) => ({
-        id: entry.data.id,
-        title: entry.data.title,
-        summary: entry.data.summary,
-        type: entry.data.type,
-        date: entry.data.date.toISOString(),
-        dateLabel: entry.data.date.toLocaleDateString('en', {
-          dateStyle: 'medium',
-          timeZone: 'UTC',
-        }),
-        tags: entry.data.tags,
-        ...(entry.data.series
-          ? {
-              series: {
-                part: entry.data.series.part,
-                totalParts: getJournalSeriesPartCount(allEntries, entry.data.series.id),
-              },
-            }
-          : {}),
-        href: entryHref(entry.data.id, { categoryId: category.id }),
-      }));
+      const items = serializeJournalEntries(
+        pageEntries,
+        (entry) => entryHref(entry.data.id, { categoryId: category.id }),
+        (seriesId) => getJournalSeriesPartCount(allEntries, seriesId),
+      );
 
       paths.push({
         params: { category: category.id, page: String(page) },

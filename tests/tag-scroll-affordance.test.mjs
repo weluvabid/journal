@@ -17,14 +17,14 @@ test('card tags remain compact, single-row scrollable chips', async () => {
 test('card tag shadows independently indicate content before and after the viewport', async () => {
   const source = await read('src/components/cards/TagList.svelte');
 
-  assert.match(source, /canScrollLeft = maxScrollLeft > 1 && element\.scrollLeft > 1/);
+  assert.match(source, /observeHorizontalScroll/);
   assert.match(
     source,
-    /canScrollRight = maxScrollLeft > 1 && element\.scrollLeft < maxScrollLeft - 1/,
+    /getHorizontalScrollState/,
   );
   assert.match(source, /shadow-\[inset_12px_0/);
   assert.match(source, /shadow-\[inset_-12px_0/);
-  assert.match(source, /ResizeObserver/);
+  assert.match(source, /observeHorizontalScroll/);
   assert.match(source, /motion-safe:transition-opacity/);
   assert.match(source, /0\.18/);
   assert.doesNotMatch(source, /0\.32/);

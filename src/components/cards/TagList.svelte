@@ -1,6 +1,7 @@
 <script lang="ts">
   import { tick } from 'svelte';
   import { tagHref } from '@lib/journal-tags';
+  import { getHorizontalScrollState, observeHorizontalScroll } from '@lib/horizontal-scroll';
 
   interface Props {
     tags?: readonly string[];
@@ -13,54 +14,37 @@
   let canScrollLeft = $state(false);
   let canScrollRight = $state(false);
 
-  function updateScrollAffordances(element: HTMLElement | undefined = viewport) {
-    if (!element) {
-      return;
-    }
-
-    const maxScrollLeft = Math.max(0, element.scrollWidth - element.clientWidth);
-
-    canScrollLeft = maxScrollLeft > 1 && element.scrollLeft > 1;
-    canScrollRight = maxScrollLeft > 1 && element.scrollLeft < maxScrollLeft - 1;
+  function syncScrollState(state: { canScrollLeft: boolean; canScrollRight: boolean }) {
+    canScrollLeft = state.canScrollLeft;
+    canScrollRight = state.canScrollRight;
   }
 
   $effect(() => {
     const viewportElement = viewport;
     const trackElement = track;
+    if (!viewportElement || !trackElement) return;
 
-    if (!viewportElement || !trackElement) {
-      return;
-    }
-
-    const update = () => updateScrollAffordances(viewportElement);
-
-    viewportElement.addEventListener('scroll', update, { passive: true });
-
-    if (typeof ResizeObserver !== 'undefined') {
-      const resizeObserver = new ResizeObserver(update);
-
-      resizeObserver.observe(viewportElement);
-      resizeObserver.observe(trackElement);
-      update();
-
-      return () => {
-        viewportElement.removeEventListener('scroll', update);
-        resizeObserver.disconnect();
-      };
-    }
-
-    window.addEventListener('resize', update);
-    update();
+    let cleanup: (() => void) | undefined;
+    let cancelled = false;
+    void tick().then(() => {
+      if (!cancelled) {
+        cleanup = observeHorizontalScroll(viewportElement, trackElement, syncScrollState);
+      }
+    });
 
     return () => {
-      viewportElement.removeEventListener('scroll', update);
-      window.removeEventListener('resize', update);
+      cancelled = true;
+      cleanup?.();
     };
   });
 
   $effect(() => {
     void tags;
-    void tick().then(() => updateScrollAffordances());
+    void tick().then(() => {
+      if (viewport && track) {
+        syncScrollState(getHorizontalScrollState(viewport));
+      }
+    });
   });
 </script>
 

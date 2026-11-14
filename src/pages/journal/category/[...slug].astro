@@ -7,6 +7,7 @@ import JournalEntryList from '@components/journal/JournalEntryList.svelte';
 import JournalEntryCard from '@components/cards/JournalEntryCard.svelte';
 import { categories, categoryById } from '@data/categories';
 import { entryHref, withBase } from '@lib/journal';
+import { serializeJournalEntries } from '@lib/journal-list/serialize-entry';
 import { JOURNAL_PAGE_SIZE, paginateItems } from '@lib/journal-pagination';
 import { INTENTS, pluralize } from '@lib/content-text';
 import {
@@ -27,24 +28,16 @@ const entries = sortJournalEntriesWithSeriesGroups(
   await getCollection('journal', ({ data }) => !data.draft && data.category === category.id),
 );
 const { items: firstPage, nextPage } = paginateItems(entries, 1);
-const initialEntries = firstPage.map((entry) => ({
-  id: entry.data.id,
-  title: entry.data.title,
-  summary: entry.data.summary,
-  type: entry.data.type,
-  date: entry.data.date.toISOString(),
-  dateLabel: entry.data.date.toLocaleDateString('en', { dateStyle: 'medium', timeZone: 'UTC' }),
-  tags: entry.data.tags,
-  ...(entry.data.series
-    ? {
-        series: {
-          part: entry.data.series.part,
-          totalParts: getJournalSeriesPartCount(allJournalEntries, entry.data.series.id),
-        },
-      }
-    : {}),
-  href: entryHref(entry.data.id, { categoryId: category.id }),
-}));
+const initialEntries = serializeJournalEntries(
+  firstPage,
+  (entry) => entryHref(entry.data.id, { categoryId: category.id }),
+  (seriesId) => getJournalSeriesPartCount(allJournalEntries, seriesId),
+);
+const serializedEntries = serializeJournalEntries(
+  entries,
+  (entry) => entryHref(entry.data.id, { categoryId: category.id }),
+  (seriesId) => getJournalSeriesPartCount(allJournalEntries, seriesId),
+);
 const nextPageUrl =
   nextPage === null ? null : withBase(`/journal/data/category/${category.id}/${nextPage}.json`);
 ---
@@ -83,30 +76,7 @@ const nextPageUrl =
         entries.slice(JOURNAL_PAGE_SIZE).map((entry, index) => (
           <li>
             <JournalEntryCard
-              entry={{
-                id: entry.data.id,
-                title: entry.data.title,
-                summary: entry.data.summary,
-                type: entry.data.type,
-                date: entry.data.date.toISOString(),
-                dateLabel: entry.data.date.toLocaleDateString('en', {
-                  dateStyle: 'medium',
-                  timeZone: 'UTC',
-                }),
-                tags: entry.data.tags,
-                ...(entry.data.series
-                  ? {
-                      series: {
-                        part: entry.data.series.part,
-                        totalParts: getJournalSeriesPartCount(
-                          allJournalEntries,
-                          entry.data.series.id,
-                        ),
-                      },
-                    }
-                  : {}),
-                href: entryHref(entry.data.id, { categoryId: category.id }),
-              }}
+              entry={serializedEntries[index + JOURNAL_PAGE_SIZE]}
               index={index + JOURNAL_PAGE_SIZE}
             />
           </li>
