@@ -82,41 +82,7 @@
     @apply my-6 border-l-2 border-primary pl-4 text-muted-foreground;
   }
 
-  .prose-journal table {
-    @apply my-7 w-full max-w-full rounded-lg border border-border text-left text-sm leading-6;
-    display: table;
-    table-layout: auto;
-    border-collapse: separate;
-    border-spacing: 0;
-  }
 
-  .prose-journal thead {
-    @apply bg-muted/70 text-foreground;
-  }
-
-  .prose-journal th,
-  .prose-journal td {
-    @apply border-b border-r border-border px-4 py-3 align-top;
-    white-space: normal;
-    overflow-wrap: anywhere;
-  }
-
-  .prose-journal th:last-child,
-  .prose-journal td:last-child {
-    border-right: 0;
-  }
-
-  .prose-journal tbody tr:last-child td {
-    border-bottom: 0;
-  }
-
-  .prose-journal tbody tr:nth-child(even) {
-    @apply bg-muted/25;
-  }
-
-  .prose-journal th {
-    @apply font-semibold;
-  }
 
 }
 

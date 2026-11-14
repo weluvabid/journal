@@ -1,7 +1,8 @@
 <script lang="ts">
   import { onMount } from 'svelte';
   import { Maximize, RotateCcw, ZoomIn, ZoomOut } from '@weluvabid/iris/lucide';
-  import type svgPanZoom from 'svg-pan-zoom';
+  import { createDiagramViewer, fitDiagramViewer } from '@lib/diagrams/viewer';
+  import type { DiagramViewer as Viewer } from '@lib/diagrams/viewer';
 
   interface Props {
     src: string;
@@ -13,49 +14,37 @@
 
   let objectElement: HTMLObjectElement;
   let stageElement: HTMLDivElement;
-  let viewer: ReturnType<typeof svgPanZoom> | null = null;
-  let initializing = false;
-  let disposed = false;
+  let viewer: Viewer | null = null;
+  let initialization: Promise<void> | null = null;
+  let abortController: AbortController | null = null;
   let ready = $state(false);
   let failed = $state(false);
 
-  function handleLoadError() {
-    failed = true;
+  function initializeViewer(): Promise<void> {
+    if (viewer || initialization || !objectElement?.contentDocument) {
+      return initialization ?? Promise.resolve();
+    }
+
+    abortController = new AbortController();
+    initialization = createDiagramViewer(objectElement, abortController.signal)
+      .then((instance) => {
+        if (!instance) return;
+        viewer = instance;
+        ready = true;
+        failed = false;
+      })
+      .catch(() => {
+        if (!abortController?.signal.aborted) failed = true;
+      })
+      .finally(() => {
+        initialization = null;
+      });
+
+    return initialization;
   }
 
-  async function initializeViewer() {
-    if (viewer || initializing || !objectElement?.contentDocument) return;
-    if (!objectElement.contentDocument.querySelector('svg')) {
-      failed = true;
-      return;
-    }
-
-    initializing = true;
-    try {
-      const { default: createPanZoom } = await import('svg-pan-zoom');
-      if (disposed) return;
-
-      viewer = createPanZoom(objectElement, {
-        panEnabled: true,
-        zoomEnabled: true,
-        controlIconsEnabled: false,
-        dblClickZoomEnabled: true,
-        mouseWheelZoomEnabled: true,
-        preventMouseEventsDefault: true,
-        zoomScaleSensitivity: 0.2,
-        minZoom: 0.5,
-        maxZoom: 12,
-        fit: true,
-        contain: true,
-        center: true,
-      });
-      ready = true;
-      failed = false;
-    } catch {
-      if (!disposed) failed = true;
-    } finally {
-      initializing = false;
-    }
+  function handleLoadError(): void {
+    failed = true;
   }
 
   function zoomIn() {
@@ -72,13 +61,10 @@
 
   function fitView() {
     if (!viewer) return;
-    viewer.resize();
-    viewer.fit();
-    viewer.center();
+    fitDiagramViewer(viewer);
   }
 
   onMount(() => {
-    disposed = false;
     objectElement.addEventListener('load', initializeViewer);
     objectElement.addEventListener('error', handleLoadError);
 
@@ -89,7 +75,7 @@
     resizeObserver.observe(stageElement);
 
     return () => {
-      disposed = true;
+      abortController?.abort();
       resizeObserver.disconnect();
       objectElement.removeEventListener('load', initializeViewer);
       objectElement.removeEventListener('error', handleLoadError);

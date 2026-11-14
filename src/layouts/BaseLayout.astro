@@ -49,89 +49,10 @@ const themeBootstrap = createThemeScript();
     <title>{title}</title>
     <script is:inline set:html={themeBootstrap} />
     <ClientRouter />
-    <script is:inline>
-      if (!window.__journalRouterLifecycleInstalled) {
-        window.__journalRouterLifecycleInstalled = true;
+    <script>
+      import { installRouterLifecycle } from '@lib/astro/router-lifecycle';
 
-        document.addEventListener(
-          'click',
-          (event) => {
-            if (!(event instanceof MouseEvent) || event.defaultPrevented) return;
-            if (
-              event.button !== 0 ||
-              event.metaKey ||
-              event.ctrlKey ||
-              event.shiftKey ||
-              event.altKey
-            ) {
-              return;
-            }
-
-            const target = event.target;
-            if (!(target instanceof Element)) return;
-            const link = target.closest('a[href]');
-            if (!(link instanceof HTMLAnchorElement)) return;
-            if (
-              link.hasAttribute('download') ||
-              link.hasAttribute('data-astro-reload') ||
-              (link.target && link.target !== '_self')
-            ) {
-              return;
-            }
-            if (link.relList.contains('external')) return;
-
-            const destination = new URL(link.href, window.location.href);
-            const current = new URL(window.location.href);
-            if (
-              destination.origin === current.origin &&
-              destination.pathname === current.pathname &&
-              destination.search === current.search &&
-              destination.hash === current.hash &&
-              !destination.hash
-            ) {
-              event.preventDefault();
-            }
-          },
-          true,
-        );
-
-        document.addEventListener('astro:before-swap', (event) => {
-          const currentThemeIsDark = document.documentElement.classList.contains('dark');
-          event.newDocument.documentElement.classList.toggle('dark', currentThemeIsDark);
-        });
-
-        document.addEventListener('astro:before-preparation', (event) => {
-          const loader = document.getElementById('journal-navigation-loader');
-          const originalLoader = event.loader;
-
-          event.loader = async () => {
-            const revealTimer = window.setTimeout(() => {
-              if (loader) {
-                loader.dataset.visible = 'true';
-                loader.setAttribute('aria-hidden', 'false');
-              }
-            }, 200);
-
-            try {
-              await originalLoader();
-            } finally {
-              window.clearTimeout(revealTimer);
-              if (loader) {
-                delete loader.dataset.visible;
-                loader.setAttribute('aria-hidden', 'true');
-              }
-            }
-          };
-        });
-
-        document.addEventListener('astro:page-load', () => {
-          const loader = document.getElementById('journal-navigation-loader');
-          if (loader) {
-            delete loader.dataset.visible;
-            loader.setAttribute('aria-hidden', 'true');
-          }
-        });
-      }
+      installRouterLifecycle();
     </script>
   </head>
   <body class="h-full overflow-y-auto scroll-smooth">
