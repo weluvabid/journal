@@ -8,13 +8,14 @@ import JournalEntryCard from '@components/cards/JournalEntryCard.svelte';
 import { categories } from '@data/categories';
 import { entryHref, withBase } from '@lib/journal';
 import { JOURNAL_PAGE_SIZE, paginateItems } from '@lib/journal-pagination';
-import { getJournalSeriesPartCount } from '@lib/journal-series-navigation';
+import {
+  getJournalSeriesPartCount,
+  sortJournalEntriesWithSeriesGroups,
+} from '@lib/journal-series-navigation';
 import { INTENTS, pluralize } from '@lib/content-text';
 
-const entries = (await getCollection('journal', ({ data }) => !data.draft)).sort(
-  (left, right) =>
-    right.data.date.valueOf() - left.data.date.valueOf() ||
-    left.data.id.localeCompare(right.data.id),
+const entries = sortJournalEntriesWithSeriesGroups(
+  await getCollection('journal', ({ data }) => !data.draft),
 );
 const { items: firstPage, nextPage } = paginateItems(entries, 1);
 const initialEntries = firstPage.map((entry) => ({
@@ -33,7 +34,7 @@ const initialEntries = firstPage.map((entry) => ({
         },
       }
     : {}),
-  href: entryHref(entry.data.id),
+  href: entryHref(entry.data.id, 'all'),
 }));
 const nextPageUrl = nextPage === null ? null : withBase(`/journal/data/all/${nextPage}.json`);
 ---
@@ -86,7 +87,7 @@ const nextPageUrl = nextPage === null ? null : withBase(`/journal/data/all/${nex
                       },
                     }
                   : {}),
-                href: entryHref(entry.data.id),
+                href: entryHref(entry.data.id, 'all'),
               }}
               index={index + JOURNAL_PAGE_SIZE}
             />

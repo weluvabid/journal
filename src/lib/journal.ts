@@ -9,10 +9,18 @@ export function withBase(path: string, baseUrl = import.meta.env?.BASE_URL ?? '/
   return `${base}${pathname}` || '/';
 }
 
-export function entryHref(id: string): string {
+export function entryHref(
+  id: string,
+  context: 'all' | { readonly categoryId: string } = 'all',
+): string {
   if (!/^[a-z0-9]+(?:-[a-z0-9]+)*$/u.test(id)) {
     throw new TypeError(`Invalid journal entry id: ${id}`);
   }
 
-  return withBase(`/journal/${id}/`);
+  const href = withBase(`/journal/${id}/`);
+  if (context === 'all') {
+    return href;
+  }
+
+  return `${href}?context=${encodeURIComponent(`category:${context.categoryId}`)}`;
 }

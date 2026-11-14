@@ -10,11 +10,12 @@ import TagList from '@components/cards/TagList.svelte';
 import { categoryById } from '@data/categories';
 import { withBase, entryHref } from '@lib/journal';
 import { assertProjectAssociations } from '@lib/journal-projects';
+import { resolveJournalNavigation } from '@lib/journal-navigation';
 import {
   assertUniqueSeriesParts,
   getJournalSeriesEntries,
   getJournalSeriesPartCount,
-  resolveJournalArticleNavigation,
+  sortJournalEntriesWithSeriesGroups,
 } from '@lib/journal-series-navigation';
 export async function getStaticPaths() {
   const allEntries = await getCollection('journal');
@@ -33,20 +34,14 @@ const projectEntry = entry.data.project
       (item) => item.data.kind === 'project' && item.data.project === entry.data.project,
     )
   : undefined;
-const groupedEntries = publishedEntries
-  .filter((item) => item.data.category === entry.data.category)
-  .sort(
-    (left, right) =>
-      right.data.date.valueOf() - left.data.date.valueOf() ||
-      left.data.title.localeCompare(right.data.title),
-  );
+const allNavigationEntries = sortJournalEntriesWithSeriesGroups(publishedEntries);
+const categoryNavigationEntries = sortJournalEntriesWithSeriesGroups(
+  publishedEntries.filter((item) => item.data.category === entry.data.category),
+);
+const initialNavigation = resolveJournalNavigation(entry.data.id, allNavigationEntries);
 const seriesPartCount = entry.data.series
   ? getJournalSeriesPartCount(publishedEntries, entry.data.series.id)
   : 0;
-const { previous: previousEntry, next: nextEntry } = resolveJournalArticleNavigation(
-  entry.data.id,
-  groupedEntries,
-);
 const seriesEntries = entry.data.series
   ? getJournalSeriesEntries(publishedEntries, entry.data.series.id)
   : [];
@@ -124,6 +119,7 @@ const seriesEntries = entry.data.series
                   <a
                     class="flex items-baseline gap-2 text-sm text-muted-foreground underline-offset-4 hover:text-foreground hover:underline"
                     href={entryHref(seriesEntry.data.id)}
+                    data-series-entry={seriesEntry.data.id}
                   >
                     <span class="shrink-0">{seriesEntry.data.series!.part}.</span>
                     {seriesEntry.data.title}
@@ -145,10 +141,16 @@ const seriesEntries = entry.data.series
     </div>
     <ArticleNavigation
       client:load
-      previous={previousEntry
-        ? { title: previousEntry.data.title, url: entryHref(previousEntry.data.id) }
+      currentId={entry.data.id}
+      categoryId={entry.data.category}
+      allEntries={allNavigationEntries.map((item) => ({ id: item.data.id, title: item.data.title }))}
+      categoryEntries={categoryNavigationEntries.map((item) => ({ id: item.data.id, title: item.data.title }))}
+      previous={initialNavigation.previous
+        ? { title: initialNavigation.previous.data.title, url: entryHref(initialNavigation.previous.data.id) }
         : null}
-      next={nextEntry ? { title: nextEntry.data.title, url: entryHref(nextEntry.data.id) } : null}
+      next={initialNavigation.next
+        ? { title: initialNavigation.next.data.title, url: entryHref(initialNavigation.next.data.id) }
+        : null}
     />
   </article>
 </BaseLayout>

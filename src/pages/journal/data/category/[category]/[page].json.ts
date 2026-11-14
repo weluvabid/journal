@@ -3,20 +3,19 @@ import { getCollection } from 'astro:content';
 import { categoryById } from '@data/categories';
 import { entryHref, withBase } from '@lib/journal';
 import { JOURNAL_PAGE_SIZE, paginateItems } from '@lib/journal-pagination';
-import { getJournalSeriesPartCount } from '@lib/journal-series-navigation';
+import {
+  getJournalSeriesPartCount,
+  sortJournalEntriesWithSeriesGroups,
+} from '@lib/journal-series-navigation';
 
 export async function getStaticPaths() {
   const allEntries = await getCollection('journal', ({ data }) => !data.draft);
   const paths = [];
 
   for (const category of categoryById.values()) {
-    const entries = allEntries
-      .filter((entry) => entry.data.category === category.id)
-      .sort(
-        (left, right) =>
-          right.data.date.valueOf() - left.data.date.valueOf() ||
-          left.data.id.localeCompare(right.data.id),
-      );
+    const entries = sortJournalEntriesWithSeriesGroups(
+      allEntries.filter((entry) => entry.data.category === category.id),
+    );
     const pageCount = Math.ceil(entries.length / JOURNAL_PAGE_SIZE);
 
     for (let page = 2; page <= pageCount; page += 1) {
@@ -40,7 +39,7 @@ export async function getStaticPaths() {
               },
             }
           : {}),
-        href: entryHref(entry.data.id),
+        href: entryHref(entry.data.id, { categoryId: category.id }),
       }));
 
       paths.push({

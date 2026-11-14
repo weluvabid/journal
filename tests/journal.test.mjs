@@ -42,5 +42,9 @@ test('base paths are applied only to internal URLs', () => {
 
 test('journal entry URLs are derived from stable IDs', () => {
   assert.equal(entryHref('building-a-cache'), '/journal/building-a-cache/');
+  assert.equal(
+    entryHref('building-a-cache', { categoryId: 'rust-systems' }),
+    '/journal/building-a-cache/?context=category%3Arust-systems',
+  );
   assert.throws(() => entryHref('nested/path'), /Invalid journal entry id/);
 });

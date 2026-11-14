@@ -9,7 +9,10 @@ import { categories, categoryById } from '@data/categories';
 import { entryHref, withBase } from '@lib/journal';
 import { JOURNAL_PAGE_SIZE, paginateItems } from '@lib/journal-pagination';
 import { INTENTS, pluralize } from '@lib/content-text';
-import { getJournalSeriesPartCount } from '@lib/journal-series-navigation';
+import {
+  getJournalSeriesPartCount,
+  sortJournalEntriesWithSeriesGroups,
+} from '@lib/journal-series-navigation';
 
 export async function getStaticPaths() {
   return [...categoryById.values()].map((category) => ({
@@ -20,12 +23,8 @@ export async function getStaticPaths() {
 
 const { category } = Astro.props;
 const allJournalEntries = await getCollection('journal', ({ data }) => !data.draft);
-const entries = (
-  await getCollection('journal', ({ data }) => !data.draft && data.category === category.id)
-).sort(
-  (left, right) =>
-    right.data.date.valueOf() - left.data.date.valueOf() ||
-    left.data.id.localeCompare(right.data.id),
+const entries = sortJournalEntriesWithSeriesGroups(
+  await getCollection('journal', ({ data }) => !data.draft && data.category === category.id),
 );
 const { items: firstPage, nextPage } = paginateItems(entries, 1);
 const initialEntries = firstPage.map((entry) => ({
@@ -44,7 +43,7 @@ const initialEntries = firstPage.map((entry) => ({
         },
       }
     : {}),
-  href: entryHref(entry.data.id),
+  href: entryHref(entry.data.id, { categoryId: category.id }),
 }));
 const nextPageUrl =
   nextPage === null ? null : withBase(`/journal/data/category/${category.id}/${nextPage}.json`);
@@ -106,7 +105,7 @@ const nextPageUrl =
                       },
                     }
                   : {}),
-                href: entryHref(entry.data.id),
+                href: entryHref(entry.data.id, { categoryId: category.id }),
               }}
               index={index + JOURNAL_PAGE_SIZE}
             />

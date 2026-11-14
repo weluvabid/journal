@@ -2,13 +2,14 @@ import type { APIRoute } from 'astro';
 import { getCollection } from 'astro:content';
 import { entryHref, withBase } from '@lib/journal';
 import { JOURNAL_PAGE_SIZE, paginateItems } from '@lib/journal-pagination';
-import { getJournalSeriesPartCount } from '@lib/journal-series-navigation';
+import {
+  getJournalSeriesPartCount,
+  sortJournalEntriesWithSeriesGroups,
+} from '@lib/journal-series-navigation';
 
 export async function getStaticPaths() {
-  const entries = (await getCollection('journal', ({ data }) => !data.draft)).sort(
-    (left, right) =>
-      right.data.date.valueOf() - left.data.date.valueOf() ||
-      left.data.id.localeCompare(right.data.id),
+  const entries = sortJournalEntriesWithSeriesGroups(
+    await getCollection('journal', ({ data }) => !data.draft),
   );
   const pageCount = Math.ceil(entries.length / JOURNAL_PAGE_SIZE);
 
@@ -31,7 +32,7 @@ export async function getStaticPaths() {
             },
           }
         : {}),
-      href: entryHref(entry.data.id),
+      href: entryHref(entry.data.id, 'all'),
     }));
 
     return {

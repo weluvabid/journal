@@ -3,25 +3,14 @@ export interface JournalSeriesMetadata {
   readonly part: number;
 }
 
-export interface JournalNavigationEntry {
+export interface JournalSeriesEntry {
   readonly data: {
-    readonly id: string;
-    readonly date: Date;
-    readonly title: string;
     readonly series?: JournalSeriesMetadata;
   };
 }
 
-export interface JournalNavigationTarget<T extends JournalNavigationEntry> {
-  readonly previous: T | undefined;
-  readonly next: T | undefined;
-}
-
-/**
- * Reject ambiguous series ordering before generating article navigation.
- * Part numbers may have gaps (for example, unpublished drafts), but must be unique.
- */
-export function assertUniqueSeriesParts<T extends JournalNavigationEntry>(
+/** Reject duplicate part numbers within a series while allowing gaps for drafts. */
+export function assertUniqueSeriesParts<T extends JournalSeriesEntry & { readonly data: { readonly id: string } }>(
   entries: readonly T[],
 ): void {
   const partsBySeries = new Map<string, Map<number, string>>();
@@ -37,7 +26,6 @@ export function assertUniqueSeriesParts<T extends JournalNavigationEntry>(
 
     if (!parts) {
       parts = new Map<number, string>();
-
       partsBySeries.set(series.id, parts);
     }
 
@@ -53,42 +41,8 @@ export function assertUniqueSeriesParts<T extends JournalNavigationEntry>(
   }
 }
 
-/**
- * Keep articles in a series adjacent in Previous/Next navigation. At either
- * series boundary, continue with the category's chronological neighbour.
- */
-export function resolveJournalArticleNavigation<T extends JournalNavigationEntry>(
-  currentId: string,
-  categoryEntries: readonly T[],
-): JournalNavigationTarget<T> {
-  const currentIndex = categoryEntries.findIndex((entry) => entry.data.id === currentId);
-
-  if (currentIndex < 0) {
-    throw new Error(`Journal entry "${currentId}" is missing from its category reading order`);
-  }
-
-  const current = categoryEntries[currentIndex];
-  const chronologicalPrevious = categoryEntries[currentIndex - 1];
-  const chronologicalNext = categoryEntries[currentIndex + 1];
-
-  if (!current.data.series) {
-    return { previous: chronologicalPrevious, next: chronologicalNext };
-  }
-
-  const seriesEntries = categoryEntries
-    .filter((entry) => entry.data.series?.id === current.data.series!.id)
-    .slice()
-    .sort((left, right) => left.data.series!.part - right.data.series!.part);
-  const seriesIndex = seriesEntries.findIndex((entry) => entry.data.id === currentId);
-
-  return {
-    previous: seriesEntries[seriesIndex - 1] ?? chronologicalPrevious,
-    next: seriesEntries[seriesIndex + 1] ?? chronologicalNext,
-  };
-}
-
 /** Return the number of published entries belonging to a series. */
-export function getJournalSeriesPartCount<T extends JournalNavigationEntry>(
+export function getJournalSeriesPartCount<T extends JournalSeriesEntry>(
   entries: readonly T[],
   seriesId: string,
 ): number {
@@ -96,7 +50,7 @@ export function getJournalSeriesPartCount<T extends JournalNavigationEntry>(
 }
 
 /** Return published entries in explicit series-part order. */
-export function getJournalSeriesEntries<T extends JournalNavigationEntry>(
+export function getJournalSeriesEntries<T extends JournalSeriesEntry>(
   entries: readonly T[],
   seriesId: string,
 ): T[] {
@@ -104,4 +58,59 @@ export function getJournalSeriesEntries<T extends JournalNavigationEntry>(
     .filter((entry) => entry.data.series?.id === seriesId)
     .slice()
     .sort((left, right) => left.data.series!.part - right.data.series!.part);
+}
+
+export interface JournalSeriesSortableEntry extends JournalSeriesEntry {
+  readonly data: {
+    readonly id: string;
+    readonly date: Date;
+    readonly series?: JournalSeriesMetadata;
+  };
+}
+
+/**
+ * Sort standalone articles and series as top-level groups, then flatten them.
+ * A series group is positioned using its earliest published part (normally part 1)
+ * and its members are always ordered by their explicit part number.
+ */
+export function sortJournalEntriesWithSeriesGroups<T extends JournalSeriesSortableEntry>(
+  entries: readonly T[],
+): T[] {
+  interface Group {
+    readonly entries: T[];
+  }
+
+  const groupsByKey = new Map<string, Group>();
+
+  for (const entry of entries) {
+    const seriesId = entry.data.series?.id;
+    const key = seriesId === undefined ? `entry:${entry.data.id}` : `series:${seriesId}`;
+    const existing = groupsByKey.get(key);
+
+    if (existing) {
+      existing.entries.push(entry);
+    } else {
+      groupsByKey.set(key, { entries: [entry] });
+    }
+  }
+
+  const groups = [...groupsByKey.values()];
+
+  for (const group of groups) {
+    if (group.entries.length > 1) {
+      group.entries.sort(
+        (left, right) =>
+          left.data.series!.part - right.data.series!.part ||
+          left.data.id.localeCompare(right.data.id),
+      );
+    }
+  }
+
+  groups.sort(
+    (left, right) =>
+      right.entries[0].data.date.valueOf() - left.entries[0].data.date.valueOf() ||
+      left.entries[0].data.id.localeCompare(right.entries[0].data.id),
+  );
+
+  return groups.flatMap((group) => group.entries);
 }
