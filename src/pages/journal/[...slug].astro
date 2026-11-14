@@ -2,6 +2,14 @@
 import { getCollection, render } from 'astro:content';
 import BaseLayout from '@layouts/BaseLayout.astro';
 import { Badge, Breadcrumb, Button } from '@weluvabid/iris/components';
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from '@weluvabid/iris/components/ui/table';
 import { ArrowLeft } from '@weluvabid/iris/lucide';
 import ArticleNavigation from '@components/article/ArticleNavigation.svelte';
 import ResourceActions from '@components/resources/ResourceActions.svelte';
@@ -25,6 +33,14 @@ export async function getStaticPaths() {
 }
 const { entry } = Astro.props;
 const { Content } = await render(entry);
+const tableComponents = {
+  table: Table,
+  thead: TableHeader,
+  tbody: TableBody,
+  tr: TableRow,
+  th: TableHead,
+  td: TableCell,
+};
 const category = categoryById.get(entry.data.category);
 if (!category) throw new Error(`Unknown journal category: ${entry.data.category}`);
 const publishedEntries = await getCollection('journal', ({ data }) => !data.draft);
@@ -100,7 +116,7 @@ const seriesEntries = entry.data.series
         <TagList tags={entry.data.tags} label={entry.data.title} />
       </div>
     </header>
-    <div class="prose-journal"><Content /></div>
+    <div class="prose-journal"><Content components={tableComponents} /></div>
     {
       seriesEntries.length > 1 && (
         <nav class="mt-10 border-t border-border pt-6" aria-label="Articles in this series">
