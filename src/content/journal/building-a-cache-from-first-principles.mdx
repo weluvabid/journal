@@ -1,18 +1,52 @@
 ---
 id: building-a-cache-from-first-principles
-title: 'Building a Cache from First Principles'
+title: Building a Cache from First Principles
 type: deep-dive
 category: systems-engineering
-summary: 'Cachewise combines a logical byte budget, cost-aware retention, expiration and per-key single-flight computation in one bounded JavaScript-agent cache.'
+summary: Cachewise combines a logical byte budget, cost-aware retention, expiration
+  and per-key single-flight computation in one bounded JavaScript-agent cache.
 date: 2026-11-13
 project: cachewise
 series:
   id: cachewise-engineering
   part: 1
-tags: [typescript, caching, systems, concurrency]
-searchTerms: [cache, logical-memory-budget, ttl, single-flight, cancellation, invalidation]
+tags:
+- typescript
+- caching
+- systems
+- concurrency
+- project
+searchTerms:
+- cache
+- logical-memory-budget
+- ttl
+- single-flight
+- cancellation
+- invalidation
 featured: true
 draft: false
+kind: project
+projectDetails:
+  status: released
+  stack:
+  - TypeScript
+  - Node.js
+  - pnpm
+  - Vitest
+  featured: true
+  order: 1
+  github: https://github.com/weluvabid/cachewise
+  resources:
+  - label: Architecture
+    url: https://github.com/weluvabid/cachewise/blob/main/docs/architecture.md
+  - label: Eviction and admission
+    url: https://github.com/weluvabid/cachewise/blob/main/docs/eviction-and-admission.md
+  - label: Concurrency
+    url: https://github.com/weluvabid/cachewise/blob/main/docs/concurrency.md
+  - label: Memory accounting
+    url: https://github.com/weluvabid/cachewise/blob/main/docs/memory-accounting.md
+  - label: Benchmark methodology
+    url: https://github.com/weluvabid/cachewise/blob/main/docs/benchmarking.md
 ---
 
 import DiagramViewer from '@components/diagrams/DiagramViewer.svelte';

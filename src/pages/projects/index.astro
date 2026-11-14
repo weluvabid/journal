@@ -3,35 +3,48 @@ import { getCollection } from 'astro:content';
 import BaseLayout from '@layouts/BaseLayout.astro';
 import ProjectCard from '@components/cards/ProjectCard.svelte';
 import { Breadcrumb } from '@weluvabid/iris/components';
-import { withBase } from '@lib/journal';
+import { entryHref } from '@lib/journal';
+import { assertProjectAssociations } from '@lib/journal-projects';
 import { INTENTS, pluralize } from '@lib/content-text';
 
-const projects = (await getCollection('projects')).sort((a, b) => a.data.order - b.data.order);
+const allEntries = await getCollection('journal');
+const entries = allEntries.filter((entry) => !entry.data.draft);
+assertProjectAssociations(allEntries, entries);
+const projects = entries
+  .filter((entry) => entry.data.kind === 'project')
+  .sort(
+    (a, b) =>
+      (a.data.projectDetails?.order ?? 0) - (b.data.projectDetails?.order ?? 0),
+  );
 ---
 
 <BaseLayout
   title="Projects — Journal"
   description="Selected software projects and engineering work."
 >
-  <Breadcrumb.Root class="mb-8"
-    ><Breadcrumb.List
-      ><Breadcrumb.Item><Breadcrumb.Page>Projects</Breadcrumb.Page></Breadcrumb.Item
-      ></Breadcrumb.List
-    ></Breadcrumb.Root
-  >
+  <Breadcrumb.Root class="mb-8">
+    <Breadcrumb.List>
+      <Breadcrumb.Item><Breadcrumb.Page>Projects</Breadcrumb.Page></Breadcrumb.Item>
+    </Breadcrumb.List>
+  </Breadcrumb.Root>
   <h1 class="sr-only">Projects</h1>
   <p class="mb-8 text-xs font-semibold uppercase tracking-[0.18em] text-muted-foreground">
     {pluralize(projects.length, INTENTS.project)}
   </p>
   <div class="grid items-stretch gap-3 sm:grid-cols-2">
-    {
-      projects.map((project) => (
-        <ProjectCard
-          project={project.data}
-          href={withBase(`/projects/${project.data.id}/`)}
-          class="h-full"
-        />
-      ))
-    }
+    {projects.map((entry, index) => (
+      <ProjectCard
+        project={{
+          id: entry.data.project!,
+          title: entry.data.title,
+          summary: entry.data.summary,
+          status: entry.data.projectDetails!.status,
+          order: index + 1,
+          tags: entry.data.tags.filter((tag) => tag !== 'project'),
+        }}
+        href={entryHref(entry.data.id)}
+        class="h-full"
+      />
+    ))}
   </div>
 </BaseLayout>

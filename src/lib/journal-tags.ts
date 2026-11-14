@@ -19,16 +19,8 @@ export function tagToSlug(tag: string): string {
   return slug;
 }
 
-export type TagCollection = 'journal' | 'projects';
-
-export function tagHref(tag: string, collection: TagCollection = 'journal'): string {
-  const basePath = collection === 'projects' ? '/projects' : '/journal';
-
-  return withBase(`${basePath}/tag/${tagToSlug(tag)}/`);
-}
-
-export function projectTagHref(tag: string): string {
-  return tagHref(tag, 'projects');
+export function tagHref(tag: string): string {
+  return withBase(`/journal/tag/${tagToSlug(tag)}/`);
 }
 
 /** Build deterministic tag groups and fail on ambiguous slug collisions. */
@@ -36,7 +28,6 @@ export function groupContentByTag<
   T extends { readonly data: { readonly tags: readonly string[] } },
 >(
   entries: readonly T[],
-  collection: TagCollection = 'journal',
 ): Map<string, { readonly label: string; readonly entries: T[] }> {
   const groups = new Map<string, { label: string; entries: T[] }>();
 
@@ -56,7 +47,7 @@ export function groupContentByTag<
 
       if (existing && existing.label !== label) {
         throw new Error(
-          `${collection === 'projects' ? 'Project' : 'Journal'} tags "${existing.label}" and "${label}" produce the same URL slug: ${slug}`,
+          `Journal tags "${existing.label}" and "${label}" produce the same URL slug: ${slug}`,
         );
       }
 
@@ -71,15 +62,8 @@ export function groupContentByTag<
   return new Map([...groups.entries()].sort(([left], [right]) => left.localeCompare(right)));
 }
 
-/** Backwards-compatible journal grouping helper. */
 export function groupEntriesByTag<
   T extends { readonly data: { readonly tags: readonly string[] } },
 >(entries: readonly T[]): Map<string, { readonly label: string; readonly entries: T[] }> {
-  return groupContentByTag(entries, 'journal');
-}
-
-export function groupProjectsByTag<
-  T extends { readonly data: { readonly tags: readonly string[] } },
->(projects: readonly T[]): Map<string, { readonly label: string; readonly entries: T[] }> {
-  return groupContentByTag(projects, 'projects');
+  return groupContentByTag(entries);
 }

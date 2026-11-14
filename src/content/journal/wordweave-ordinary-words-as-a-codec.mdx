@@ -3,13 +3,40 @@ id: wordweave-ordinary-words-as-a-codec
 title: 'WordWeave: A Reversible Codec Made from Ordinary Words'
 type: deep-dive
 category: systems-engineering
-summary: 'Exploring a deterministic word-phrase alphabet, its combinatorial capacity, collision analysis and the protocol constraints of reversible text encoding.'
+summary: Exploring a deterministic word-phrase alphabet, its combinatorial capacity,
+  collision analysis and the protocol constraints of reversible text encoding.
 date: 2026-11-13
 project: wordweave
-tags: [typescript, encoding, information-theory, text-processing]
-searchTerms: [word-codec, reversible-encoding, entropy, collision-analysis, vocabulary-versioning]
+tags:
+- typescript
+- encoding
+- information-theory
+- text-processing
+- project
+searchTerms:
+- word-codec
+- reversible-encoding
+- entropy
+- collision-analysis
+- vocabulary-versioning
 featured: true
 draft: false
+kind: project
+projectDetails:
+  status: experimental
+  stack:
+  - TypeScript
+  - Node.js
+  - Vitest
+  - fast-check
+  featured: false
+  order: 10
+  github: https://github.com/weluvabid/wordweave
+  resources:
+  - label: Source repository
+    url: https://github.com/weluvabid/wordweave
+  - label: Collision analysis command
+    url: https://github.com/weluvabid/wordweave#collision-analysis
 ---
 
 A filter that turns a message into a row of marks is an annoying constraint. It is not encryption or a cryptography problem. WordWeave is the experiment: selected terms become ordinary four-word phrases, and the punctuation, whitespace, and casing around them stay. Same vocabulary, you can put the terms back. That's reversible encoding. The vocabulary is public. If you needed a secret, this is the wrong shape, and "it looks like normal words" doesn't change that.

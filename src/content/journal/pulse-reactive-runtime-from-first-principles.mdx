@@ -3,13 +3,40 @@ id: pulse-reactive-runtime-from-first-principles
 title: 'Pulse: Building a Small Reactive Runtime'
 type: deep-dive
 category: frontend-engineering
-summary: 'A compact look at signals, lazy computed values, tracked effects, batching and instrumentation in a framework-independent JavaScript reactive runtime.'
+summary: A compact look at signals, lazy computed values, tracked effects, batching
+  and instrumentation in a framework-independent JavaScript reactive runtime.
 date: 2026-11-13
 project: pulse
-tags: [javascript, typescript, reactivity, runtime]
-searchTerms: [signals, computed-values, dependency-tracking, effects, batching, push-pull]
+tags:
+- javascript
+- typescript
+- reactivity
+- runtime
+- project
+searchTerms:
+- signals
+- computed-values
+- dependency-tracking
+- effects
+- batching
+- push-pull
 featured: true
 draft: false
+kind: project
+projectDetails:
+  status: released
+  stack:
+  - TypeScript
+  - JavaScript
+  - Vitest
+  featured: false
+  order: 4
+  github: https://github.com/weluvabid/pulse
+  resources:
+  - label: Source repository
+    url: https://github.com/weluvabid/pulse
+  - label: Package README and API example
+    url: https://github.com/weluvabid/pulse#readme
 ---
 
 Frameworks make reactivity look like an API. Under it: a value changes, derived values go stale, effects run. Pulse is just that, with four functions and no component model.

@@ -1,7 +1,7 @@
 import type { APIRoute } from 'astro';
 import type { SearchDocument } from '@lib/search/types';
 import { getCollection } from 'astro:content';
-import { withBase, entryHref } from '@lib/journal';
+import { entryHref } from '@lib/journal';
 import { normalizeSearchText } from '@lib/search/ranking';
 import { stringArray } from '@lib/search/arrays';
 import { INTENTS } from '@lib/content-text';
@@ -27,32 +27,14 @@ export const GET: APIRoute = async () => {
           entry.data.type,
           ...tags,
           ...searchTerms,
+          ...(entry.data.projectDetails?.stack ?? []),
         ].join(' '),
       ),
       href: entryHref(entry.data.id),
-      kind: INTENTS.entry,
+      kind: entry.data.kind === 'project' ? INTENTS.project : INTENTS.entry,
     };
   });
 
-  const projects = await getCollection('projects');
-
-  for (const project of projects) {
-    const tags = stringArray(project.data.tags);
-    const stack = stringArray(project.data.stack);
-
-    documents.push({
-      id: `project-${project.data.id}`,
-      title: project.data.title,
-      summary: project.data.summary,
-      tags,
-      searchTerms: [...stack, ...tags].slice(0, 12),
-      searchableText: normalizeSearchText(
-        [project.data.title, project.data.summary, project.body ?? '', ...stack, ...tags].join(' '),
-      ),
-      href: withBase(`/projects/${project.data.id}/`),
-      kind: INTENTS.project,
-    });
-  }
 
   return new Response(JSON.stringify({ version: 2, documents }), {
     headers: {

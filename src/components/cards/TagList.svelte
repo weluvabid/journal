@@ -1,14 +1,13 @@
 <script lang="ts">
   import { tick } from 'svelte';
-  import { tagHref, type TagCollection } from '@lib/journal-tags';
+  import { tagHref } from '@lib/journal-tags';
 
   interface Props {
     tags?: readonly string[];
     label: string;
-    collection?: TagCollection;
   }
 
-  let { tags = [], label, collection = 'journal' }: Props = $props();
+  let { tags = [], label }: Props = $props();
   let viewport: HTMLElement | undefined = $state();
   let track: HTMLDivElement | undefined = $state();
   let canScrollLeft = $state(false);
@@ -76,7 +75,7 @@
       <div bind:this={track} class="flex w-max flex-nowrap gap-2">
         {#each tags as tag (tag)}
           <a
-            href={tagHref(tag, collection)}
+            href={tagHref(tag)}
             class="inline-flex shrink-0 snap-start items-center rounded-full border border-border px-2.5 py-1 text-xs text-foreground no-underline transition-colors hover:bg-muted focus-visible:outline-2 focus-visible:outline-offset-[-2px] focus-visible:outline-ring"
             >{tag}</a
           >

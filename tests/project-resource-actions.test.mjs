@@ -1,175 +1,99 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { readFile } from 'node:fs/promises';
+import { readdir, readFile } from 'node:fs/promises';
 
+const journalRoot = new URL('../src/content/journal/', import.meta.url);
 const read = (path) => readFile(new URL(`../${path}`, import.meta.url), 'utf8');
 
-test('project schema supports optional StackBlitz and Mermaid resources', async () => {
+async function journalEntries() {
+  const files = (await readdir(journalRoot)).filter((file) => file.endsWith('.mdx'));
+  return Promise.all(files.map(async (file) => {
+    const source = await readFile(new URL(file, journalRoot), 'utf8');
+    const match = source.match(/^---\n([\s\S]*?)\n---/u);
+    assert.ok(match, `${file} must have frontmatter`);
+    const frontmatter = match[1];
+    const project = frontmatter.match(/^project: ([a-z0-9-]+)$/mu)?.[1];
+    const kind = frontmatter.match(/^kind: (article|project)$/mu)?.[1] ?? 'article';
+    return { file, source, frontmatter, data: { project, kind } };
+  }));
+}
+
+test('journal schema models canonical projects and related articles in one collection', async () => {
   const schema = await read('src/content.config.ts');
-
-  assert.match(schema, /stackblitz:\s*z\.url\(\)\.optional\(\)/);
-  assert.match(schema, /mermaid:\s*z\.url\(\)\.optional\(\)/);
+  assert.match(schema, /kind: z\.enum\(\['article', 'project'\]\)/);
+  assert.match(schema, /projectDetails: z\.object\(/);
+  assert.match(schema, /data\.kind === 'project' && \(!data\.project \|\| !data\.projectDetails\)/);
+  assert.doesNotMatch(schema, /const projects = defineCollection/);
 });
 
-test('project detail reuses the shared icon-only resource actions', async () => {
+test('each project has exactly one canonical journal entry and related articles share its id', async () => {
+  const entries = await journalEntries();
+  const associated = new Map();
+  for (const entry of entries) {
+    if (!entry.data.project) continue;
+    const group = associated.get(entry.data.project) ?? [];
+    group.push(entry);
+    associated.set(entry.data.project, group);
+  }
+  assert.equal(associated.size, 11);
+  for (const [id, group] of associated) {
+    const canonical = group.filter(({ data }) => data.kind === 'project');
+    assert.equal(canonical.length, 1, `${id} must have one canonical article`);
+    assert.match(canonical[0].frontmatter, /^- project$/mu, `${id} canonical entry needs project tag`);
+    assert.match(canonical[0].frontmatter, /^projectDetails:/mu, `${id} needs project metadata`);
+    assert.match(canonical[0].frontmatter, /^  github: https:\/\//mu, `${id} needs repository URL`);
+    assert.match(canonical[0].frontmatter, /^  stack:/mu, `${id} needs a stack`);
+    for (const entry of group.filter(({ data }) => data.kind !== 'project')) {
+      assert.equal(entry.data.project, id);
+      assert.doesNotMatch(entry.frontmatter, /^projectDetails:/mu);
+    }
+  }
+});
+
+test('project resources are rendered at the end of the canonical journal article', async () => {
+  const page = await read('src/pages/journal/[...slug].astro');
+  const component = await read('src/components/projects/ProjectResources.astro');
+  assert.match(page, /entry\.data\.kind === 'project'[\s\S]*?<ProjectResources details=\{entry\.data\.projectDetails\}/);
+  assert.match(component, /Repository notes and resources/);
+  assert.match(component, /details\.stack\.map/);
+  assert.match(component, /details\.resources\.map/);
+});
+
+test('Projects archive is generated from canonical journal entries', async () => {
+  const page = await read('src/pages/projects/index.astro');
+  assert.match(page, /getCollection\('journal'\)/);
+  assert.match(page, /assertProjectAssociations\(allEntries, entries\)/);
+  assert.match(page, /data\.kind === 'project'/);
+  assert.match(page, /href=\{entryHref\(entry\.data\.id\)\}/);
+  assert.doesNotMatch(page, /getCollection\('projects'\)/);
+});
+
+test('legacy project detail URLs redirect to their canonical journal article', async () => {
   const page = await read('src/pages/projects/[...slug].astro');
+  assert.match(page, /data\.kind === 'project'/);
+  assert.match(page, /Astro\.redirect\(withBase\(`\/journal\/\$\{id\}\/`\), 301\)/);
+});
 
-  assert.match(
-    page,
-    /import ResourceActions from '@components\/resources\/ResourceActions\.svelte'/,
+test('project association validation rejects orphaned and duplicate canonical project IDs', async () => {
+  const { assertProjectAssociations } = await import('../src/lib/journal-projects.ts');
+  const canonical = {
+    data: { id: 'project-article', kind: 'project', project: 'cachewise', projectDetails: {} },
+  };
+  const related = { data: { id: 'cachewise-part-two', kind: 'article', project: 'cachewise' } };
+  assert.doesNotThrow(() => assertProjectAssociations([canonical, related]));
+  assert.throws(
+    () => assertProjectAssociations([related]),
+    /references missing project "cachewise"/,
   );
-  assert.match(
-    page,
-    /<ResourceActions[\s\S]*?client:load[\s\S]*?git: entry\.data\.github,[\s\S]*?stackblitz: entry\.data\.stackblitz,[\s\S]*?mermaid: entry\.data\.mermaid,[\s\S]*?\/>/,
+  const draftCanonical = {
+    data: { id: 'cachewise-project', kind: 'project', project: 'cachewise', draft: true, projectDetails: {} },
+  };
+  assert.throws(
+    () => assertProjectAssociations([draftCanonical, related], [related]),
+    /references unpublished project "cachewise"/,
   );
-  assert.doesNotMatch(page, /GitHub <ExternalLink/);
-});
-
-test('JSONPlus project exposes its real StackBlitz workspace', async () => {
-  const project = await read('src/content/projects/jsonplus.md');
-
-  assert.match(
-    project,
-    /stackblitz:\s*['"]https:\/\/stackblitz\.com\/edit\/jsonplus\?file=index\.js['"]/,
+  assert.throws(
+    () => assertProjectAssociations([canonical, { ...canonical, data: { ...canonical.data, id: 'duplicate' } }]),
+    /multiple canonical articles/,
   );
-});
-
-test('Frontend Atlas project exposes the editable Mermaid diagram', async () => {
-  const project = await read('src/content/projects/frontend-atlas.md');
-
-  assert.match(project, /mermaid:\s*['"]https:\/\/mermaid\.live\/edit#pako:/);
-});
-
-test('project schema supports an explicit primary journal entry and additional related entries', async () => {
-  const schema = await read('src/content.config.ts');
-  const project = await read('src/content/projects/cachewise.md');
-  const page = await read('src/pages/projects/[...slug].astro');
-
-  assert.match(
-    schema,
-    /journal:\s*z\s*\.object\([\s\S]*?primary:\s*z\.string\(\)\.regex[\s\S]*?related:\s*z\.array\(z\.string\(\)\.regex/,
-  );
-  assert.ok(project.includes('journal:\n  primary: building-a-cache-from-first-principles'));
-  assert.match(
-    project,
-    /related: \[cost-aware-eviction-policies, benchmarking-without-lying-to-yourself\]/,
-  );
-  assert.match(
-    page,
-    /journalHref=\{[\s\S]*?entryHref\(entry\.data\.journal\.primary\)[\s\S]*?undefined[\s\S]*?\}/,
-  );
-  assert.match(page, /references\.primary, \.\.\.references\.related/);
-});
-
-test('project resource actions render the ghost link only when a primary journal URL exists', async () => {
-  const component = await read('src/components/resources/ResourceActions.svelte');
-  const page = await read('src/pages/projects/[...slug].astro');
-
-  assert.match(component, /import GhostMark from '@components\/brand\/GhostMark\.svelte'/);
-  assert.match(component, /\{#if journalHref\}/);
-  assert.match(component, /href=\{journalHref\}/);
-  assert.match(component, /aria-label="Read the related journal entry"/);
-  assert.match(page, /entry\.data\.journal\?\.primary/);
-});
-
-test('StructAura project links to its engineering deep dive', async () => {
-  const project = await read('src/content/projects/structaura.md');
-  const article = await read('src/content/journal/building-structaura.mdx');
-
-  assert.match(project, /primary: building-structaura/);
-  assert.match(article, /project: structaura/);
-  assert.match(article, /flat preorder records|canonical representation|Merkle-style/i);
-});
-
-
-test('JSON+ project links to its graph-aware serialization deep dive', async () => {
-  const project = await read('src/content/projects/jsonplus.md');
-  const article = await read('src/content/journal/building-jsonplus.mdx');
-
-  assert.match(project, /primary: building-jsonplus/);
-  assert.match(article, /project: jsonplus/);
-  assert.match(article, /node table|shared identity|allocate.*connect/i);
-});
-
-test('Frontend Atlas project links to its local-first progress and QR protocol deep dive', async () => {
-  const project = await read('src/content/projects/frontend-atlas.md');
-  const article = await read('src/content/journal/frontend-atlas-progress-without-accounts.mdx');
-
-  assert.match(project, /primary: frontend-atlas-progress-without-accounts/);
-  assert.match(article, /project: frontend-atlas/);
-  assert.match(article, /two bits/);
-  assert.match(article, /FATL1:/);
-  assert.match(article, /favourit/);
-  assert.match(article, /QR code/);
-});
-
-test('Copy 2 Markdown project links to its local-first extraction deep dive', async () => {
-  const project = await read('src/content/projects/copy-2-markdown.md');
-  const article = await read('src/content/journal/copy-2-markdown-local-first-browser-extraction.mdx');
-
-  assert.match(project, /primary: copy-2-markdown-local-first-browser-extraction/);
-  assert.match(article, /project: copy-2-markdown/);
-  assert.match(article, /offscreen document/);
-  assert.match(article, /Readability/);
-});
-
-test('EnvSentry project links to its value-redacting configuration comparison deep dive', async () => {
-  const project = await read('src/content/projects/envsentry.md');
-  const article = await read('src/content/journal/envsentry-configuration-drift-without-secrets.mdx');
-
-  assert.match(project, /primary: envsentry-configuration-drift-without-secrets/);
-  assert.match(article, /project: envsentry/);
-  assert.match(article, /ConfigDocument/);
-  assert.match(article, /do not include old values/);
-});
-
-test('WordWeave project links to its reversible codec and collision analysis deep dive', async () => {
-  const project = await read('src/content/projects/wordweave.md');
-  const article = await read('src/content/journal/wordweave-ordinary-words-as-a-codec.mdx');
-
-  assert.match(project, /primary: wordweave-ordinary-words-as-a-codec/);
-  assert.match(article, /project: wordweave/);
-  assert.match(article, /64⁴/);
-  assert.match(article, /not encryption/);
-});
-
-test('Pulse project links to its reactive runtime deep dive', async () => {
-  const project = await read('src/content/projects/pulse.md');
-  const article = await read('src/content/journal/pulse-reactive-runtime-from-first-principles.mdx');
-
-  assert.match(project, /primary: pulse-reactive-runtime-from-first-principles/);
-  assert.match(article, /project: pulse/);
-  assert.match(article, /hybrid push-pull/);
-  assert.match(article, /onCleanup/);
-});
-
-test('TinyLSM project links to its storage-engine deep dive', async () => {
-  const project = await read('src/content/projects/tiny-lsm.md');
-  const article = await read('src/content/journal/a-small-lsm-tree.mdx');
-
-  assert.match(project, /primary: a-small-lsm-tree/);
-  assert.match(article, /project: tiny-lsm/);
-  assert.match(article, /tombstones/);
-  assert.match(article, /published/);
-});
-
-test('Cachewise project links to its cache architecture and supporting articles', async () => {
-  const project = await read('src/content/projects/cachewise.md');
-  const article = await read('src/content/journal/building-a-cache-from-first-principles.mdx');
-
-  assert.match(project, /primary: building-a-cache-from-first-principles/);
-  assert.match(project, /related: \[cost-aware-eviction-policies, benchmarking-without-lying-to-yourself\]/);
-  assert.match(article, /project: cachewise/);
-  assert.match(article, /single-flight/);
-  assert.match(article, /logical byte budget/);
-});
-
-test('Needle project links to its compiler and reversible debugger deep dive', async () => {
-  const project = await read('src/content/projects/needle.md');
-  const article = await read('src/content/journal/needle-language-compiler-and-reversible-debugger.mdx');
-
-  assert.match(project, /primary: needle-language-compiler-and-reversible-debugger/);
-  assert.match(article, /project: needle/);
-  assert.match(article, /bounded deltas/);
-  assert.match(article, /Web Worker/);
 });

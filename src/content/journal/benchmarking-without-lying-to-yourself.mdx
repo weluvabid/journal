@@ -1,18 +1,30 @@
 ---
 id: benchmarking-without-lying-to-yourself
-title: 'Benchmarking Cache Policies Without Lying to Yourself'
+title: Benchmarking Cache Policies Without Lying to Yourself
 type: deep-dive
 category: systems-engineering
-summary: 'A deterministic benchmark compares Cachewise with LRU using weighted hit ratio, throughput and batched latency while keeping the limits of synthetic workloads explicit.'
+summary: A deterministic benchmark compares Cachewise with LRU using weighted hit
+  ratio, throughput and batched latency while keeping the limits of synthetic workloads
+  explicit.
 date: 2026-11-13
 project: cachewise
 series:
   id: cachewise-engineering
   part: 3
-tags: [benchmarking, caching, performance, measurement]
-searchTerms: [weighted-hit-ratio, scan-pollution, skewed-workload, byte-pressure, microbenchmark]
+tags:
+- benchmarking
+- caching
+- performance
+- measurement
+searchTerms:
+- weighted-hit-ratio
+- scan-pollution
+- skewed-workload
+- byte-pressure
+- microbenchmark
 featured: true
 draft: false
+kind: article
 ---
 
 A cache benchmark can be arranged to flatter whatever policy you just wrote. Cachewise tries not to. The streams are deterministic, they target cases where recency, recomputation cost and size disagree, and LRU sees the same requests and the same logical capacity.

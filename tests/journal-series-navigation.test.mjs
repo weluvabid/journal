@@ -24,20 +24,20 @@ const categoryOrder = [
   entry('after-series', '2025-12-01'),
 ];
 
-test('series entries retain natural category chronology', () => {
+test('series entries stay adjacent in Previous/Next navigation', () => {
   const result = resolveJournalArticleNavigation('series-part-2', categoryOrder);
 
-  assert.equal(result.previous?.data.id, 'middle-standalone');
-  assert.equal(result.next?.data.id, 'oldest-standalone');
+  assert.equal(result.previous?.data.id, 'series-part-1');
+  assert.equal(result.next?.data.id, 'series-part-3');
 });
 
-test('series boundaries do not wrap or fall back to another series part', () => {
+test('series boundaries do not wrap and fall back to chronological neighbours', () => {
   const first = resolveJournalArticleNavigation('series-part-1', categoryOrder);
   const last = resolveJournalArticleNavigation('series-part-3', categoryOrder);
 
   assert.equal(first.previous?.data.id, 'newest-standalone');
-  assert.equal(first.next?.data.id, 'middle-standalone');
-  assert.equal(last.previous?.data.id, 'oldest-standalone');
+  assert.equal(first.next?.data.id, 'series-part-2');
+  assert.equal(last.previous?.data.id, 'series-part-2');
   assert.equal(last.next?.data.id, 'after-series');
 });
 

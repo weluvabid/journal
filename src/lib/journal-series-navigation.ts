@@ -54,8 +54,8 @@ export function assertUniqueSeriesParts<T extends JournalNavigationEntry>(
 }
 
 /**
- * Resolve previous and next entries using the category's chronological order.
- * Series ordering is handled separately by the article-level series index.
+ * Keep articles in a series adjacent in Previous/Next navigation. At either
+ * series boundary, continue with the category's chronological neighbour.
  */
 export function resolveJournalArticleNavigation<T extends JournalNavigationEntry>(
   currentId: string,
@@ -67,9 +67,23 @@ export function resolveJournalArticleNavigation<T extends JournalNavigationEntry
     throw new Error(`Journal entry "${currentId}" is missing from its category reading order`);
   }
 
+  const current = categoryEntries[currentIndex];
+  const chronologicalPrevious = categoryEntries[currentIndex - 1];
+  const chronologicalNext = categoryEntries[currentIndex + 1];
+
+  if (!current.data.series) {
+    return { previous: chronologicalPrevious, next: chronologicalNext };
+  }
+
+  const seriesEntries = categoryEntries
+    .filter((entry) => entry.data.series?.id === current.data.series!.id)
+    .slice()
+    .sort((left, right) => left.data.series!.part - right.data.series!.part);
+  const seriesIndex = seriesEntries.findIndex((entry) => entry.data.id === currentId);
+
   return {
-    previous: categoryEntries[currentIndex - 1],
-    next: categoryEntries[currentIndex + 1],
+    previous: seriesEntries[seriesIndex - 1] ?? chronologicalPrevious,
+    next: seriesEntries[seriesIndex + 1] ?? chronologicalNext,
   };
 }
 

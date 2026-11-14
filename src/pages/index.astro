@@ -10,7 +10,7 @@ import { getJournalSeriesPartCount } from '@lib/journal-series-navigation';
 const allEntries = await getCollection('journal', ({ data }) => !data.draft);
 const entries = [...allEntries].sort((a, b) => b.data.date.valueOf() - a.data.date.valueOf());
 const latestEntries = entries.slice(0, 5);
-const projects = (await getCollection('projects')).sort((a, b) => a.data.order - b.data.order);
+const projects = (await getCollection('journal', ({ data }) => !data.draft && data.kind === 'project')).sort((a, b) => (a.data.projectDetails?.order ?? 0) - (b.data.projectDetails?.order ?? 0));
 const selectedProjects = projects.slice(0, 4);
 ---
 
@@ -56,8 +56,8 @@ const selectedProjects = projects.slice(0, 4);
         {
           selectedProjects.map((project, index) => (
             <ProjectCard
-              project={project.data}
-              href={withBase(`/projects/${project.data.id}/`)}
+              project={{ id: project.data.project!, title: project.data.title, summary: project.data.summary, status: project.data.projectDetails!.status, order: index + 1, tags: project.data.tags.filter((tag) => tag !== 'project') }}
+              href={entryHref(project.data.id)}
               number={index + 1}
               class="h-full"
             />

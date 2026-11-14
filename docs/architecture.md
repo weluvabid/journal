@@ -1,11 +1,11 @@
 # Architecture
 
-Journal is a static-first Astro site. Astro generates editorial, category, tag and project routes at build time. Svelte is reserved for interactions that need client-side state or browser APIs.
+Journal is a static-first Astro site. Astro generates editorial, category, tag and Projects archive routes at build time. Svelte is reserved for interactions that need client-side state or browser APIs.
 
 ## Runtime
 
 - Astro static output, deployed to Cloudflare Pages.
-- MDX journal collection and Markdown project collection.
+- One MDX Journal collection; canonical project articles and related notes share its schema.
 - Astro Content Collections validate content at build time.
 - Iris supplies the shared UI primitives, theme tokens, icons and interaction primitives.
 - Svelte islands power navigation, search, keyboard shortcuts, pagination and resource tooltips.
@@ -15,13 +15,14 @@ There is no application server, database, authentication, account system or read
 
 ## Content boundaries
 
-- `src/content/journal/` contains journal entries.
-- `src/content/projects/` contains portfolio project records.
-- `src/content.config.ts` validates both collections.
+- `src/content/journal/` contains all journal entries and canonical project articles.
+- `kind: project` marks canonical project articles; `project` associates related notes.
+- `projectDetails` exists only on canonical project articles.
+- `src/content.config.ts` validates the single Journal collection.
 - `src/data/categories.ts` is the canonical category registry.
 - `src/pages/search-index.v2.json.ts` generates the public search index.
 - `src/pages/journal/` renders writing, category and tag routes.
-- `src/pages/projects/` renders project and tag routes.
+- `src/pages/projects/` renders a generated project index and legacy redirects to canonical Journal articles.
 
 ## UI boundaries
 

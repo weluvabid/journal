@@ -51,4 +51,4 @@ Supported entry types: `engineering-note`, `build-log`, `deep-dive`, `retrospect
 
 Supported categories: `systems-engineering`, `frontend-engineering`, `product-engineering`, `engineering-thinking`.
 
-Projects live in `src/content/projects/*.md`. Add a project document and its metadata; the projects listing and search index are generated from the collection.
+Projects are canonical Journal entries, not a second content collection. Mark the primary article with `kind: project`, set its stable `project` ID, add the `project` tag, and put status, stack, repository links and curated repository resources in `projectDetails`. Related articles use the same `project` ID but keep `kind: article`. The Projects archive and the resource section at the end of the canonical article are generated from that single record. See `docs/content-architecture.md` for the schema.

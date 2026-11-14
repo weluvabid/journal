@@ -3,15 +3,51 @@ id: building-structaura
 title: 'Building StructAura: Deterministic AST Fingerprinting with Rust and WebAssembly'
 type: deep-dive
 category: systems-engineering
-summary: 'How I built a versioned JavaScript and TypeScript structural fingerprint using Tree-sitter, a shared Rust core, canonical encoding and iterative Merkle hashing.'
+summary: How I built a versioned JavaScript and TypeScript structural fingerprint
+  using Tree-sitter, a shared Rust core, canonical encoding and iterative Merkle hashing.
 date: 2026-11-13
 project: structaura
-tags: [rust, webassembly, tree-sitter, javascript, typescript, hashing, compilers]
-searchTerms: [AST fingerprinting, structural hash, Merkle tree, canonicalization, syntax tree, deterministic hashing]
+tags:
+- rust
+- webassembly
+- tree-sitter
+- javascript
+- typescript
+- hashing
+- compilers
+- project
+searchTerms:
+- AST fingerprinting
+- structural hash
+- Merkle tree
+- canonicalization
+- syntax tree
+- deterministic hashing
 links:
   git: https://github.com/weluvabid/structaura
 featured: true
 draft: false
+kind: project
+projectDetails:
+  status: experimental
+  stack:
+  - Rust
+  - WebAssembly
+  - Tree-sitter
+  - JavaScript
+  - TypeScript
+  featured: false
+  order: 6
+  github: https://github.com/weluvabid/structaura
+  resources:
+  - label: Source repository
+    url: https://github.com/weluvabid/structaura
+  - label: Architecture documentation
+    url: https://github.com/weluvabid/structaura/blob/main/docs/architecture.md
+  - label: Fingerprint contract
+    url: https://github.com/weluvabid/structaura/blob/main/docs/fingerprint-contract.md
+  - label: Benchmark methodology and results
+    url: https://github.com/weluvabid/structaura/blob/main/docs/benchmarks.md
 ---
 
 import DiagramViewer from '@components/diagrams/DiagramViewer.svelte';

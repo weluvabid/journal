@@ -3,16 +3,26 @@ id: cost-aware-eviction-policies
 title: 'Thinking Beyond LRU: Cost-Aware Eviction'
 type: deep-dive
 category: systems-engineering
-summary: 'Cachewise scores entries by recency, estimated reuse, recomputation cost and logical size, then separates victim selection from candidate admission.'
+summary: Cachewise scores entries by recency, estimated reuse, recomputation cost
+  and logical size, then separates victim selection from candidate admission.
 date: 2026-11-13
 project: cachewise
 series:
   id: cachewise-engineering
   part: 2
-tags: [caching, algorithms, performance]
-searchTerms: [cost-aware-cache, lru, count-min-sketch, admission-control, eviction-score]
+tags:
+- caching
+- algorithms
+- performance
+searchTerms:
+- cost-aware-cache
+- lru
+- count-min-sketch
+- admission-control
+- eviction-score
 featured: true
 draft: false
+kind: article
 ---
 
 LRU answers "who haven't we touched in a while?" Fine when sizes and rebuild costs are in the same ballpark. Bad when the cache holds a 40-byte report that took a serious computation and a fat blob that was cheap.

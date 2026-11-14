@@ -25,7 +25,7 @@ Create an MDX file under `src/content/journal/` and follow the schema in `src/co
 
 ## Adding a project
 
-Create a Markdown file under `src/content/projects/`. The project listing and search index are generated from the collection.
+Create the canonical project article as an MDX file under `src/content/journal/`. Set `kind: project`, a stable `project` ID, the `project` tag, and `projectDetails` (status, stack, repository links, curated resources and display order). Related engineering notes use the same `project` ID with `kind: article`; do not duplicate project metadata. The Projects archive and article-end resource section are generated from the canonical entry.
 
 ## Submodule
 

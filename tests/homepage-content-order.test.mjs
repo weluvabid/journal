@@ -16,7 +16,7 @@ test('homepage removes the topic directory and places selected projects before w
 });
 
 test('homepage shows the first four projects in curated project order', () => {
-  assert.match(source, /\.sort\(\(a, b\) => a\.data\.order - b\.data\.order\)/);
+  assert.match(source, /projectDetails\?\.order/);
   assert.match(source, /const selectedProjects = projects\.slice\(0, 4\)/);
   assert.match(source, /selectedProjects\.map\(\(project, index\)/);
   assert.match(source, /number=\{index \+ 1\}/);

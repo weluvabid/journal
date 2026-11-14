@@ -1,51 +1,25 @@
 ---
 import { getCollection } from 'astro:content';
-import BaseLayout from '@layouts/BaseLayout.astro';
-import { Breadcrumb } from '@weluvabid/iris/components';
-import ProjectCard from '@components/cards/ProjectCard.svelte';
 import { withBase } from '@lib/journal';
-import { groupProjectsByTag } from '@lib/journal-tags';
-import { INTENTS, pluralize } from '@lib/content-text';
 
 export async function getStaticPaths() {
-  const projects = (await getCollection('projects')).sort(
-    (left, right) => left.data.order - right.data.order,
+  const projects = await getCollection(
+    'journal',
+    ({ data }) => !data.draft && data.kind === 'project',
+  );
+  const tags = new Set(
+    projects.flatMap((entry) =>
+      entry.data.tags.map((tag) =>
+        tag
+          .toLowerCase()
+          .replace(/[^a-z0-9]+/g, '-')
+          .replace(/^-+|-+$/g, ''),
+      ),
+    ),
   );
 
-  return [...groupProjectsByTag(projects).entries()].map(([slug, group]) => ({
-    params: { slug },
-    props: { slug, label: group.label, projects: group.entries },
-  }));
+  return [...tags].map((slug) => ({ params: { slug } }));
 }
 
-const { label, projects } = Astro.props;
+return Astro.redirect(withBase('/projects/'), 301);
 ---
-
-<BaseLayout
-  title={`Projects tagged “${label}” — Projects`}
-  description={`Projects tagged ${label}.`}
->
-  <Breadcrumb.Root class="mb-8"
-    ><Breadcrumb.List
-      ><Breadcrumb.Item
-        ><Breadcrumb.Link href={withBase('/projects/')}>Projects</Breadcrumb.Link></Breadcrumb.Item
-      ><Breadcrumb.Separator /><Breadcrumb.Item
-        ><Breadcrumb.Page>#{label}</Breadcrumb.Page></Breadcrumb.Item
-      ></Breadcrumb.List
-    ></Breadcrumb.Root
-  >
-  <p class="mb-10 text-xs font-semibold uppercase tracking-[0.18em] text-muted-foreground">
-    {pluralize(projects.length, INTENTS.project)}
-  </p>
-  <div class="grid items-stretch gap-3 sm:grid-cols-2">
-    {
-      projects.map((project) => (
-        <ProjectCard
-          project={project.data}
-          href={withBase(`/projects/${project.data.id}/`)}
-          class="h-full"
-        />
-      ))
-    }
-  </div>
-</BaseLayout>

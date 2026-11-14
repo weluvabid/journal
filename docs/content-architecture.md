@@ -1,34 +1,26 @@
 # Content architecture
 
-## Journal entries
+## Journal entries and projects
 
-Journal entries are MDX files in `src/content/journal/`. The collection schema in `src/content.config.ts` validates:
+All editorial and project content lives in `src/content/journal/`. There is one validated content collection and one source of truth.
 
-- Stable kebab-case `id` used for the public route.
-- Title, summary, publication date and entry type.
-- One of the canonical category IDs from `src/data/categories.ts`.
-- One to eight tags and up to twelve search terms.
-- Optional project association and optional Git, StackBlitz and Mermaid resource URLs.
-- Featured and draft flags.
+Every entry has a `kind`:
 
-The public route is derived from the stable ID: `/journal/<id>/`. Draft entries are excluded from public routes, listing data and search.
+- `article` is a journal entry.
+- `project` is the canonical project article and carries the complete `projectDetails` record: status, stack, repository/demo links, curated repository resources, featured state and display order.
 
-## Projects
+The optional `project` ID associates related engineering notes with that canonical project article. Related entries link back to the canonical project article; they do not repeat its metadata. A canonical project article carries the `project` tag, so it is discoverable through the ordinary Journal tag archive. Subject categories remain topical classifications, not project/non-project flags.
 
-Project pages are Markdown files in `src/content/projects/`. Metadata includes a stable ID, title, summary, status, technology stack, tags, optional GitHub/demo/StackBlitz/Mermaid URLs, featured flag and display order.
+The Projects archive and homepage project cards are generated from published entries where `kind: project`. The project resource section is rendered at the end of that same article. There is no separately maintained project description or project content collection. Legacy `/projects/<id>/` URLs redirect to the canonical `/journal/<id>/` article.
 
-Project tags use the same canonical tag URL model as journal tags but live under `/projects/tag/<slug>/`.
+Journal IDs are stable kebab-case values used for public routes. Draft entries are excluded from public routes, listing data and search.
 
-## Categories
+## Categories and tags
 
 `src/data/categories.ts` is the single category registry. It supplies human-readable labels, descriptions and stable IDs to the homepage, category selector and category archive routes. The content schema constrains journal category values to the supported IDs.
 
+Tags belong to the Journal collection and share one canonical route model under `/journal/tag/<slug>/`. The `project` tag identifies canonical project articles.
+
 ## Search
 
-The generated `/search-index.v2.json` contains only the fields consumed by the client search UI: ID, title, summary, tags, search terms, searchable text, destination URL and document kind. Its payload is versioned and strictly validated before ranking. Search ranking and validation live in `src/lib/search/`.
-
-## Editorial content
-
-The collection began with 20 structural seed entries. The first has been replaced with a substantive
-Journal article; the remaining placeholders still need real editorial copy before being presented
-as finished writing.
+The generated `/search-index.v2.json` contains only the fields consumed by the client search UI: ID, title, summary, tags, search terms, searchable text, destination URL and document kind. Project articles are indexed once, as project documents, rather than duplicated as a second collection. Its payload is versioned and strictly validated before ranking. Search ranking and validation live in `src/lib/search/`.

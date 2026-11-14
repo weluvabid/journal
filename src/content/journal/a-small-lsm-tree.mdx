@@ -1,15 +1,49 @@
 ---
 id: a-small-lsm-tree
-title: 'Building a Tiny LSM Tree'
+title: Building a Tiny LSM Tree
 type: deep-dive
 category: systems-engineering
-summary: 'A small Rust storage engine makes memtables, immutable sorted runs, tombstones, recovery and compaction concrete.'
+summary: A small Rust storage engine makes memtables, immutable sorted runs, tombstones,
+  recovery and compaction concrete.
 date: 2026-11-13
 project: tiny-lsm
-tags: [rust, storage, lsm-tree, databases]
-searchTerms: [memtable, sorted-runs, tombstones, compaction, persistence, recovery]
+tags:
+- rust
+- storage
+- lsm-tree
+- databases
+- project
+searchTerms:
+- memtable
+- sorted-runs
+- tombstones
+- compaction
+- persistence
+- recovery
 featured: true
 draft: false
+kind: project
+projectDetails:
+  status: experimental
+  stack:
+  - Rust
+  - Cargo
+  - BTreeMap
+  - Storage engines
+  featured: true
+  order: 5
+  github: https://github.com/weluvabid/tiny-lsm
+  resources:
+  - label: Architecture and invariants
+    url: https://github.com/weluvabid/tiny-lsm/blob/main/docs/ARCHITECTURE.md
+  - label: Sorted-run format
+    url: https://github.com/weluvabid/tiny-lsm/blob/main/docs/SORTED-RUNS.md
+  - label: Compaction
+    url: https://github.com/weluvabid/tiny-lsm/blob/main/docs/COMPACTION.md
+  - label: Recovery
+    url: https://github.com/weluvabid/tiny-lsm/blob/main/docs/RECOVERY.md
+  - label: Benchmark methodology
+    url: https://github.com/weluvabid/tiny-lsm/blob/main/docs/BENCHMARKS.md
 ---
 
 import DiagramViewer from '@components/diagrams/DiagramViewer.svelte';

@@ -1,15 +1,48 @@
 ---
 id: copy-2-markdown-local-first-browser-extraction
-title: 'Copying the Web as Markdown Without a Backend'
+title: Copying the Web as Markdown Without a Backend
 type: deep-dive
 category: frontend-engineering
-summary: 'How a Manifest V3 extension separates page extraction, conservative filtering, Markdown conversion and clipboard ownership while keeping copied content local.'
+summary: How a Manifest V3 extension separates page extraction, conservative filtering,
+  Markdown conversion and clipboard ownership while keeping copied content local.
 date: 2026-11-13
 project: copy-2-markdown
-tags: [browser-extensions, markdown, privacy, javascript]
-searchTerms: [manifest-v3, activeTab, readability, turndown, offscreen-document, clipboard]
+tags:
+- browser-extensions
+- markdown
+- privacy
+- javascript
+- project
+searchTerms:
+- manifest-v3
+- activeTab
+- readability
+- turndown
+- offscreen-document
+- clipboard
 featured: true
 draft: false
+kind: project
+projectDetails:
+  status: experimental
+  stack:
+  - TypeScript
+  - Chrome Manifest V3
+  - Mozilla Readability
+  - Turndown
+  - Playwright
+  featured: true
+  order: 9
+  github: https://github.com/weluvabid/copy-2-markdown
+  resources:
+  - label: Architecture
+    url: https://github.com/weluvabid/copy-2-markdown/blob/main/docs/architecture.md
+  - label: Extraction and filtering
+    url: https://github.com/weluvabid/copy-2-markdown/blob/main/docs/extraction.md
+  - label: Markdown conversion
+    url: https://github.com/weluvabid/copy-2-markdown/blob/main/docs/conversion.md
+  - label: Privacy policy
+    url: https://github.com/weluvabid/copy-2-markdown/blob/main/PRIVACY.md
 ---
 
 import DiagramViewer from '@components/diagrams/DiagramViewer.svelte';

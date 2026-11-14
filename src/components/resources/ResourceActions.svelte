@@ -1,7 +1,6 @@
 <script lang="ts">
   import { Button, Tooltip } from '@weluvabid/iris/components';
   import { SiGit, SiStackblitz, SiMermaid } from '@weluvabid/iris/simple-icons';
-  import GhostMark from '@components/brand/GhostMark.svelte';
 
   type ResourceLinks = {
     git?: string;
@@ -12,11 +11,9 @@
   let {
     links,
     title,
-    journalHref,
   }: {
     links: ResourceLinks;
     title: string;
-    journalHref?: string;
   } = $props();
 </script>
 
@@ -66,25 +63,6 @@
       </Tooltip.Root>
     {/if}
 
-    {#if journalHref}
-      <Tooltip.Root>
-        <Tooltip.Trigger>
-          {#snippet child({ props })}
-            <Button.Root
-              {...props}
-              href={journalHref}
-              variant="ghost"
-              size="icon"
-              class="ghost-link rounded-full hover:bg-muted hover:text-foreground"
-              aria-label="Read the related journal entry"
-            >
-              <GhostMark class="size-5" gradientId="project-journal-ghost" />
-            </Button.Root>
-          {/snippet}
-        </Tooltip.Trigger>
-        <Tooltip.Content>Related journal entry</Tooltip.Content>
-      </Tooltip.Root>
-    {/if}
 
     {#if links.mermaid}
       <Tooltip.Root>

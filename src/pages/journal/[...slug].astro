@@ -5,9 +5,11 @@ import { Badge, Breadcrumb, Button } from '@weluvabid/iris/components';
 import { ArrowLeft } from '@weluvabid/iris/lucide';
 import ArticleNavigation from '@components/article/ArticleNavigation.svelte';
 import ResourceActions from '@components/resources/ResourceActions.svelte';
+import ProjectResources from '@components/projects/ProjectResources.astro';
 import TagList from '@components/cards/TagList.svelte';
 import { categoryById } from '@data/categories';
 import { withBase, entryHref } from '@lib/journal';
+import { assertProjectAssociations } from '@lib/journal-projects';
 import {
   assertUniqueSeriesParts,
   getJournalSeriesEntries,
@@ -15,8 +17,10 @@ import {
   resolveJournalArticleNavigation,
 } from '@lib/journal-series-navigation';
 export async function getStaticPaths() {
-  const entries = await getCollection('journal', ({ data }) => !data.draft);
+  const allEntries = await getCollection('journal');
+  const entries = allEntries.filter((entry) => !entry.data.draft);
   assertUniqueSeriesParts(entries);
+  assertProjectAssociations(allEntries, entries);
   return entries.map((entry) => ({ params: { slug: entry.data.id }, props: { entry } }));
 }
 const { entry } = Astro.props;
@@ -24,6 +28,11 @@ const { Content } = await render(entry);
 const category = categoryById.get(entry.data.category);
 if (!category) throw new Error(`Unknown journal category: ${entry.data.category}`);
 const publishedEntries = await getCollection('journal', ({ data }) => !data.draft);
+const projectEntry = entry.data.project
+  ? publishedEntries.find(
+      (item) => item.data.kind === 'project' && item.data.project === entry.data.project,
+    )
+  : undefined;
 const groupedEntries = publishedEntries
   .filter((item) => item.data.category === entry.data.category)
   .sort(
@@ -69,6 +78,14 @@ const seriesEntries = entry.data.series
           variant="outline"
           class="capitalize">{entry.data.type.replaceAll('-', ' ')}</Badge.Badge
         >
+        {projectEntry && entry.data.kind !== 'project' && (
+          <a
+            class="text-xs font-medium text-muted-foreground underline decoration-border underline-offset-4 hover:text-foreground"
+            href={entryHref(projectEntry.data.id)}
+          >
+            Project · {projectEntry.data.title}
+          </a>
+        )}
         <time datetime={entry.data.date.toISOString()}
           >{entry.data.date.toLocaleDateString('en', { dateStyle: 'long' })}</time
         >
@@ -118,6 +135,9 @@ const seriesEntries = entry.data.series
         </nav>
       )
     }
+    {entry.data.kind === 'project' && entry.data.projectDetails && (
+      <ProjectResources details={entry.data.projectDetails} title={entry.data.title} />
+    )}
     <div class="mt-10">
       <Button.Root variant="ghost" href={withBase(`/journal/category/${category.id}/`)}
         ><ArrowLeft class="size-4" aria-hidden="true" />Back to {category.name}</Button.Root
