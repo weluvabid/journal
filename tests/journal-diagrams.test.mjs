@@ -21,12 +21,17 @@ test('the five architecture diagrams use the shared pan-and-zoom viewer', async 
 
   const viewer = await readFile(join(root, 'src/components/diagrams/DiagramViewer.svelte'), 'utf8');
   const viewerModule = await readFile(join(root, 'src/lib/diagrams/viewer.ts'), 'utf8');
+  const headers = await readFile(join(root, 'public/_headers'), 'utf8');
 
   assert.match(viewerModule, /svg-pan-zoom/);
   assert.match(viewer, /role="status"[\s\S]*?aria-label="Preparing diagram controls"/);
   assert.match(viewer, /disabled={!ready}/);
   assert.doesNotMatch(viewer, /Loading diagram…/);
   assert.doesNotMatch(viewer, /absolute inset-x-4 top-1\/2/);
+  assert.match(viewer, /setTimeout\(handleLoadError, 10_000\)/);
+  assert.match(viewer, /function handleObjectLoad\(\)/);
+  assert.match(headers, /Content-Security-Policy: frame-ancestors 'self'/);
+  assert.doesNotMatch(headers, /X-Frame-Options: DENY/);
 });
 test('journal content contains no unfinished example notes', async () => {
   for (const name of await readdir(join(root, 'src/content/journal'))) {

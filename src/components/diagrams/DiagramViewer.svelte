@@ -18,12 +18,13 @@
   let viewer: Viewer | null = null;
   let initialization: Promise<void> | null = null;
   let abortController: AbortController | null = null;
+  let loadTimeout: ReturnType<typeof setTimeout> | null = null;
   let ready = $state(false);
   let failed = $state(false);
   let controlsFailed = $state(false);
 
   function initializeViewer(): Promise<void> {
-    if (viewer || initialization || !objectElement?.contentDocument) {
+    if (viewer || initialization || failed) {
       return initialization ?? Promise.resolve();
     }
 
@@ -51,7 +52,28 @@
     return initialization;
   }
 
+  function clearLoadTimeout(): void {
+    if (loadTimeout !== null) {
+      clearTimeout(loadTimeout);
+      loadTimeout = null;
+    }
+  }
+
+  function handleObjectLoad(): void {
+    clearLoadTimeout();
+
+    // A load event does not guarantee that the embedded document is usable.
+    if (!objectElement.contentDocument?.querySelector('svg')) {
+      failed = true;
+      return;
+    }
+
+    failed = false;
+    void initializeViewer();
+  }
+
   function handleLoadError(): void {
+    clearLoadTimeout();
     failed = true;
   }
 
@@ -76,20 +98,27 @@
   }
 
   onMount(() => {
-    objectElement.addEventListener('load', initializeViewer);
+    objectElement.addEventListener('load', handleObjectLoad);
     objectElement.addEventListener('error', handleLoadError);
 
-    // The SVG may finish loading before this component hydrates.
-    initializeViewer();
+    // The SVG may finish loading before this component hydrates. If it has not
+    // loaded yet, bound the wait so blocked resources cannot leave a spinner
+    // visible forever when the browser omits an error event.
+    if (objectElement.contentDocument?.querySelector('svg')) {
+      void initializeViewer();
+    } else {
+      loadTimeout = setTimeout(handleLoadError, 10_000);
+    }
 
     const resizeObserver = new ResizeObserver(() => viewer?.resize());
 
     resizeObserver.observe(stageElement);
 
     return () => {
+      clearLoadTimeout();
       abortController?.abort();
       resizeObserver.disconnect();
-      objectElement.removeEventListener('load', initializeViewer);
+      objectElement.removeEventListener('load', handleObjectLoad);
       objectElement.removeEventListener('error', handleLoadError);
       viewer?.destroy();
 
