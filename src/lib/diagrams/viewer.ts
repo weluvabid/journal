@@ -6,15 +6,21 @@ export async function createDiagramViewer(
   element: HTMLObjectElement,
   signal: AbortSignal,
 ): Promise<DiagramViewer | null> {
-  if (signal.aborted) return null;
+  if (signal.aborted) {
+    return null;
+  }
 
   const document = element.contentDocument;
+
   if (!document?.querySelector('svg')) {
     throw new Error('The embedded document does not contain an SVG.');
   }
 
   const { default: createPanZoom } = await import('svg-pan-zoom');
-  if (signal.aborted) return null;
+
+  if (signal.aborted) {
+    return null;
+  }
 
   return createPanZoom(element, {
     panEnabled: true,
@@ -33,7 +39,10 @@ export async function createDiagramViewer(
 }
 
 export function fitDiagramViewer(viewer: DiagramViewer | null): void {
-  if (!viewer) return;
+  if (!viewer) {
+    return;
+  }
+
   viewer.resize();
   viewer.fit();
   viewer.center();

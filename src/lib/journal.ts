@@ -18,6 +18,7 @@ export function entryHref(
   }
 
   const href = withBase(`/journal/${id}/`);
+
   if (context === 'all') {
     return href;
   }

@@ -104,14 +104,16 @@ const seriesEntries = entry.data.series
         {entry.data.title}
       </h1>
       <p class="mt-5 text-base leading-8 text-muted-foreground">{entry.data.summary}</p>
-      {sourceRepository && (
-        <ResourceActions
-          client:load
-          git={sourceRepository}
-          stackblitz={stackblitzDemo}
-          title={entry.data.title}
-        />
-      )}
+      {
+        sourceRepository && (
+          <ResourceActions
+            client:load
+            git={sourceRepository}
+            stackblitz={stackblitzDemo}
+            title={entry.data.title}
+          />
+        )
+      }
       <div class="block w-full min-w-0 max-w-full">
         <TagList tags={entry.data.tags} label={entry.data.title} />
       </div>
@@ -129,7 +131,9 @@ const seriesEntries = entry.data.series
                     class="flex items-baseline gap-2 text-sm font-medium text-foreground"
                     aria-current="page"
                   >
-                    <span class="shrink-0 text-muted-foreground">{seriesEntry.data.series!.part}.</span>
+                    <span class="shrink-0 text-muted-foreground">
+                      {seriesEntry.data.series!.part}.
+                    </span>
                     {seriesEntry.data.title}
                     <span class="text-xs font-normal text-muted-foreground">Current</span>
                   </span>
@@ -158,13 +162,27 @@ const seriesEntries = entry.data.series
       client:load
       currentId={entry.data.id}
       categoryId={entry.data.category}
-      allEntries={allNavigationEntries.map((item) => ({ id: item.data.id, title: item.data.title }))}
-      categoryEntries={categoryNavigationEntries.map((item) => ({ id: item.data.id, title: item.data.title }))}
+      allEntries={allNavigationEntries.map((item) => ({
+        id: item.data.id,
+        title: item.data.title,
+      }))}
+      categoryEntries={categoryNavigationEntries.map((item) => ({
+        id: item.data.id,
+        title: item.data.title,
+      }))}
       previous={initialNavigation.previous
-        ? { title: initialNavigation.previous.data.title, url: entryHref(initialNavigation.previous.data.id) }
+        ? {
+            id: initialNavigation.previous.data.id,
+            title: initialNavigation.previous.data.title,
+            url: entryHref(initialNavigation.previous.data.id),
+          }
         : null}
       next={initialNavigation.next
-        ? { title: initialNavigation.next.data.title, url: entryHref(initialNavigation.next.data.id) }
+        ? {
+            id: initialNavigation.next.data.id,
+            title: initialNavigation.next.data.title,
+            url: entryHref(initialNavigation.next.data.id),
+          }
         : null}
     />
   </article>

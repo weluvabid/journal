@@ -35,15 +35,21 @@
 
   onDestroy(() => {
     destroyed = true;
+
     activeRequest?.abort();
   });
 
   async function loadMore(): Promise<void> {
-    if (requestInFlight || !nextPageUrl || destroyed) return;
+    if (requestInFlight || !nextPageUrl || destroyed) {
+      return;
+    }
 
     requestInFlight = true;
+
     const controller = new AbortController();
+
     activeRequest = controller;
+
     const timeoutId = window.setTimeout(() => controller.abort(), 15_000);
 
     try {
@@ -57,31 +63,46 @@
         signal: controller.signal,
       });
 
-      if (destroyed) return;
+      if (destroyed) {
+        return;
+      }
 
       requestedPageUrls.add(requestUrl.href);
-      for (const entry of payload.items) seenIds.add(entry.id);
+
+      for (const entry of payload.items) {
+        seenIds.add(entry.id);
+      }
+
       entries.push(...payload.items);
+
       nextPageUrl = payload.nextPageUrl;
 
-      if (nextPageUrl === null) loaderState.complete();
-      else loaderState.loaded();
+      if (nextPageUrl === null) {
+        loaderState.complete();
+      } else {
+        loaderState.loaded();
+      }
     } catch (error) {
       if (!destroyed) {
         if (!(error instanceof DOMException && error.name === 'AbortError')) {
           console.error('Unable to load more journal entries.', error);
         }
+
         loaderState.error();
       }
     } finally {
       window.clearTimeout(timeoutId);
-      if (activeRequest === controller) activeRequest = undefined;
+
+      if (activeRequest === controller) {
+        activeRequest = undefined;
+      }
+
       requestInFlight = false;
     }
   }
 </script>
 
-{#snippet entryCard(entry: JournalEntry, index: number)}
+{#snippet entryCard(entry: JournalListEntry, index: number)}
   <li><JournalEntryCard {entry} {index} /></li>
 {/snippet}
 
@@ -106,9 +127,7 @@
     {#snippet error(attemptLoad)}
       <div class="flex flex-col items-center gap-3 py-4 text-center" role="alert">
         <p class="text-sm text-muted-foreground">More entries couldn't be loaded.</p>
-        <Button.Root type="button" variant="outline" onclick={attemptLoad}>
-          Try again
-        </Button.Root>
+        <Button.Root type="button" variant="outline" onclick={attemptLoad}>Try again</Button.Root>
       </div>
     {/snippet}
 

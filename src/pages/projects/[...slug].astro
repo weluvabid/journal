@@ -2,8 +2,14 @@
 import { getCollection } from 'astro:content';
 import { withBase } from '@lib/journal';
 export async function getStaticPaths() {
-  const entries = await getCollection('journal', ({ data }) => !data.draft && data.kind === 'project');
-  return entries.map((entry) => ({ params: { slug: entry.data.project! }, props: { id: entry.data.id } }));
+  const entries = await getCollection(
+    'journal',
+    ({ data }) => !data.draft && data.kind === 'project',
+  );
+  return entries.map((entry) => ({
+    params: { slug: entry.data.project! },
+    props: { id: entry.data.id },
+  }));
 }
 const { id } = Astro.props;
 return Astro.redirect(withBase(`/journal/${id}/`), 301);

@@ -5,13 +5,13 @@ Render each `.mmd` file to SVG with Kroki, then optimize the SVG with SVGO.
 
 ## Files
 
-| Source | Target article | Purpose |
-|---|---|---|
-| `copy-2-markdown-extraction.mmd` | Copy 2 Markdown | Shows the extraction-to-clipboard path and Readability fallback. |
-| `tiny-lsm-storage-lifecycle.mmd` | TinyLSM | Shows flush publication ordering, retained memtable on failure, and compaction. |
-| `cachewise-single-flight.mmd` | Cachewise | Shows two callers sharing one factory and independent waiter cancellation. |
-| `frontend-atlas-progress-transfer.mmd` | Frontend Atlas | Shows local progress export and validated import through a QR transfer. |
-| `structaura-fingerprinting-pipeline.mmd` | StructAura | Shows parsing, supported normalization, canonical encoding and hashing. |
+| Source                                   | Target article  | Purpose                                                                         |
+| ---------------------------------------- | --------------- | ------------------------------------------------------------------------------- |
+| `copy-2-markdown-extraction.mmd`         | Copy 2 Markdown | Shows the extraction-to-clipboard path and Readability fallback.                |
+| `tiny-lsm-storage-lifecycle.mmd`         | TinyLSM         | Shows flush publication ordering, retained memtable on failure, and compaction. |
+| `cachewise-single-flight.mmd`            | Cachewise       | Shows two callers sharing one factory and independent waiter cancellation.      |
+| `frontend-atlas-progress-transfer.mmd`   | Frontend Atlas  | Shows local progress export and validated import through a QR transfer.         |
+| `structaura-fingerprinting-pipeline.mmd` | StructAura      | Shows parsing, supported normalization, canonical encoding and hashing.         |
 
 ## Rendering
 

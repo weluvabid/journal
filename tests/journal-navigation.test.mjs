@@ -27,6 +27,7 @@ test('navigation follows the supplied sequence even when entries belong to a ser
 
   for (const [current, previous, next] of expected) {
     const result = resolveJournalNavigation(current, sequence);
+
     assert.equal(result.previous?.data.id, previous);
     assert.equal(result.next?.data.id, next);
   }

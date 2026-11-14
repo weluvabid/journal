@@ -33,7 +33,10 @@
     let cancelled = false;
 
     void tick().then(() => {
-      if (cancelled || !viewport || !track) return;
+      if (cancelled || !viewport || !track) {
+        return;
+      }
+
       cleanup = observeHorizontalScroll(viewport, track, syncScrollState, {
         revealSelector: '[aria-current="page"]',
       });
@@ -41,6 +44,7 @@
 
     return () => {
       cancelled = true;
+
       cleanup?.();
     };
   });

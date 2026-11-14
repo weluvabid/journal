@@ -8,21 +8,21 @@ summary: How I built a versioned JavaScript and TypeScript structural fingerprin
 date: 2026-11-13
 project: structaura
 tags:
-- rust
-- webassembly
-- tree-sitter
-- javascript
-- typescript
-- hashing
-- compilers
-- project
+  - rust
+  - webassembly
+  - tree-sitter
+  - javascript
+  - typescript
+  - hashing
+  - compilers
+  - project
 searchTerms:
-- AST fingerprinting
-- structural hash
-- Merkle tree
-- canonicalization
-- syntax tree
-- deterministic hashing
+  - AST fingerprinting
+  - structural hash
+  - Merkle tree
+  - canonicalization
+  - syntax tree
+  - deterministic hashing
 links:
   git: https://github.com/weluvabid/structaura
 featured: true
@@ -31,26 +31,26 @@ kind: project
 projectDetails:
   status: experimental
   stack:
-  - Rust
-  - WebAssembly
-  - Tree-sitter
-  - JavaScript
-  - TypeScript
+    - Rust
+    - WebAssembly
+    - Tree-sitter
+    - JavaScript
+    - TypeScript
   featured: false
   order: 6
   github: https://github.com/weluvabid/structaura
   stackblitz: https://stackblitz.com/edit/structaura?file=index.js
   resources:
-  - label: Source repository
-    url: https://github.com/weluvabid/structaura
-  - label: Live StackBlitz demo
-    url: https://stackblitz.com/edit/structaura?file=index.js
-  - label: Architecture documentation
-    url: https://github.com/weluvabid/structaura/blob/main/docs/architecture.md
-  - label: Fingerprint contract
-    url: https://github.com/weluvabid/structaura/blob/main/docs/fingerprint-contract.md
-  - label: Benchmark methodology and results
-    url: https://github.com/weluvabid/structaura/blob/main/docs/benchmarks.md
+    - label: Source repository
+      url: https://github.com/weluvabid/structaura
+    - label: Live StackBlitz demo
+      url: https://stackblitz.com/edit/structaura?file=index.js
+    - label: Architecture documentation
+      url: https://github.com/weluvabid/structaura/blob/main/docs/architecture.md
+    - label: Fingerprint contract
+      url: https://github.com/weluvabid/structaura/blob/main/docs/fingerprint-contract.md
+    - label: Benchmark methodology and results
+      url: https://github.com/weluvabid/structaura/blob/main/docs/benchmarks.md
 ---
 
 import DiagramViewer from '@components/diagrams/DiagramViewer.svelte';
@@ -81,7 +81,11 @@ The browser package has an async `init()` because the WASM module and the gramma
 
 Comments and selected punctuation are removed during normalization. Changes to the retained syntax change the digest. Semantic analysis belongs in a separate tool.
 
-<DiagramViewer client:visible src="/diagrams/structaura-fingerprinting.svg" alt="StructAura fingerprinting pipeline from source parsing through normalization, canonical encoding and hashing, with unsupported input rejected." />
+<DiagramViewer
+  client:visible
+  src="/diagrams/structaura-fingerprinting.svg"
+  alt="StructAura fingerprinting pipeline from source parsing through normalization, canonical encoding and hashing, with unsupported input rejected."
+/>
 
 ```js
 // Same retained syntax; comments and layout differ.
@@ -89,7 +93,7 @@ const total = left + right;
 ```
 
 ```js
-const total=left+right;
+const total = left + right;
 ```
 
 With the current JavaScript normalization version these formatting-only changes produce the same canonical fingerprint. Changing `right` to `tax` changes retained syntax and therefore the fingerprint. The fingerprints compare normalized structure; they do not tell you whether the programs behave the same.

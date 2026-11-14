@@ -10,24 +10,32 @@ const diagrams = [
   ['building-structaura.mdx', 'structaura-fingerprinting.svg'],
   ['frontend-atlas-progress-without-accounts.mdx', 'frontend-atlas-progress-transfer.svg'],
 ];
+
 test('the five architecture diagrams use the shared pan-and-zoom viewer', async () => {
   for (const [article, diagram] of diagrams) {
     const content = await readFile(join(root, 'src/content/journal', article), 'utf8');
+
     assert.match(content, new RegExp(`<DiagramViewer[^>]*src="/diagrams/${diagram}"`));
     await access(join(root, 'public/diagrams', diagram));
   }
+
   const viewer = await readFile(join(root, 'src/components/diagrams/DiagramViewer.svelte'), 'utf8');
   const viewerModule = await readFile(join(root, 'src/lib/diagrams/viewer.ts'), 'utf8');
+
   assert.match(viewerModule, /svg-pan-zoom/);
-  assert.match(viewer, /role="status" aria-label="Preparing diagram controls"/);
+  assert.match(viewer, /role="status"[\s\S]*?aria-label="Preparing diagram controls"/);
   assert.match(viewer, /disabled={!ready}/);
   assert.doesNotMatch(viewer, /Loading diagram…/);
   assert.doesNotMatch(viewer, /absolute inset-x-4 top-1\/2/);
 });
 test('journal content contains no unfinished example notes', async () => {
   for (const name of await readdir(join(root, 'src/content/journal'))) {
-    if (!name.endsWith('.mdx')) continue;
+    if (!name.endsWith('.mdx')) {
+      continue;
+    }
+
     const content = await readFile(join(root, 'src/content/journal', name), 'utf8');
+
     assert.doesNotMatch(content, /\*Example I'd add:\*/i, name);
   }
 });

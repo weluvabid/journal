@@ -7,13 +7,13 @@ summary: A closer look at bounded queues, overload behaviour and making pressure
   instead of hiding it.
 date: 2026-11-08
 tags:
-- concurrency
-- backpressure
-- reliability
+  - concurrency
+  - backpressure
+  - reliability
 searchTerms:
-- concurrency
-- backpressure
-- reliability
+  - concurrency
+  - backpressure
+  - reliability
 featured: false
 draft: false
 ---
@@ -36,12 +36,12 @@ Cancel work after its caller has gone only when stopping it is safe. During shut
 
 Overload depends on what the work promises. Interactive requests can fail fast or wait briefly. Low-priority work can be dropped. Fulfillment work must be accepted durably or rejected where someone can see it. Test the overload policy with a producer that stays faster than the consumer for long enough to build a real backlog.
 
-| Workload promise | Overload policy | Required boundary |
-| --- | --- | --- |
-| Interactive request | Fail fast or wait within a bounded window | Explicit timeout and concurrency limit. |
-| Retryable background work | Retry with backoff and jitter | Stable operation identity and idempotent handling. |
-| Low-priority disposable work | Drop when capacity is exhausted | Make the drop policy observable. |
-| Fulfillment-critical work | Accept durably or reject visibly | Never silently discard accepted work. |
+| Workload promise             | Overload policy                           | Required boundary                                  |
+| ---------------------------- | ----------------------------------------- | -------------------------------------------------- |
+| Interactive request          | Fail fast or wait within a bounded window | Explicit timeout and concurrency limit.            |
+| Retryable background work    | Retry with backoff and jitter             | Stable operation identity and idempotent handling. |
+| Low-priority disposable work | Drop when capacity is exhausted           | Make the drop policy observable.                   |
+| Fulfillment-critical work    | Accept durably or reject visibly          | Never silently discard accepted work.              |
 
 ```text
 Publish: 120 jobs/s

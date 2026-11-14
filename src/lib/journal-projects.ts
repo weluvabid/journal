@@ -14,7 +14,9 @@ export function assertProjectAssociations(
   const canonical = new Map<string, JournalEntry>();
 
   for (const entry of allEntries) {
-    if (entry.data.kind !== 'project') continue;
+    if (entry.data.kind !== 'project') {
+      continue;
+    }
 
     const projectId = entry.data.project;
 
@@ -25,6 +27,7 @@ export function assertProjectAssociations(
     }
 
     const existing = canonical.get(projectId);
+
     if (existing) {
       throw new Error(
         `Project "${projectId}" has multiple canonical articles: "${existing.data.id}" and "${entry.data.id}"`,
@@ -36,19 +39,24 @@ export function assertProjectAssociations(
 
   for (const entry of publishedEntries) {
     const projectId = entry.data.project;
-    if (!projectId) continue;
+
+    if (!projectId) {
+      continue;
+    }
 
     const projectEntry = canonical.get(projectId);
+
     if (!projectEntry) {
       const candidates = allEntries
         .filter((candidate) => candidate.data.project === projectId)
         .map((candidate) => candidate.data.id);
 
       throw new Error(
-        `Journal entry "${entry.data.id}" references missing project "${projectId}". ` +
-          (candidates.length
+        `Journal entry "${entry.data.id}" references missing project "${projectId}". ${
+          candidates.length
             ? `Matching entries exist but none is canonical (kind: "project"): ${candidates.join(', ')}.`
-            : 'No journal entry declares this project id.'),
+            : 'No journal entry declares this project id.'
+        }`,
       );
     }
 

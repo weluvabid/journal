@@ -8,22 +8,22 @@ summary: How I designed a versioned JavaScript serialization format that preserv
 date: 2026-11-13
 project: jsonplus
 tags:
-- typescript
-- serialization
-- javascript
-- data-structures
-- graph-theory
-- security
-- project
+  - typescript
+  - serialization
+  - javascript
+  - data-structures
+  - graph-theory
+  - security
+  - project
 searchTerms:
-- graph serialization
-- cyclic objects
-- shared references
-- object identity
-- typed arrays
-- binary serialization
-- resource limits
-- JSON alternative
+  - graph serialization
+  - cyclic objects
+  - shared references
+  - object identity
+  - typed arrays
+  - binary serialization
+  - resource limits
+  - JSON alternative
 links:
   git: https://github.com/weluvabid/jsonplus
 featured: false
@@ -32,28 +32,28 @@ kind: project
 projectDetails:
   status: released
   stack:
-  - TypeScript
-  - JavaScript
-  - Node.js
-  - Vitest
+    - TypeScript
+    - JavaScript
+    - Node.js
+    - Vitest
   featured: false
   order: 7
   github: https://github.com/weluvabid/jsonplus
   stackblitz: https://stackblitz.com/edit/jsonplus?file=index.js
   resources:
-  - label: Source repository
-    url: https://github.com/weluvabid/jsonplus
-  - label: Version 1 specification
-    url: https://github.com/weluvabid/jsonplus/blob/main/SPEC.md
-  - label: README and API examples
-    url: https://github.com/weluvabid/jsonplus#readme
+    - label: Source repository
+      url: https://github.com/weluvabid/jsonplus
+    - label: Version 1 specification
+      url: https://github.com/weluvabid/jsonplus/blob/main/SPEC.md
+    - label: README and API examples
+      url: https://github.com/weluvabid/jsonplus#readme
 ---
 
 `JSON.stringify` works well for tree-shaped values. `undefined` disappears, `BigInt` throws, cycles throw, and two fields that point to the same object decode as separate objects. JSON+ is a versioned JSON format for a bounded set of JavaScript values. It preserves cycles and shared identity. Functions, closures, symbols, DOM nodes, weak collections and arbitrary classes sit outside the format.
 
 The important part is object identity. If `first` and `second` point at the same object, the graph has one node with two incoming edges. If an object points back to itself, that edge forms a cycle. The wire format needs to preserve both relationships.
 
-Envelope is small: `format`, `version`, `root`, `nodes`. Primitives go inline or as explicit tags (`undefined`, `NaN`, infinities, `-0`, `BigInt` as canonical decimal). The first time the encoder sees a referenceable object it records the identity *before* walking children. Later hits reuse `{ "$ref": n }`. That's how cycles fall out without a special recursive case.
+Envelope is small: `format`, `version`, `root`, `nodes`. Primitives go inline or as explicit tags (`undefined`, `NaN`, infinities, `-0`, `BigInt` as canonical decimal). The first time the encoder sees a referenceable object it records the identity _before_ walking children. Later hits reuse `{ "$ref": n }`. That's how cycles fall out without a special recursive case.
 
 The node table doubles as the work queue. A cursor walks it while newly discovered objects are appended, so encoding stays iterative without another traversal structure.
 
@@ -72,12 +72,12 @@ Allocating nodes before wiring their edges makes forward references and cycles s
 
 Supported: ordinary objects and null-prototype objects, sparse arrays, `Date`, `RegExp` (including `lastIndex` as a graph edge), `Map` and `Set` in insertion order, `ArrayBuffer`, typed arrays, `DataView`. Views share backing-buffer identity. Buffers are allocated before views so the offset is real.
 
-| Value family | Version 1 support | Preserved contract |
-| --- | --- | --- |
-| Objects and arrays | Ordinary and null-prototype objects; sparse arrays | Graph identity, cycles and array holes. |
-| Built-ins | `Date`, `RegExp`, `Map`, `Set` | Map/Set insertion order; RegExp `lastIndex`. |
-| Binary data | `ArrayBuffer`, typed arrays, `DataView` | Shared backing-buffer identity, offsets and view lengths. |
-| Unsupported values | Functions, symbols, DOM nodes, weak collections, arbitrary classes | Rejected rather than silently flattened. |
+| Value family       | Version 1 support                                                  | Preserved contract                                        |
+| ------------------ | ------------------------------------------------------------------ | --------------------------------------------------------- |
+| Objects and arrays | Ordinary and null-prototype objects; sparse arrays                 | Graph identity, cycles and array holes.                   |
+| Built-ins          | `Date`, `RegExp`, `Map`, `Set`                                     | Map/Set insertion order; RegExp `lastIndex`.              |
+| Binary data        | `ArrayBuffer`, typed arrays, `DataView`                            | Shared backing-buffer identity, offsets and view lengths. |
+| Unsupported values | Functions, symbols, DOM nodes, weak collections, arbitrary classes | Rejected rather than silently flattened.                  |
 
 Encoding never invokes getters. Restored data properties are writable and configurable. The format preserves ordinary and null prototypes. Restored data properties are writable and configurable; property descriptors, extensibility and custom prototype chains are not serialized. Proxies are excluded because reflection can run their traps. Resizable buffers and `SharedArrayBuffer` are also outside the supported set.
 
@@ -92,7 +92,7 @@ input.self = input;
 
 const output = decode(encode(input));
 output.first === output.second; // true
-output.self === output;         // true
+output.self === output; // true
 ```
 
 The two properties still point at one object, and the self-edge still points back to the root.

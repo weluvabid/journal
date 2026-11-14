@@ -68,7 +68,10 @@ test('page integrity rejects duplicate ids, cycles, cross-origin URLs and empty 
       }),
     /cross-origin/,
   );
-  assert.throws(() => assertJournalPageIntegrity({ ...base, items: [], nextPageUrl: '/next.json' }), /empty page/);
+  assert.throws(
+    () => assertJournalPageIntegrity({ ...base, items: [], nextPageUrl: '/next.json' }),
+    /empty page/,
+  );
   assert.throws(
     () => assertJournalPageIntegrity({ ...base, followingPageUrl: base.requestUrl }),
     /cycle/,

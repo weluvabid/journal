@@ -11,45 +11,45 @@ series:
   id: cachewise-engineering
   part: 1
 tags:
-- typescript
-- caching
-- systems
-- concurrency
-- project
+  - typescript
+  - caching
+  - systems
+  - concurrency
+  - project
 searchTerms:
-- cache
-- logical-memory-budget
-- ttl
-- single-flight
-- cancellation
-- invalidation
+  - cache
+  - logical-memory-budget
+  - ttl
+  - single-flight
+  - cancellation
+  - invalidation
 featured: true
 draft: false
 kind: project
 projectDetails:
   status: released
   stack:
-  - TypeScript
-  - Node.js
-  - pnpm
-  - Vitest
+    - TypeScript
+    - Node.js
+    - pnpm
+    - Vitest
   featured: true
   order: 1
   stackblitz: https://stackblitz.com/edit/cachewise?file=index.js
   github: https://github.com/weluvabid/cachewise
   resources:
-  - label: Architecture
-    url: https://github.com/weluvabid/cachewise/blob/main/docs/architecture.md
-  - label: Eviction and admission
-    url: https://github.com/weluvabid/cachewise/blob/main/docs/eviction-and-admission.md
-  - label: Concurrency
-    url: https://github.com/weluvabid/cachewise/blob/main/docs/concurrency.md
-  - label: Memory accounting
-    url: https://github.com/weluvabid/cachewise/blob/main/docs/memory-accounting.md
-  - label: Benchmark methodology
-    url: https://github.com/weluvabid/cachewise/blob/main/docs/benchmarking.md
-  - label: Live StackBlitz demo
-    url: https://stackblitz.com/edit/cachewise?file=index.js
+    - label: Architecture
+      url: https://github.com/weluvabid/cachewise/blob/main/docs/architecture.md
+    - label: Eviction and admission
+      url: https://github.com/weluvabid/cachewise/blob/main/docs/eviction-and-admission.md
+    - label: Concurrency
+      url: https://github.com/weluvabid/cachewise/blob/main/docs/concurrency.md
+    - label: Memory accounting
+      url: https://github.com/weluvabid/cachewise/blob/main/docs/memory-accounting.md
+    - label: Benchmark methodology
+      url: https://github.com/weluvabid/cachewise/blob/main/docs/benchmarking.md
+    - label: Live StackBlitz demo
+      url: https://stackblitz.com/edit/cachewise?file=index.js
 ---
 
 import DiagramViewer from '@components/diagrams/DiagramViewer.svelte';
@@ -82,7 +82,11 @@ Frequency is a Count-Min Sketch: four rows of 8-bit counters by default, with fi
 
 `getOrCompute` is single-flight per key. Concurrent callers join one promise. Each caller can abort their own wait. The factory sees a different, shared signal. One waiter leaving does not cancel the others. The last waiter leaving aborts the shared signal and drops the flight. Abort is cooperative. If a factory ignores the signal, it keeps running. Cachewise can skip storing its result, but side effects the factory already performed remain.
 
-<DiagramViewer client:visible src="/diagrams/cachewise-single-flight.svg" alt="Cachewise single-flight sequence: two callers share one factory; caller A aborts its wait while caller B receives the result." />
+<DiagramViewer
+  client:visible
+  src="/diagrams/cachewise-single-flight.svg"
+  alt="Cachewise single-flight sequence: two callers share one factory; caller A aborts its wait while caller B receives the result."
+/>
 
 `set` or `delete` during a flight marks that flight non-cacheable so a late factory can't overwrite the explicit value. `clear()` bumps an epoch and aborts known flights. A factory that settles after clear does not repopulate the cache. The promise the caller is awaiting still settles with the factory's result. Invalidation controls admission, not what the waiter observes.
 

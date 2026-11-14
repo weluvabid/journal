@@ -8,42 +8,42 @@ summary: A small Rust storage engine makes memtables, immutable sorted runs, tom
 date: 2026-11-13
 project: tiny-lsm
 tags:
-- rust
-- storage
-- lsm-tree
-- databases
-- project
+  - rust
+  - storage
+  - lsm-tree
+  - databases
+  - project
 searchTerms:
-- memtable
-- sorted-runs
-- tombstones
-- compaction
-- persistence
-- recovery
+  - memtable
+  - sorted-runs
+  - tombstones
+  - compaction
+  - persistence
+  - recovery
 featured: true
 draft: false
 kind: project
 projectDetails:
   status: experimental
   stack:
-  - Rust
-  - Cargo
-  - BTreeMap
-  - Storage engines
+    - Rust
+    - Cargo
+    - BTreeMap
+    - Storage engines
   featured: true
   order: 5
   github: https://github.com/weluvabid/tiny-lsm
   resources:
-  - label: Architecture and invariants
-    url: https://github.com/weluvabid/tiny-lsm/blob/main/docs/ARCHITECTURE.md
-  - label: Sorted-run format
-    url: https://github.com/weluvabid/tiny-lsm/blob/main/docs/SORTED-RUNS.md
-  - label: Compaction
-    url: https://github.com/weluvabid/tiny-lsm/blob/main/docs/COMPACTION.md
-  - label: Recovery
-    url: https://github.com/weluvabid/tiny-lsm/blob/main/docs/RECOVERY.md
-  - label: Benchmark methodology
-    url: https://github.com/weluvabid/tiny-lsm/blob/main/docs/BENCHMARKS.md
+    - label: Architecture and invariants
+      url: https://github.com/weluvabid/tiny-lsm/blob/main/docs/ARCHITECTURE.md
+    - label: Sorted-run format
+      url: https://github.com/weluvabid/tiny-lsm/blob/main/docs/SORTED-RUNS.md
+    - label: Compaction
+      url: https://github.com/weluvabid/tiny-lsm/blob/main/docs/COMPACTION.md
+    - label: Recovery
+      url: https://github.com/weluvabid/tiny-lsm/blob/main/docs/RECOVERY.md
+    - label: Benchmark methodology
+      url: https://github.com/weluvabid/tiny-lsm/blob/main/docs/BENCHMARKS.md
 ---
 
 import DiagramViewer from '@components/diagrams/DiagramViewer.svelte';
@@ -56,15 +56,20 @@ The memtable is a `BTreeMap`. Writes go there. Reads check it first, then walk i
 
 Flush serializes an ordered snapshot into a new run. The memtable is cleared only after that run has been published. If writing or publishing fails, the memtable remains available; clearing it first would throw away the only live copy before the replacement is ready.
 
-| Operation | Data path | Failure or guarantee |
-| --- | --- | --- |
-| Write | Update the in-memory `BTreeMap` memtable. | No disk run is created until flush. |
-| Read | Check the memtable, then immutable runs newest-first. | A newest tombstone hides older values. |
-| Flush | Serialize and publish a sorted run, then clear the memtable. | A failed write or publish leaves the memtable intact. |
-| Recovery | Parse every discovered run before opening the engine. | Malformed or truncated runs fail recovery. |
-| Compaction | K-way merge sorted runs; the higher generation wins. | Tombstones remain; there is no snapshot-aware safe-drop policy. |
+| Operation  | Data path                                                    | Failure or guarantee                                            |
+| ---------- | ------------------------------------------------------------ | --------------------------------------------------------------- |
+| Write      | Update the in-memory `BTreeMap` memtable.                    | No disk run is created until flush.                             |
+| Read       | Check the memtable, then immutable runs newest-first.        | A newest tombstone hides older values.                          |
+| Flush      | Serialize and publish a sorted run, then clear the memtable. | A failed write or publish leaves the memtable intact.           |
+| Recovery   | Parse every discovered run before opening the engine.        | Malformed or truncated runs fail recovery.                      |
+| Compaction | K-way merge sorted runs; the higher generation wins.         | Tombstones remain; there is no snapshot-aware safe-drop policy. |
 
-<DiagramViewer client:visible src="/diagrams/tiny-lsm-storage-lifecycle.svg" alt="TinyLSM write path showing memtable accumulation, run publication, failure retention, clearing after success and compaction." caption="The important boundary is publish first, clear second." />
+<DiagramViewer
+  client:visible
+  src="/diagrams/tiny-lsm-storage-lifecycle.svg"
+  alt="TinyLSM write path showing memtable accumulation, run publication, failure retention, clearing after success and compaction."
+  caption="The important boundary is publish first, clear second."
+/>
 
 `Engine::new()` creates an in-memory engine. For a disk-backed engine, use `open(path)`. Flush and compaction require the disk-backed engine. The public API takes `&mut self`, so the model is single-writer and synchronous: no locking, no background thread. Running two processes against the same directory is not supported.
 

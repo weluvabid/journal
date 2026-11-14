@@ -22,11 +22,8 @@ test('category navigation exposes independent left and right scroll shadows', as
   const component = await read('src/components/journal/CategorySelect.svelte');
 
   assert.match(component, /observeHorizontalScroll/);
-  assert.match(
-    component,
-    /getHorizontalScrollState/,
-  );
-  assert.match(component, /revealSelector: '\[aria-current=\"page\"\]'/);
+  assert.match(component, /getHorizontalScrollState/);
+  assert.match(component, /revealSelector: '\[aria-current="page"]'/);
   assert.match(await read('src/lib/horizontal-scroll.ts'), /viewport\.scrollLeft = Math\.max/);
   assert.match(component, /shadow-\[inset_12px_0/);
   assert.match(component, /shadow-\[inset_-12px_0/);

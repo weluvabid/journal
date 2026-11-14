@@ -1,3 +1,13 @@
+<script module lang="ts">
+  import type {
+    ArticleNavigationEntry,
+    ArticleNavigationTarget,
+    ArticleNavigationProps,
+  } from '@lib/article-navigation';
+
+  export type Props = ArticleNavigationProps;
+</script>
+
 <script lang="ts">
   import { onMount, untrack } from 'svelte';
   import { navigate } from 'astro:transitions/client';
@@ -7,34 +17,17 @@
   import { Button, Tooltip } from '@weluvabid/iris/components';
   import { ChevronLeft, ChevronRight } from '@weluvabid/iris/lucide';
 
-  interface Entry {
-    id: string;
-    title: string;
-  }
+  let { currentId, categoryId, allEntries, categoryEntries, previous, next }: Props = $props();
 
-  interface NavigationTarget extends Entry {
-    url: string;
-  }
-
-  export interface Props {
-    currentId: string;
-    categoryId: string;
-    allEntries: Entry[];
-    categoryEntries: Entry[];
-    previous: NavigationTarget | null;
-    next: NavigationTarget | null;
-  }
-
-  const { currentId, categoryId, allEntries, categoryEntries, previous, next }: Props = $props();
-  let previousTarget = $state<NavigationTarget | null>(untrack(() => previous));
-  let nextTarget = $state<NavigationTarget | null>(untrack(() => next));
+  let previousTarget = $state<ArticleNavigationTarget | null>(untrack(() => previous));
+  let nextTarget = $state<ArticleNavigationTarget | null>(untrack(() => next));
 
   onMount(() => {
     const context = parseJournalNavigationContext(window.location.search, categoryId);
     const sequence = context.type === 'category' ? categoryEntries : allEntries;
     const { previous: previousEntry, next: nextEntry } = resolveJournalNavigation(
       currentId,
-      sequence.map((entry) => ({ data: entry })),
+      sequence.map((entry: ArticleNavigationEntry) => ({ data: entry })),
     );
     const hrefContext = context.type === 'category' ? { categoryId: context.categoryId } : 'all';
 
@@ -72,6 +65,7 @@
       aria-label="Navigate between journal entries"
     >
       {#if previousTarget}
+        {@const target = previousTarget}
         <div
           class="pointer-events-none absolute top-1/2 -translate-y-1/2 [left:max(1rem,calc((100vw-48rem)/2-3.5rem))]"
         >
@@ -83,21 +77,22 @@
                   variant="ghost"
                   size="icon"
                   class="pointer-events-auto rounded-full border border-border/70 bg-background/80 text-muted-foreground shadow-sm backdrop-blur transition-colors hover:text-foreground"
-                  href={previousTarget.url}
+                  href={target.url}
                   data-article-previous
                   aria-keyshortcuts="["
-                  aria-label={`Previous entry: ${previousTarget.title}`}
+                  aria-label={`Previous entry: ${target.title}`}
                 >
                   <ChevronLeft aria-hidden="true" />
                 </Button.Root>
               {/snippet}
             </Tooltip.Trigger>
-            <Tooltip.Content side="right">{previousTarget.title}</Tooltip.Content>
+            <Tooltip.Content side="right">{target.title}</Tooltip.Content>
           </Tooltip.Root>
         </div>
       {/if}
 
       {#if nextTarget}
+        {@const target = nextTarget}
         <div
           class="pointer-events-none absolute top-1/2 -translate-y-1/2 [right:max(1rem,calc((100vw-48rem)/2-3.5rem))]"
         >
@@ -109,16 +104,16 @@
                   variant="ghost"
                   size="icon"
                   class="pointer-events-auto rounded-full border border-border/70 bg-background/80 text-muted-foreground shadow-sm backdrop-blur transition-colors hover:text-foreground"
-                  href={nextTarget.url}
+                  href={target.url}
                   data-article-next
                   aria-keyshortcuts="]"
-                  aria-label={`Next entry: ${nextTarget.title}`}
+                  aria-label={`Next entry: ${target.title}`}
                 >
                   <ChevronRight aria-hidden="true" />
                 </Button.Root>
               {/snippet}
             </Tooltip.Trigger>
-            <Tooltip.Content side="left">{nextTarget.title}</Tooltip.Content>
+            <Tooltip.Content side="left">{target.title}</Tooltip.Content>
           </Tooltip.Root>
         </div>
       {/if}

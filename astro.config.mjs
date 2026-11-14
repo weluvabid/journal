@@ -10,7 +10,8 @@ export default defineConfig({
   base: process.env.ASTRO_BASE_PATH ?? '/',
   trailingSlash: 'always',
   redirects: {
-    '/journal/building-without-user-accounts/': '/journal/frontend-atlas-progress-without-accounts/',
+    '/journal/building-without-user-accounts/':
+      '/journal/frontend-atlas-progress-without-accounts/',
     '/journal/component-libraries-not-black-boxes/': '/journal/building-iris/',
     '/journal/cost-aware-eviction-policies/': '/journal/building-a-cache-from-first-principles/',
   },

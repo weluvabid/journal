@@ -8,40 +8,40 @@ summary: A small language that compiles to Brainfuck, with
 date: 2026-11-13
 project: needle
 tags:
-- rust
-- compilers
-- interpreters
-- webassembly
-- debugging
-- project
+  - rust
+  - compilers
+  - interpreters
+  - webassembly
+  - debugging
+  - project
 searchTerms:
-- brainfuck
-- lexer
-- parser
-- source-maps
-- reversible-execution
-- wasm
-- web-worker
+  - brainfuck
+  - lexer
+  - parser
+  - source-maps
+  - reversible-execution
+  - wasm
+  - web-worker
 featured: true
 draft: false
 kind: project
 projectDetails:
   status: experimental
   stack:
-  - Rust
-  - Brainfuck
-  - WebAssembly
-  - wasm-bindgen
-  - TypeScript
-  - Web Workers
+    - Rust
+    - Brainfuck
+    - WebAssembly
+    - wasm-bindgen
+    - TypeScript
+    - Web Workers
   featured: false
   order: 11
   github: https://github.com/weluvabid/needle
   resources:
-  - label: Source repository
-    url: https://github.com/weluvabid/needle
-  - label: Language and runtime contract
-    url: https://github.com/weluvabid/needle#language-at-a-glance
+    - label: Source repository
+      url: https://github.com/weluvabid/needle
+    - label: Language and runtime contract
+      url: https://github.com/weluvabid/needle#language-at-a-glance
 ---
 
 Needle has eight commands and compiles to Brainfuck. The language is tiny; most of the work sits around it: a Rust frontend, a direct interpreter, source maps, reversible steps and a playground that runs the core through WASM in a worker.

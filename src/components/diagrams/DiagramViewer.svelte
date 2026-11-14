@@ -30,14 +30,19 @@
     abortController = new AbortController();
     initialization = createDiagramViewer(objectElement, abortController.signal)
       .then((instance) => {
-        if (!instance) return;
+        if (!instance) {
+          return;
+        }
+
         viewer = instance;
         ready = true;
         failed = false;
         controlsFailed = false;
       })
       .catch(() => {
-        if (!abortController?.signal.aborted) controlsFailed = true;
+        if (!abortController?.signal.aborted) {
+          controlsFailed = true;
+        }
       })
       .finally(() => {
         initialization = null;
@@ -63,7 +68,10 @@
   }
 
   function fitView() {
-    if (!viewer) return;
+    if (!viewer) {
+      return;
+    }
+
     fitDiagramViewer(viewer);
   }
 
@@ -75,6 +83,7 @@
     initializeViewer();
 
     const resizeObserver = new ResizeObserver(() => viewer?.resize());
+
     resizeObserver.observe(stageElement);
 
     return () => {
@@ -83,6 +92,7 @@
       objectElement.removeEventListener('load', initializeViewer);
       objectElement.removeEventListener('error', handleLoadError);
       viewer?.destroy();
+
       viewer = null;
     };
   });
@@ -92,11 +102,20 @@
   <div class="overflow-hidden rounded-xl border border-border bg-muted/20">
     <div class="flex items-center justify-between gap-2 border-b border-border px-2 py-2 sm:px-3">
       {#if !ready && !failed && !controlsFailed}
-        <span class="inline-flex size-9 items-center justify-center" role="status" aria-label="Preparing diagram controls">
-          <span class="size-4 motion-safe:animate-spin rounded-full border-2 border-muted-foreground/25 border-t-muted-foreground" aria-hidden="true"></span>
+        <span
+          class="inline-flex size-9 items-center justify-center"
+          role="status"
+          aria-label="Preparing diagram controls"
+        >
+          <span
+            class="size-4 motion-safe:animate-spin rounded-full border-2 border-muted-foreground/25 border-t-muted-foreground"
+            aria-hidden="true"
+          ></span>
         </span>
       {:else if controlsFailed}
-        <span class="sr-only" role="alert">Diagram controls could not be initialized. The diagram remains available.</span>
+        <span class="sr-only" role="alert"
+          >Diagram controls could not be initialized. The diagram remains available.</span
+        >
       {:else}
         <span aria-hidden="true" class="size-9"></span>
       {/if}
@@ -173,7 +192,12 @@
           role="alert"
         >
           <p>The interactive diagram couldn't be loaded.</p>
-          <a href={src} target="_blank" rel="noopener noreferrer" class="underline underline-offset-4">
+          <a
+            href={src}
+            target="_blank"
+            rel="noopener noreferrer"
+            class="underline underline-offset-4"
+          >
             Open the SVG directly
           </a>
         </div>
@@ -181,6 +205,8 @@
     </div>
   </div>
   {#if caption}
-    <figcaption class="mt-2 text-center text-xs leading-5 text-muted-foreground">{caption}</figcaption>
+    <figcaption class="mt-2 text-center text-xs leading-5 text-muted-foreground">
+      {caption}
+    </figcaption>
   {/if}
 </figure>

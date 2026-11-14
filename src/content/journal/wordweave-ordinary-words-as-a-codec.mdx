@@ -8,35 +8,35 @@ summary: Exploring a deterministic word-phrase alphabet, its combinatorial capac
 date: 2026-11-13
 project: wordweave
 tags:
-- typescript
-- encoding
-- information-theory
-- text-processing
-- project
+  - typescript
+  - encoding
+  - information-theory
+  - text-processing
+  - project
 searchTerms:
-- word-codec
-- reversible-encoding
-- entropy
-- collision-analysis
-- vocabulary-versioning
+  - word-codec
+  - reversible-encoding
+  - entropy
+  - collision-analysis
+  - vocabulary-versioning
 featured: true
 draft: false
 kind: project
 projectDetails:
   status: experimental
   stack:
-  - TypeScript
-  - Node.js
-  - Vitest
-  - fast-check
+    - TypeScript
+    - Node.js
+    - Vitest
+    - fast-check
   featured: false
   order: 10
   github: https://github.com/weluvabid/wordweave
   resources:
-  - label: Source repository
-    url: https://github.com/weluvabid/wordweave
-  - label: Collision analysis command
-    url: https://github.com/weluvabid/wordweave#collision-analysis
+    - label: Source repository
+      url: https://github.com/weluvabid/wordweave
+    - label: Collision analysis command
+      url: https://github.com/weluvabid/wordweave#collision-analysis
 ---
 
 I started WordWeave after running into a chat filter that replaced messages with `#####`. It maps selected terms to ordinary four-word phrases while preserving punctuation, whitespace and casing. The mapping is reversible, and the vocabulary is public, so anyone with it can decode the phrases.

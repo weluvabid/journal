@@ -19,6 +19,7 @@ test('journal entries are grouped once per tag and preserve source order', () =>
     { data: { id: 'b', tags: ['rust'] } },
   ];
   const groups = groupEntriesByTag(entries);
+
   assert.deepEqual(groups.get('rust').entries, entries);
   assert.deepEqual(groups.get('project').entries, [entries[0]]);
 });

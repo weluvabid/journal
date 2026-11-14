@@ -81,9 +81,6 @@
   .prose-journal blockquote {
     @apply my-6 border-l-2 border-primary pl-4 text-muted-foreground;
   }
-
-
-
 }
 
 /* Keep Sonner descriptions readable without changing the shared theme tokens.

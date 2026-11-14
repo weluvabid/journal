@@ -8,41 +8,41 @@ summary: How a Manifest V3 extension separates page extraction, conservative fil
 date: 2026-11-13
 project: copy-2-markdown
 tags:
-- browser-extensions
-- markdown
-- privacy
-- javascript
-- project
+  - browser-extensions
+  - markdown
+  - privacy
+  - javascript
+  - project
 searchTerms:
-- manifest-v3
-- activeTab
-- readability
-- turndown
-- offscreen-document
-- clipboard
+  - manifest-v3
+  - activeTab
+  - readability
+  - turndown
+  - offscreen-document
+  - clipboard
 featured: true
 draft: false
 kind: project
 projectDetails:
   status: experimental
   stack:
-  - TypeScript
-  - Chrome Manifest V3
-  - Mozilla Readability
-  - Turndown
-  - Playwright
+    - TypeScript
+    - Chrome Manifest V3
+    - Mozilla Readability
+    - Turndown
+    - Playwright
   featured: true
   order: 9
   github: https://github.com/weluvabid/copy-2-markdown
   resources:
-  - label: Architecture
-    url: https://github.com/weluvabid/copy-2-markdown/blob/main/docs/architecture.md
-  - label: Extraction and filtering
-    url: https://github.com/weluvabid/copy-2-markdown/blob/main/docs/extraction.md
-  - label: Markdown conversion
-    url: https://github.com/weluvabid/copy-2-markdown/blob/main/docs/conversion.md
-  - label: Privacy policy
-    url: https://github.com/weluvabid/copy-2-markdown/blob/main/PRIVACY.md
+    - label: Architecture
+      url: https://github.com/weluvabid/copy-2-markdown/blob/main/docs/architecture.md
+    - label: Extraction and filtering
+      url: https://github.com/weluvabid/copy-2-markdown/blob/main/docs/extraction.md
+    - label: Markdown conversion
+      url: https://github.com/weluvabid/copy-2-markdown/blob/main/docs/conversion.md
+    - label: Privacy policy
+      url: https://github.com/weluvabid/copy-2-markdown/blob/main/PRIVACY.md
 ---
 
 import DiagramViewer from '@components/diagrams/DiagramViewer.svelte';
@@ -63,7 +63,12 @@ The extractor works with the live page. The converter takes HTML and a base URL.
 
 Page copy clones the document and tries Readability first. It works well on articles, while documentation sites and app UIs often need the fallback. When Readability returns too little text, the extractor checks `main`, then `article`, then `[role="main"]`, and finally the cleaned body. It copies the selected content root rather than serializing the whole page.
 
-<DiagramViewer client:visible src="/diagrams/copy-2-markdown-extraction.svg" alt="Copy 2 Markdown extraction pipeline: user action, service worker, Readability, semantic fallback, Markdown conversion and clipboard write." caption="Readability is the primary path; semantic extraction is the fallback." />
+<DiagramViewer
+  client:visible
+  src="/diagrams/copy-2-markdown-extraction.svg"
+  alt="Copy 2 Markdown extraction pipeline: user action, service worker, Readability, semantic fallback, Markdown conversion and clipboard write."
+  caption="Readability is the primary path; semantic extraction is the fallback."
+/>
 
 Filtering has separate rules for:
 

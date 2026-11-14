@@ -7,13 +7,13 @@ summary: Thoughts on representing valid transitions, ownership and failure state
   without relying on convention.
 date: 2026-11-07
 tags:
-- rust
-- state-machines
-- design
+  - rust
+  - state-machines
+  - design
 searchTerms:
-- rust
-- state-machines
-- design
+  - rust
+  - state-machines
+  - design
 featured: false
 draft: false
 ---
@@ -34,10 +34,10 @@ Success carries an output ID and failure carries a reason. The type rules out co
 
 I use typestate when the sequence is fixed. A builder that must not run until the required config exists is a decent typestate. A job that moves because an outside event arrived, or because persisted state says so, is a runtime enum. The next event comes from outside the program, so a runtime enum represents that lifecycle more directly.
 
-| Approach | Best fit | What the type system can enforce |
-| --- | --- | --- |
-| Runtime enum | Jobs driven by events or persisted state | Exactly one represented state at a time; exhaustive handling of variants. |
-| Typestate | Fixed sequences such as a configured-before-use builder | Operations can be unavailable until the value reaches the required type state. |
+| Approach     | Best fit                                                | What the type system can enforce                                               |
+| ------------ | ------------------------------------------------------- | ------------------------------------------------------------------------------ |
+| Runtime enum | Jobs driven by events or persisted state                | Exactly one represented state at a time; exhaustive handling of variants.      |
+| Typestate    | Fixed sequences such as a configured-before-use builder | Operations can be unavailable until the value reaches the required type state. |
 
 Ownership is the other half. If the transition takes `self` and returns the next state, the old value is gone. Borrow when the caller is only looking. The signature should say which of the three this is: observe, mutate, consume.
 

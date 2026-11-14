@@ -22,10 +22,14 @@
   $effect(() => {
     const viewportElement = viewport;
     const trackElement = track;
-    if (!viewportElement || !trackElement) return;
+
+    if (!viewportElement || !trackElement) {
+      return;
+    }
 
     let cleanup: (() => void) | undefined;
     let cancelled = false;
+
     void tick().then(() => {
       if (!cancelled) {
         cleanup = observeHorizontalScroll(viewportElement, trackElement, syncScrollState);
@@ -34,6 +38,7 @@
 
     return () => {
       cancelled = true;
+
       cleanup?.();
     };
   });

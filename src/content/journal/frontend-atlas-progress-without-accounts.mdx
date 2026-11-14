@@ -8,24 +8,24 @@ summary: How I built a static frontend handbook with local reading progress, a c
 date: 2026-11-13
 project: frontend-atlas
 tags:
-- astro
-- svelte
-- progress-tracking
-- qr-codes
-- bit-packing
-- static-sites
-- browser-storage
-- frontend-architecture
-- project
+  - astro
+  - svelte
+  - progress-tracking
+  - qr-codes
+  - bit-packing
+  - static-sites
+  - browser-storage
+  - frontend-architecture
+  - project
 searchTerms:
-- Frontend Atlas
-- progress without accounts
-- QR progress transfer
-- bitset
-- packed bits
-- local-first progress
-- append-only manifest
-- reading progress
+  - Frontend Atlas
+  - progress without accounts
+  - QR progress transfer
+  - bitset
+  - packed bits
+  - local-first progress
+  - append-only manifest
+  - reading progress
 links:
   git: https://github.com/weluvabid/frontend-atlas
 featured: false
@@ -34,27 +34,27 @@ kind: project
 projectDetails:
   status: released
   stack:
-  - Astro
-  - Svelte
-  - TypeScript
-  - Tailwind CSS
-  - Iris
-  - QR
+    - Astro
+    - Svelte
+    - TypeScript
+    - Tailwind CSS
+    - Iris
+    - QR
   featured: true
   order: 2
   github: https://github.com/weluvabid/frontend-atlas
   mermaid: https://mermaid.live/edit#pako:eNpVjb1ug0AQhF_ltFUigUWMMT9FpBgnbiwlhauAixMsHLK5Q8sh2wHePQdWlGSrHc03Mz1kKkeIoDirSyY4aXbYppKZe0liQVWra94emW0_DzvUrFYSbwPbPOwUa4VqmkqWj3d-M0Es7vcThkyLSp7GuxXP-XeJA9sme95o1Rz_OoeLGthrUn0IU__fEYQm9ZYUPCq4nXFiMacZAQtKqnKINHVoQY1U80lCP7kpaIE1phCZlzDvrnbO6WRn6qwohVSOJt9w-alU_VNBqisFmJ1za1TX5FzjtuIl8V8EZY4Uq05qiLy5AaIerkb4C8fzQ9cPloETesHaghtEy2W4cNau6z95KzcMQ2c1WvA1bzqLwPfGb103d4U
   resources:
-  - label: Source repository
-    url: https://github.com/weluvabid/frontend-atlas
-  - label: Architecture
-    url: https://github.com/weluvabid/frontend-atlas/blob/main/docs/architecture.md
-  - label: Progress system
-    url: https://github.com/weluvabid/frontend-atlas/blob/main/docs/progress-system.md
-  - label: QR transfer protocol
-    url: https://github.com/weluvabid/frontend-atlas/blob/main/docs/progress-transfer-protocol.md
-  - label: Content architecture
-    url: https://github.com/weluvabid/frontend-atlas/blob/main/docs/content-architecture.md
+    - label: Source repository
+      url: https://github.com/weluvabid/frontend-atlas
+    - label: Architecture
+      url: https://github.com/weluvabid/frontend-atlas/blob/main/docs/architecture.md
+    - label: Progress system
+      url: https://github.com/weluvabid/frontend-atlas/blob/main/docs/progress-system.md
+    - label: QR transfer protocol
+      url: https://github.com/weluvabid/frontend-atlas/blob/main/docs/progress-transfer-protocol.md
+    - label: Content architecture
+      url: https://github.com/weluvabid/frontend-atlas/blob/main/docs/content-architecture.md
 ---
 
 import DiagramViewer from '@components/diagrams/DiagramViewer.svelte';
@@ -67,15 +67,20 @@ Progress is a small, versioned record in the browser, keyed by an immutable ques
 
 Export turns the progress record into a QR image. Its manifest is an ordered, append-only list of question IDs, so an old export keeps referring to the same questions after new ones are added. Version 1 starts with `FATL1:` and stores two bits per question. The manifest allows up to 150 questions, so the status bitset uses `ceil(150 × 2 / 8) = 38` bytes at the maximum, before the envelope and reading-position records. Reading positions use fixed-width entries alongside the bitset. The payload carries the manifest fingerprint and a checksum. Anyone with the QR image can inspect its progress data.
 
-| State | Encoded value | Meaning |
-| --- | --- | --- |
-| Not started | `00` | No progress recorded. |
-| In progress | `01` | Started, not completed. |
-| Completed | `10` | Marked finished. |
+| State       | Encoded value | Meaning                 |
+| ----------- | ------------- | ----------------------- |
+| Not started | `00`          | No progress recorded.   |
+| In progress | `01`          | Started, not completed. |
+| Completed   | `10`          | Marked finished.        |
 
 Merge keeps completions from either snapshot and takes the higher reading position when both contain one. Replace uses the imported snapshot. Before local progress changes, import checks the format version, manifest fingerprint, indexes and bounds. A corrupt image is rejected before it can partially update the stored record.
 
-<DiagramViewer client:visible src="/diagrams/frontend-atlas-progress-transfer.svg" alt="Frontend Atlas progress transfer from local completion through QR export, scan, payload validation and local import or rejection." caption="QR export and import move progress between browsers." />
+<DiagramViewer
+  client:visible
+  src="/diagrams/frontend-atlas-progress-transfer.svg"
+  alt="Frontend Atlas progress transfer from local completion through QR export, scan, payload validation and local import or rejection."
+  caption="QR export and import move progress between browsers."
+/>
 
 Moving progress is a manual transfer. After import, the two browsers can change independently until someone exports and imports again. Both devices need to be available for that transfer. Automatic sync, shared workspaces and recovery after a wiped device would need a server, which I haven't built for this handbook.
 

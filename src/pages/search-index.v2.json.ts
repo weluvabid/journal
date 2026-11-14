@@ -35,7 +35,6 @@ export const GET: APIRoute = async () => {
     };
   });
 
-
   return new Response(JSON.stringify({ version: 2, documents }), {
     headers: {
       'Content-Type': 'application/json; charset=utf-8',

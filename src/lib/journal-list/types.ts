@@ -1,8 +1,4 @@
-export type JournalEntryType =
-  | 'engineering-note'
-  | 'build-log'
-  | 'deep-dive'
-  | 'retrospective';
+export type JournalEntryType = 'engineering-note' | 'build-log' | 'deep-dive' | 'retrospective';
 
 export interface JournalListEntry {
   readonly id: string;

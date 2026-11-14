@@ -12,7 +12,10 @@ function isRecord(value: unknown): value is Record<string, unknown> {
 }
 
 function isJournalEntry(value: unknown): value is JournalListEntry {
-  if (!isRecord(value)) return false;
+  if (!isRecord(value)) {
+    return false;
+  }
+
   const series = value.series;
   const validSeries =
     series === undefined ||
@@ -74,26 +77,36 @@ export function assertJournalPageIntegrity(input: PageIntegrityInput): void {
   if (requestUrl.origin !== currentOrigin) {
     throw new TypeError('Journal pagination returned a cross-origin request URL.');
   }
+
   if (requestedPageUrls.has(requestUrl.href)) {
     throw new Error(`Journal pagination attempted to revisit ${requestUrl.pathname}.`);
   }
+
   if (items.length > pageSize) {
     throw new RangeError(`Journal pagination returned more than ${pageSize} entries in one page.`);
   }
+
   if (followingPageUrl && followingPageUrl.origin !== currentOrigin) {
     throw new TypeError('Journal pagination returned a cross-origin next-page URL.');
   }
-  if (followingPageUrl && (followingPageUrl.href === requestUrl.href || requestedPageUrls.has(followingPageUrl.href))) {
+
+  if (
+    followingPageUrl &&
+    (followingPageUrl.href === requestUrl.href || requestedPageUrls.has(followingPageUrl.href))
+  ) {
     throw new Error(`Journal pagination contains a cycle at ${followingPageUrl.pathname}.`);
   }
 
   const pageIds = new Set<string>();
+
   for (const entry of items) {
     if (pageIds.has(entry.id) || seenIds.has(entry.id)) {
       throw new Error(`Journal pagination returned duplicate entry id: ${entry.id}`);
     }
+
     pageIds.add(entry.id);
   }
+
   if (items.length === 0 && nextPageUrl !== null) {
     throw new Error('Journal pagination returned an empty page with more pages remaining.');
   }

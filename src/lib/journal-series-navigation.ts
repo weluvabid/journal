@@ -10,9 +10,9 @@ export interface JournalSeriesEntry {
 }
 
 /** Reject duplicate part numbers within a series while allowing gaps for drafts. */
-export function assertUniqueSeriesParts<T extends JournalSeriesEntry & { readonly data: { readonly id: string } }>(
-  entries: readonly T[],
-): void {
+export function assertUniqueSeriesParts<
+  T extends JournalSeriesEntry & { readonly data: { readonly id: string } },
+>(entries: readonly T[]): void {
   const partsBySeries = new Map<string, Map<number, string>>();
 
   for (const entry of entries) {
@@ -26,6 +26,7 @@ export function assertUniqueSeriesParts<T extends JournalSeriesEntry & { readonl
 
     if (!parts) {
       parts = new Map<number, string>();
+
       partsBySeries.set(series.id, parts);
     }
 
@@ -49,6 +50,16 @@ export function getJournalSeriesPartCount<T extends JournalSeriesEntry>(
   return entries.reduce((count, entry) => count + Number(entry.data.series?.id === seriesId), 0);
 }
 
+function getRequiredSeriesPart(entry: JournalSeriesEntry): number {
+  const part = entry.data.series?.part;
+
+  if (part === undefined) {
+    throw new Error('Expected a journal series entry while sorting series parts.');
+  }
+
+  return part;
+}
+
 /** Return published entries in explicit series-part order. */
 export function getJournalSeriesEntries<T extends JournalSeriesEntry>(
   entries: readonly T[],
@@ -57,7 +68,7 @@ export function getJournalSeriesEntries<T extends JournalSeriesEntry>(
   return entries
     .filter((entry) => entry.data.series?.id === seriesId)
     .slice()
-    .sort((left, right) => left.data.series!.part - right.data.series!.part);
+    .sort((left, right) => getRequiredSeriesPart(left) - getRequiredSeriesPart(right));
 }
 
 export interface JournalSeriesSortableEntry extends JournalSeriesEntry {
@@ -100,7 +111,7 @@ export function sortJournalEntriesWithSeriesGroups<T extends JournalSeriesSortab
     if (group.entries.length > 1) {
       group.entries.sort(
         (left, right) =>
-          left.data.series!.part - right.data.series!.part ||
+          getRequiredSeriesPart(left) - getRequiredSeriesPart(right) ||
           left.data.id.localeCompare(right.data.id),
       );
     }

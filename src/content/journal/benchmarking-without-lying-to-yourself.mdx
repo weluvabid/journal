@@ -12,16 +12,16 @@ series:
   id: cachewise-engineering
   part: 2
 tags:
-- benchmarking
-- caching
-- performance
-- measurement
+  - benchmarking
+  - caching
+  - performance
+  - measurement
 searchTerms:
-- weighted-hit-ratio
-- scan-pollution
-- skewed-workload
-- byte-pressure
-- microbenchmark
+  - weighted-hit-ratio
+  - scan-pollution
+  - skewed-workload
+  - byte-pressure
+  - microbenchmark
 featured: true
 draft: false
 kind: article
@@ -43,11 +43,11 @@ The number I care about first is weighted hit ratio: cost-weight served by hits,
 
 One checked-in run, Node.js 26.13.0, Apple M4 Max, 100,000 ops, 256 KiB logical budget, seven measured trials, two warm-ups:
 
-| Workload | LRU | Cost-aware |
-| --- | ---: | ---: |
-| Scan pollution | 63.84% | 99.02% |
-| Skewed expensive reuse | 58.93% | 91.69% |
-| Byte pressure | 80.94% | 99.44% |
+| Workload               |    LRU | Cost-aware |
+| ---------------------- | -----: | ---------: |
+| Scan pollution         | 63.84% |     99.02% |
+| Skewed expensive reuse | 58.93% |     91.69% |
+| Byte pressure          | 80.94% |     99.44% |
 
 The cost-aware policy had a higher weighted hit ratio on all three workloads. Throughput was slower on the first two and faster on byte pressure.
 

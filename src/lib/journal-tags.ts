@@ -26,9 +26,7 @@ export function tagHref(tag: string): string {
 /** Build deterministic tag groups and fail on ambiguous slug collisions. */
 export function groupContentByTag<
   T extends { readonly data: { readonly tags: readonly string[] } },
->(
-  entries: readonly T[],
-): Map<string, { readonly label: string; readonly entries: T[] }> {
+>(entries: readonly T[]): Map<string, { readonly label: string; readonly entries: T[] }> {
   const groups = new Map<string, { label: string; entries: T[] }>();
 
   for (const entry of entries) {

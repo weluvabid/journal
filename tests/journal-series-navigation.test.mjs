@@ -58,7 +58,6 @@ test('series index returns only matching entries in explicit part order', () => 
   );
 });
 
-
 test('series are sorted internally and treated as one group in the outer date order', () => {
   const entries = [
     entry('d', '2026-04-01'),

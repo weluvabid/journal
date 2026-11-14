@@ -6,7 +6,9 @@ const read = (path) => readFile(new URL(`../${path}`, import.meta.url), 'utf8');
 
 test('journal schema retains optional external resource metadata', async () => {
   const schema = await read('src/content.config.ts');
+
   assert.match(schema, /links:\s*z\s*\.object\(/);
+
   for (const key of ['git', 'stackblitz', 'mermaid']) {
     assert.match(schema, new RegExp(`${key}: z\\.url\\(\\)\\.optional\\(\\)`));
   }
@@ -14,6 +16,7 @@ test('journal schema retains optional external resource metadata', async () => {
 
 test('article resource actions reuse the existing Git and StackBlitz icons', async () => {
   const component = await read('src/components/resources/ResourceActions.svelte');
+
   assert.match(component, /import \{ Button, Tooltip \} from '@weluvabid\/iris\/components'/);
   assert.match(component, /import \{ SiGit, SiStackblitz \} from '@weluvabid\/iris\/simple-icons'/);
   assert.equal((component.match(/<Button\.Root/g) ?? []).length, 2);
@@ -28,11 +31,18 @@ test('article resource actions reuse the existing Git and StackBlitz icons', asy
 
 test('article page resolves one repository URL from canonical project metadata or article links', async () => {
   const page = await read('src/pages/journal/[...slug].astro');
+
   assert.match(page, /projectEntry\?\.data\.projectDetails\?\.github/);
   assert.match(page, /entry\.data\.projectDetails\?\.github/);
   assert.match(page, /entry\.data\.links\?\.git/);
-  assert.match(page, /<ResourceActions[\s\S]*?git=\{sourceRepository\}[\s\S]*?stackblitz=\{stackblitzDemo\}/);
+  assert.match(
+    page,
+    /<ResourceActions[\s\S]*?git=\{sourceRepository\}[\s\S]*?stackblitz=\{stackblitzDemo\}/,
+  );
   assert.match(page, /projectEntry\?\.data\.projectDetails\?\.stackblitz/);
-  assert.match(page, /<p class="mt-5 text-base leading-8 text-muted-foreground">\{entry\.data\.summary\}<\/p>[\s\S]*?<ResourceActions/);
+  assert.match(
+    page,
+    /<p class="mt-5 text-base leading-8 text-muted-foreground">\{entry\.data\.summary\}<\/p>[\s\S]*?<ResourceActions/,
+  );
   assert.doesNotMatch(page, /ProjectResources|entry\.data\.links &&/);
 });

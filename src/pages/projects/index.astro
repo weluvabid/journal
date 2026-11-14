@@ -12,10 +12,7 @@ const entries = allEntries.filter((entry) => !entry.data.draft);
 assertProjectAssociations(allEntries, entries);
 const projects = entries
   .filter((entry) => entry.data.kind === 'project')
-  .sort(
-    (a, b) =>
-      (a.data.projectDetails?.order ?? 0) - (b.data.projectDetails?.order ?? 0),
-  );
+  .sort((a, b) => (a.data.projectDetails?.order ?? 0) - (b.data.projectDetails?.order ?? 0));
 ---
 
 <BaseLayout
@@ -32,19 +29,21 @@ const projects = entries
     {pluralize(projects.length, INTENTS.project)}
   </p>
   <div class="grid items-stretch gap-3 sm:grid-cols-2">
-    {projects.map((entry, index) => (
-      <ProjectCard
-        project={{
-          id: entry.data.project!,
-          title: entry.data.title,
-          summary: entry.data.summary,
-          status: entry.data.projectDetails!.status,
-          order: index + 1,
-          tags: entry.data.tags.filter((tag) => tag !== 'project'),
-        }}
-        href={entryHref(entry.data.id)}
-        class="h-full"
-      />
-    ))}
+    {
+      projects.map((entry, index) => (
+        <ProjectCard
+          project={{
+            id: entry.data.project!,
+            title: entry.data.title,
+            summary: entry.data.summary,
+            status: entry.data.projectDetails!.status,
+            order: index + 1,
+            tags: entry.data.tags.filter((tag) => tag !== 'project'),
+          }}
+          href={entryHref(entry.data.id)}
+          class="h-full"
+        />
+      ))
+    }
   </div>
 </BaseLayout>

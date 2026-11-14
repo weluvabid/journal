@@ -73,7 +73,7 @@ const nextPageUrl =
   <noscript>
     <ol class="mt-3 space-y-3" aria-label={`Entries in ${category.name}`}>
       {
-        entries.slice(JOURNAL_PAGE_SIZE).map((entry, index) => (
+        entries.slice(JOURNAL_PAGE_SIZE).map((_, index) => (
           <li>
             <JournalEntryCard
               entry={serializedEntries[index + JOURNAL_PAGE_SIZE]}
