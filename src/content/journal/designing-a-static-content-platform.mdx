@@ -38,6 +38,22 @@ The first page of the journal is useful on its own. As you scroll, more items lo
 
 I ran into a less obvious problem on mobile Safari. The page could paint incorrectly while the browser's compact address bar changed size. I had to look at how scrolling was owned by the document. Moving the scroll container from the root element to the body fixed it: the `html` element now has a full-height, non-scrolling layout, while the `body` owns vertical scrolling. I moved smooth scrolling to the body at the same time. That fixed the rendering path instead of adding an animation or repaint workaround across the whole site.
 
-For page speed, the main decision is to keep the initial response useful and small: static HTML for the content, Svelte hydration only for interactive areas, and more archive entries fetched as needed. Search is a separate generated JSON file, and its parsed data is reused. I measure the site in the browser rather than assuming static generation makes every interaction fast. In one Safari run, I recorded a 125 ms First Contentful Paint, 110 ms DOMContentLoaded and a 197 ms load event, with 26 requests and about 252 KB transferred.
+For page speed, the main decision is to keep the initial response useful and small: static HTML for the content, Svelte hydration only for interactive areas, and more archive entries fetched as needed. Search is a separate generated JSON file, and its parsed data is reused. I measure the site in the browser rather than assuming static generation makes every interaction fast.
+
+The latest Watchpoint run on Chrome recorded these results:
+
+| Metric | Result |
+| --- | ---: |
+| Time to First Byte (TTFB) | 229 ms |
+| First Contentful Paint (FCP) | 613 ms |
+| Largest Contentful Paint (LCP) | 613 ms |
+| Cumulative Layout Shift (CLS) | 0 |
+| Total Blocking Time (TBT) | 0 ms |
+| Speed Index | 638 ms |
+| Fully loaded | 1.139 s |
+| Requests | 25 |
+| Transferred | 251 KB |
+
+The LCP element was the introductory paragraph in the homepage hero. The search index loaded after LCP, at around 1.14 seconds.
 
 The typography is simple: monochrome with subtle accents. There's no layout competing with the note. I want the site to stay quick as the archive grows, so the next useful work is to keep checking the generated page and search-index sizes, and to revisit when the index should load. Right now it loads with the header; loading it only when someone first opens search is a possible improvement if the initial cost becomes worth removing.

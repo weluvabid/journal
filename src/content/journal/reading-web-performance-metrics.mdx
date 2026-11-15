@@ -1,0 +1,113 @@
+---
+id: reading-web-performance-metrics
+title: 'Reading Web Performance Metrics: What the Numbers Actually Tell Me'
+type: deep-dive
+category: frontend-engineering
+summary: What TTFB, FCP, LCP, CLS, TBT and Speed Index measure, why they matter to visitors, and how I read them together.
+date: 2026-11-15
+tags:
+  - web-performance
+  - browser-rendering
+  - core-web-vitals
+  - frontend-engineering
+  - measurement
+searchTerms:
+  - time to first byte
+  - first contentful paint
+  - largest contentful paint
+  - cumulative layout shift
+  - total blocking time
+  - speed index
+  - page load metrics
+featured: false
+draft: false
+kind: article
+---
+
+A page can return HTTP 200 and still feel slow. The browser might be waiting for the server, downloading stylesheets, parsing JavaScript, fetching a large image or trying to paint around a layout that keeps changing. A single load-time number cannot tell me which part is responsible.
+
+That is why I look at a group of performance measurements. Each one describes a different part of the visit: how quickly the server starts responding, when the browser first shows something, when the main content appears, whether the page jumps around, and whether JavaScript keeps the main thread busy.
+
+I ran Watchpoint against the Journal homepage. This was one run, so these numbers are a snapshot rather than a statistically stable benchmark.
+
+| Metric | Result |
+| --- | ---: |
+| Time to First Byte (TTFB) | 229 ms |
+| First Contentful Paint (FCP) | 613 ms |
+| Largest Contentful Paint (LCP) | 613 ms |
+| Cumulative Layout Shift (CLS) | 0 |
+| Total Blocking Time (TBT) | 0 ms |
+| Speed Index | 638 ms |
+| Fully loaded | 1.139 s |
+| Requests | 25 |
+| Transferred | 251 KB |
+
+## Time to First Byte
+
+TTFB is the time from the start of navigation until the browser receives the first byte of the response. It includes redirects, setting up any required connections, network latency and server response time.
+
+If TTFB is high, everything downstream is delayed. The browser cannot discover stylesheets, scripts or content in the document until it starts receiving the HTML. It is a useful metric when a page takes a long time to display anything.
+
+TTFB can help narrow down why the response is slow. Server-side rendering, database queries, cache misses and origin latency can all contribute. Even with a static site, the origin and delivery path matter: CDN cache behaviour, distance to the visitor and network setup all affect the result.
+
+The Journal's TTFB was 229 ms.
+
+## First Contentful Paint
+
+FCP is when the browser first paints content from the DOM. This can be text, images, SVGs or non-white canvases. It tells me how long visitors wait before anything from the page becomes visible.
+
+If FCP is slow, the response itself might be slow, CSS might be blocking rendering, JavaScript might be doing expensive work early, or something else might be preventing the browser from painting. A common way to improve it is to get useful HTML to the browser quickly and avoid unnecessary work before the first paint.
+
+The Journal had an FCP of 613 ms. The browser had displayed content by then; that first paint does not necessarily mean all the important content was ready.
+
+## Largest Contentful Paint
+
+LCP is the time it takes for the largest eligible image or text block in the viewport to appear. It is a useful indicator of when the main content has appeared. Unlike FCP, it focuses on the element that occupies the largest part of the initial view.
+
+The element counted as LCP varies between pages. It can be a hero image, headline or large paragraph. Its timing can be affected by the server response, resource discovery, image downloading and decoding, CSS, and the work required to render the element.
+
+On the Journal homepage, the intro paragraph was the LCP element. Its LCP was 613 ms. It makes sense that this matches FCP: the paragraph was both the first contentful element to paint and the largest eligible element in the initial viewport.
+
+## Cumulative Layout Shift
+
+CLS measures unexpected movement of visible content on the page. This can happen when an image has no space reserved for it, a font changes the dimensions of text, an embed resizes, or content is inserted above what the visitor is reading.
+
+This is more than an aesthetic issue. If someone is trying to click a link or button and it moves, the interaction can go wrong. Many shifts can be prevented by reserving space for images, giving dynamic content a stable area and choosing font metrics carefully.
+
+In this run, the Journal had a CLS of 0, meaning no layout shifts contributed to the measured score.
+
+## Total Blocking Time
+
+TBT is the sum of the blocking portions of long tasks on the main thread between FCP and the point when the page becomes reliably interactive in the lab measurement. A long task is any task that takes more than 50 ms; its blocking portion is the time beyond the initial 50 ms.
+
+If there is a lot happening on the main thread, the browser cannot respond to input promptly. Large synchronous scripts, expensive hydration, repeated layout calculations and heavy event handlers can all contribute. This can be improved by breaking up tasks, delaying non-critical scripts and keeping event handlers short.
+
+TBT is a lab metric, so it does not describe exactly what a visitor experiences during every real interaction. It is useful for understanding main-thread work during loading. In this run, the Journal recorded 0 ms.
+
+## Speed Index
+
+Speed Index describes how quickly the visible parts of the page are populated. Unlike LCP, it looks at the overall visual progress of the page.
+
+A page can have a quick FCP but take longer to show the rest of its content. Speed Index helps highlight that gap. It can be improved by reducing render-blocking resources, prioritising above-the-fold content and avoiding expensive tasks during the initial render.
+
+The Journal had a Speed Index of 638 ms. This is close to the FCP and LCP times of 613 ms, which is consistent with the initial viewport being populated quickly in this run.
+
+## Fully loaded, requests and transferred bytes
+
+These metrics are not Core Web Vitals, but they provide useful context.
+
+**Fully loaded** is the time it takes for the page and network activity to finish according to the measurement tool's rules. This can include work that happens after the visitor can see and interact with the main content, such as analytics, delayed requests, search data and other background tasks. It helps identify work that continues after the initial experience, but it should not replace FCP or LCP when evaluating perceived loading speed.
+
+**Requests** is the number of network requests made. Each request can add overhead and introduce dependencies, but the count alone does not tell me whether a page is fast. A few large blocking resources can be worse than lots of small cached resources.
+
+**Transferred** is how much data was transferred over the network. Reducing it can reduce waiting, particularly on slower connections, but resource type and priority matter too. A small stylesheet that blocks rendering can delay the first paint more than a larger resource loaded after the page is visible.
+
+The Journal fully loaded in 1.139 seconds, with 25 requests and 251 KB transferred. These numbers give me a quick picture of network activity and when it finished, but they do not directly measure the visitor's experience of the initial render.
+
+## Putting it all together
+
+These metrics are valuable because they highlight different issues. TTFB tells me when the response starts. FCP tells me when the browser starts painting content. LCP focuses on the main content. CLS tells me whether the layout is shifting unexpectedly. TBT tells me whether long tasks are blocking the main thread. Speed Index tells me how quickly the viewport is populated.
+
+I would not focus only on whichever metric appears highest. If TTFB is high, I would look at the delivery path and server response. If TTFB is low but FCP is high, I would look at render-blocking resources and early browser tasks. If FCP is quick but LCP is slow, I would look at the LCP element and the resources it relies on. If CLS is above 0, I would look for elements changing size or being added. If TBT is high, I would profile long tasks on the main thread.
+
+The Journal had a clear snapshot. The browser received the response after 229 ms, painted the first and largest content after 613 ms, and recorded no layout shifts or blocking time. The page fully loaded after 1.139 seconds. I would run the same conditions multiple times and compare the results. I would also watch for regressions as the site changes. The most valuable thing a metric can do is tell me what to investigate next.
