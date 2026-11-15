@@ -15,9 +15,13 @@ test('homepage removes the topic directory and places selected projects before w
   assert.ok(sectionIndex('featured-heading') > sectionIndex('projects-heading'));
 });
 
-test('homepage shows the first four projects in curated project order', () => {
-  assert.match(source, /projectDetails\?\.order/);
-  assert.match(source, /const selectedProjects = projects\.slice\(0, 4\)/);
+test('homepage shows the six explicitly curated projects in portfolio order', () => {
+  assert.match(
+    source,
+    /const featuredProjectIds = \[\s*'structaura',\s*'jsonplus',\s*'frontend-atlas',\s*'cachewise',\s*'copy-2-markdown',\s*'envsentry',\s*\] as const/u,
+  );
+  assert.match(source, /const selectedProjects = featuredProjectIds\.map\(\(id\) =>/);
+  assert.match(source, /Homepage features missing project/);
   assert.match(source, /selectedProjects\.map\(\(project, index\)/);
   assert.match(source, /number=\{index \+ 1\}/);
 });

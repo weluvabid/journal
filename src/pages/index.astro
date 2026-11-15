@@ -13,7 +13,24 @@ const latestEntries = entries.slice(0, 5);
 const projects = (
   await getCollection('journal', ({ data }) => !data.draft && data.kind === 'project')
 ).sort((a, b) => (a.data.projectDetails?.order ?? 0) - (b.data.projectDetails?.order ?? 0));
-const selectedProjects = projects.slice(0, 4);
+const featuredProjectIds = [
+  'structaura',
+  'jsonplus',
+  'frontend-atlas',
+  'cachewise',
+  'copy-2-markdown',
+  'envsentry',
+] as const;
+const projectsById = new Map(projects.map((project) => [project.data.project, project]));
+const selectedProjects = featuredProjectIds.map((id) => {
+  const project = projectsById.get(id);
+
+  if (!project) {
+    throw new Error(`Homepage features missing project "${id}"`);
+  }
+
+  return project;
+});
 ---
 
 <BaseLayout
