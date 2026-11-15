@@ -17,7 +17,7 @@ test('journal schema retains optional external resource metadata', async () => {
 test('article resource actions reuse the existing Git and StackBlitz icons', async () => {
   const component = await read('src/components/resources/ResourceActions.svelte');
 
-  assert.match(component, /import \{ Button, Tooltip \} from '@weluvabid\/iris\/components'/);
+  assert.match(component, /import \{ Button, Collapsible, Tooltip \} from '@weluvabid\/iris\/components'/);
   assert.match(component, /import \{ SiGit, SiStackblitz \} from '@weluvabid\/iris\/simple-icons'/);
   assert.equal((component.match(/<Button\.Root/g) ?? []).length, 2);
   assert.match(component, /href=\{git\}/);
@@ -45,4 +45,29 @@ test('article page resolves one repository URL from canonical project metadata o
     /<p class="mt-5 text-base leading-8 text-muted-foreground">\{entry\.data\.summary\}<\/p>[\s\S]*?<ResourceActions/,
   );
   assert.doesNotMatch(page, /ProjectResources|entry\.data\.links &&/);
+});
+
+
+test('additional external resources use Iris Collapsible and retain semantic link lists', async () => {
+  const component = await read('src/components/resources/ResourceActions.svelte');
+
+  assert.match(component, /<Collapsible\.Root/);
+  assert.match(component, /<Collapsible\.Trigger/);
+  assert.match(component, /<Collapsible\.Content/);
+  assert.match(component, /Additional resources \(\{visibleResources\.length\}\)/);
+  assert.match(component, /<ul[\s\S]*?<li>[\s\S]*?href=\{resource\.url\}/);
+  assert.match(component, /aria-label=\{`\$\{title\} additional resources`\}/);
+  assert.doesNotMatch(component, /<nav class="mt-3 flex flex-wrap gap-x-4 gap-y-2"/);
+});
+
+test('project documentation resources are passed from canonical metadata and rendered without duplicate action links', async () => {
+  const component = await read('src/components/resources/ResourceActions.svelte');
+  const page = await read('src/pages/journal/[...slug].astro');
+
+  assert.match(component, /resources = \[\]/);
+  assert.match(component, /resource\.url !== git && resource\.url !== stackblitz/);
+  assert.match(component, /aria-label=\{`\$\{title\} additional resources`\}/);
+  assert.match(component, /href=\{resource\.url\}/);
+  assert.match(page, /projectResources/);
+  assert.match(page, /resources=\{projectResources\}/);
 });

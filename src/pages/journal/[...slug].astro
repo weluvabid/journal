@@ -57,6 +57,9 @@ const stackblitzDemo =
   projectEntry?.data.projectDetails?.stackblitz ??
   entry.data.projectDetails?.stackblitz ??
   entry.data.links?.stackblitz;
+const projectResources = projectEntry?.data.projectDetails?.resources ??
+  entry.data.projectDetails?.resources ??
+  [];
 const writingEntries = publishedEntries.filter((item) => item.data.kind === 'article');
 const allNavigationEntries = sortJournalEntriesWithSeriesGroups(writingEntries);
 const categoryNavigationEntries = sortJournalEntriesWithSeriesGroups(
@@ -118,6 +121,7 @@ const seriesEntries = entry.data.series
             client:load
             git={sourceRepository}
             stackblitz={stackblitzDemo}
+            resources={projectResources}
             title={entry.data.title}
           />
         )

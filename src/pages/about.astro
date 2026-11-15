@@ -4,47 +4,67 @@ import { Card } from '@weluvabid/iris/components';
 import { withBase } from '@lib/journal';
 ---
 
-<BaseLayout title="About — Journal" description="A little about the engineer behind Journal.">
+<BaseLayout title="About — Journal" description="How I approach software engineering and the things I like building.">
   <article class="mx-auto max-w-3xl">
     <p class="text-xs font-semibold uppercase tracking-[0.18em] text-muted-foreground">About</p>
     <h1 class="mt-3 text-4xl font-semibold tracking-tight">
-      I like understanding how things work.
+      I like finding out what happens underneath.
     </h1>
+
     <div class="prose-journal mt-8">
       <p>
-        Hello! I am a software engineer and love creating products, I also love solving problems and
-        can often get too caught up in things.
+        I'm Abid, a software engineer. I like pulling things apart to understand how they work. Sometimes
+        that means reading through documentation or source code. Sometimes I end up building a smaller
+        version myself because I want to understand the mechanics properly.
       </p>
       <p>
-        I’m very product orientated. I like understanding why we are building something. I enjoy
-        discussing designs and finding the areas that could be improved. I enjoy thinking about edge
-        cases and putting myself in the customers shoes. Sometimes a quick discussion on what we
-        need to build can help prevent any issues.
+        That's led me through quite a few different problems: caches, serialization, storage engines,
+        language tooling, reactive runtimes, browser extensions and frontend architecture. Some started
+        with a practical problem. Others started with a question I couldn't leave alone. I enjoy both.
       </p>
       <p>
-        I really value clean code. I don’t like making developers do unnecessary work that could be
-        automated by the bundler. I’m not a fan of "clever" code. I would much rather have simple
-        code that can be tested and easily understood by a junior developer.
+        I care about the details, but I don't think complicated code is automatically better code. I
+        prefer implementations that are predictable, testable and easy to follow. I'd rather automate
+        repetitive work than make every developer remember another step, and I'd rather measure a
+        performance improvement than call something fast because it feels fast.
       </p>
       <p>
-        A lot of my personal projects come from curiosity. I will often want to try something new or
-        understand how something works. Some of these become actual projects but others are just to
-        help me learn what I want. I also contribute to open source as I enjoy working on things
-        outside of my own projects.
+        I also enjoy the product side of engineering: understanding why something needs to exist,
+        thinking through how people will use it and catching awkward edge cases before they become
+        somebody else's problem. The implementation matters, but so does the thing we're actually
+        building.
+      </p>
+      <p>
+        Not every experiment needs to become a product. Some projects are useful tools; some are just
+        me following an idea far enough to see where it goes. I contribute to open source for the same
+        reason I build personal projects: there's always something interesting to learn by working on
+        real code with real constraints.
       </p>
     </div>
+
     <Card.Root class="mt-10 rounded-2xl border border-border bg-muted/40">
-      <Card.Header
-        ><Card.Title>Explore the work</Card.Title><Card.Description
-          >Browse the projects or follow the reasoning behind them in the Journal.</Card.Description
-        ><div class="flex flex-wrap gap-3 pt-3">
-          <a class="text-sm font-medium underline underline-offset-4" href={withBase('/projects/')}
-            >Projects</a
-          ><a class="text-sm font-medium underline underline-offset-4" href={withBase('/journal/')}
-            >Journal entries</a
+      <Card.Header>
+        <Card.Title>Have a look around</Card.Title>
+        <Card.Description>
+          The projects show what I've built. The writings show some of the thinking behind them.
+        </Card.Description>
+        <div class="flex flex-wrap gap-x-5 gap-y-3 pt-3">
+          <a class="text-sm font-medium underline underline-offset-4" href={withBase('/projects/')}>
+            Projects
+          </a>
+          <a class="text-sm font-medium underline underline-offset-4" href={withBase('/journal/')}>
+            Writings
+          </a>
+          <a
+            class="text-sm font-medium underline underline-offset-4"
+            href="https://github.com/weluvabid"
+            target="_blank"
+            rel="noopener noreferrer"
           >
-        </div></Card.Header
-      >
+            GitHub profile <span aria-hidden="true">↗</span>
+          </a>
+        </div>
+      </Card.Header>
     </Card.Root>
   </article>
 </BaseLayout>

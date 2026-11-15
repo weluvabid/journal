@@ -1,20 +1,32 @@
 <script lang="ts">
-  import { Button, Tooltip } from '@weluvabid/iris/components';
+  import { Button, Collapsible, Tooltip } from '@weluvabid/iris/components';
+  import { ChevronDown, ExternalLink } from '@weluvabid/iris/lucide';
   import { SiGit, SiStackblitz } from '@weluvabid/iris/simple-icons';
+
+  type Resource = { label: string; url?: string };
 
   let {
     git,
     stackblitz,
+    resources = [],
     title,
   }: {
     git: string;
     stackblitz?: string;
+    resources?: readonly Resource[];
     title: string;
   } = $props();
+
+  const visibleResources = $derived(
+    resources.filter(
+      (resource): resource is Resource & { url: string } =>
+        Boolean(resource.url) && resource.url !== git && resource.url !== stackblitz,
+    ),
+  );
 </script>
 
 <Tooltip.Provider delayDuration={300}>
-  <nav class="mt-3 flex items-center gap-2" aria-label={`${title} resources`}>
+  <nav class="mt-3 flex flex-wrap items-center gap-2" aria-label={`${title} resources`}>
     <Tooltip.Root>
       <Tooltip.Trigger>
         {#snippet child({ props })}
@@ -56,4 +68,37 @@
       </Tooltip.Root>
     {/if}
   </nav>
+  {#if visibleResources.length > 0}
+    <Collapsible.Root class="mt-3 min-w-0">
+      <Collapsible.Trigger
+        class="group inline-flex min-h-9 items-center gap-2 rounded-sm text-sm text-muted-foreground transition-colors hover:text-foreground focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-ring"
+      >
+        <span>Additional resources ({visibleResources.length})</span>
+        <ChevronDown
+          class="ml-auto transition-transform duration-200 group-data-[state=open]:rotate-180 size-4"
+          aria-hidden="true"
+        />
+      </Collapsible.Trigger>
+      <Collapsible.Content class="overflow-hidden data-open:animate-accordion-down data-closed:animate-accordion-up">
+        <nav aria-label={`${title} additional resources`}>
+          <ul class="flex flex-col gap-2 pt-2">
+            {#each visibleResources as resource (resource.url)}
+              <li>
+                <a
+                  href={resource.url}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  class="inline-flex max-w-full items-center gap-1 text-sm text-muted-foreground underline decoration-border underline-offset-4 transition-colors hover:text-foreground hover:decoration-foreground focus-visible:rounded-sm focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-ring"
+                >
+                  <span class="break-words">{resource.label}</span>
+                  <ExternalLink class="size-3.5 shrink-0" aria-hidden="true" />
+                  <span class="sr-only">(opens in a new tab)</span>
+                </a>
+              </li>
+            {/each}
+          </ul>
+        </nav>
+      </Collapsible.Content>
+    </Collapsible.Root>
+  {/if}
 </Tooltip.Provider>
