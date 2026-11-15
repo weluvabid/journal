@@ -37,22 +37,12 @@ projectDetails:
     - label: Consuming projects demonstrating reuse
 ---
 
-I was getting tired of rebuilding the same buttons, dialogues and form spacing every time I needed a UI. Iris is a boring package I pulled out to allow Pulse, Frontend Atlas and the journal to use the same primitives, without sharing a brand.
+I was getting quite tired of having to recreate these buttons, dialogues and forms from scratch for each new project. I just didn’t care to set up shadcn-svelte, create tokens and ensure all of the components were consistent across projects. I wanted to reduce the amount of effort I had to put into this part of each project so I could spend my time actually creating.
 
-Iris allows me to have a shared set of components across my Svelte projects. The application will have ownership over the routing, composition and state. If Iris takes ownership of the navigation then I have done it wrong.
+So I decided to turn Iris into a package. I would configure shadcn-svelte once, include my tokens and styles and then export these components. I can then install these components into my new project and focus on creating my demo/application.
 
-I’m using `shadcn-svelte` primitives to create dialogues with focus trapping, positioning for popovers and keyboard functionality for menus. There are many edge cases to consider in interactions like this, so it’s good that the primitives already have this built in. I’m using Iris to compose, add tokens and share the parts that should look similar between projects.
+All of my projects can use the same components whilst having their own branding. Each project can have its own layout, themes and identity without needing to copy components between repositories.
 
-I’m still required to understand what the primitive is doing. Dialogues aren’t just a box with an X and comboboxes aren’t just an input and list. The primitive takes care of focus trapping, closing, keyboard functionality and accessibility roles. The title, items and meaning of the items come from the application. The styling can change but the focus ring and accessible name must remain.
+I wanted an easier way to improve Iris over time. Existing projects can stay on their current version whilst new projects will use the latest version. This means I can continue to improve the package without affecting existing projects.
 
-If I’m unsure about what the component is doing I’ll build it out on its own. I’ll use `Tab` and `Escape`, look at the DOM and make sure that the accessible name remains. By rewriting all the primitives I’d be taking on years of edge cases. So I’ll keep the interactions within the primitive and compose and style for the product using Iris.
-
-I’ve kept the visual design simple with light and dark themes using the same tokens. The labels remain readable, errors visible and spacing consistent. Using Tailwind means all the styles are part of one system. Consumers won’t have to pass lots of props to recreate the button.
-
-The demo shows how the package can be installed, composed and themed. If the demo becomes more interesting than the library I’ve accidentally created a second product.
-
-The package boundary is the product. It has clear exports, peer dependencies and no styles that dig into unknown parts of the repo. Version `0.4.1` on npm was the first useful checkpoint.
-
-I check the published package by packing it into a tarball and installing it in an isolated Svelte app. The consumer check verifies the public exports and component subpaths, runs Svelte type checking and a production build, and checks that Tailwind utilities and theme fonts make it into the build.
-
-I want to keep Iris small and composable. The primitives should be clear and the next application should have its own identity. Success is having another repo that can take the dialog and understand what it is doing.
+I will only add new components when needed and improve existing ones. I don’t want to create another UI framework. I just want a package that will help me with the boring parts of UI development so I can focus on making each project unique.

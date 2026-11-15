@@ -58,6 +58,10 @@
     @apply mb-5 text-muted-foreground;
   }
 
+  .prose-journal [data-slot='table-container'] {
+    @apply my-6;
+  }
+
   .prose-journal ul {
     @apply mb-6 list-disc space-y-2 pl-6 text-muted-foreground;
   }

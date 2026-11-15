@@ -90,3 +90,7 @@ The wire format and its tests are in the repo. Progress stays in the current bro
 Question state: 00 not started · 01 in progress · 10 completed
 150 questions × 2 bits = 300 bits = 38 bytes (rounded up)
 ```
+
+## Where it could go Next
+
+I would also like to include a few small features. One of these would be the ability to favourite articles in the journal. As there is a maximum of 150 articles, this would take up very little space. If each article had a bit to represent if it was a favourite, this would only take up a total of 19 bytes of data. This means that it can be easily included in the QR export, as well as not increasing the QR code much. Users can favourite articles, easily find them and delete them when they have finished.

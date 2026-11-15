@@ -71,11 +71,13 @@ function withNavigationLoader(event: AstroPreparationEvent): void {
 
   event.loader = async () => {
     const loader = document.getElementById('journal-navigation-loader');
+    let visibleAt: number | undefined;
     const revealTimer = window.setTimeout(() => {
       if (!loader) {
         return;
       }
 
+      visibleAt = performance.now();
       loader.dataset.visible = 'true';
 
       loader.setAttribute('aria-hidden', 'false');
@@ -85,6 +87,17 @@ function withNavigationLoader(event: AstroPreparationEvent): void {
       await originalLoader();
     } finally {
       window.clearTimeout(revealTimer);
+
+      if (visibleAt !== undefined) {
+        const remainingVisibleTime = 350 - (performance.now() - visibleAt);
+
+        if (remainingVisibleTime > 0) {
+          await new Promise<void>((resolve) => {
+            window.setTimeout(resolve, remainingVisibleTime);
+          });
+        }
+      }
+
       hideNavigationLoader(loader);
     }
   };

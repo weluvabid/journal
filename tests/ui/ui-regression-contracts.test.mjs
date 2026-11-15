@@ -22,9 +22,11 @@ test('same-fragment links retain native focus and scroll behaviour', () => {
   assert.match(layout, /id="main-content" tabindex="-1"/u);
 });
 
-test('shared layout retains delayed navigation loader', () => {
+test('shared layout retains delayed navigation loader with a minimum visible duration', () => {
   assert.match(layout, /journal-navigation-loader/u);
+  assert.match(layout, /transition-opacity duration-150/u);
   assert.match(routerLifecycle, /\}, 200\)/u);
+  assert.match(routerLifecycle, /350 - \(performance\.now\(\) - visibleAt\)/u);
 });
 
 test('home page exposes Journal and Projects as primary destinations', () => {
