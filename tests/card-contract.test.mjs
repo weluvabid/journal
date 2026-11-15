@@ -17,7 +17,7 @@ test('journal tags remain independent links above the stretched card link', asyn
   const tags = await read('../src/components/cards/TagList.svelte');
 
   assert.match(card, /<ContentCard href=\{entry\.href\}/);
-  assert.match(tags, /tagHref\(tag\)/);
+  assert.match(tags, /tagHref\(tag, scope\)/);
   assert.match(tags, /pointer-events-auto block w-fit min-w-0 max-w-full/);
 });
 
@@ -30,7 +30,7 @@ test('homepage and Projects archive render canonical project articles through sh
   assert.match(home, /href=\{entryHref\(project\.data\.id\)\}/);
   assert.match(projects, /data\.kind === 'project'/);
   assert.match(projects, /href=\{entryHref\(entry\.data\.id\)\}/);
-  assert.match(card, /TagList tags=\{project\.tags} label=\{project\.title} \/>/);
+  assert.match(card, /TagList tags=\{project\.tags} label=\{project\.title} scope="projects" \/>/);
   assert.match(card, /<ContentCard \{href\}/);
 });
 
@@ -40,4 +40,11 @@ test('tag scrollports stay width constrained and horizontally scrollable', async
   assert.match(tags, /min-w-0 max-w-full/);
   assert.match(tags, /overflow-x-auto/);
   assert.match(tags, /flex w-max flex-nowrap gap-2/);
+});
+
+
+test('canonical detail-page tags follow the entry content kind', async () => {
+  const detail = await read('../src/pages/journal/[...slug].astro');
+
+  assert.match(detail, /scope=\{entry\.data\.kind === 'project' \? 'projects' : 'journal'\}/);
 });

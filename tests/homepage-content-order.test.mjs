@@ -15,13 +15,10 @@ test('homepage removes the topic directory and places selected projects before w
   assert.ok(sectionIndex('featured-heading') > sectionIndex('projects-heading'));
 });
 
-test('homepage shows the six explicitly curated projects in portfolio order', () => {
-  assert.match(
-    source,
-    /const featuredProjectIds = \[\s*'structaura',\s*'jsonplus',\s*'frontend-atlas',\s*'cachewise',\s*'copy-2-markdown',\s*'envsentry',\s*\] as const/u,
-  );
-  assert.match(source, /const selectedProjects = featuredProjectIds\.map\(\(id\) =>/);
-  assert.match(source, /Homepage features missing project/);
+test('homepage derives its featured six from canonical project ranking metadata', () => {
+  assert.match(source, /rankProjects\(/);
+  assert.match(source, /projects\.slice\(0, FEATURED_PROJECT_COUNT\)/);
+  assert.doesNotMatch(source, /featuredProjectIds|projectsById|selectedProjects = .*map/);
   assert.match(source, /selectedProjects\.map\(\(project, index\)/);
   assert.match(source, /number=\{index \+ 1\}/);
 });
@@ -29,7 +26,7 @@ test('homepage shows the six explicitly curated projects in portfolio order', ()
 test('homepage shows the five newest journal entries using the archive list card variant', () => {
   assert.match(
     source,
-    /const entries = \[\.\.\.allEntries\]\.sort\(\(a, b\) => b\.data\.date\.valueOf\(\) - a\.data\.date\.valueOf\(\)\)/,
+    /const entries = \[\.\.\.allEntries\][\s\S]*?\.filter\(\(entry\) => entry\.data\.kind === \'article\'\)[\s\S]*?\.sort\(/,
   );
   assert.match(source, /const latestEntries = entries\.slice\(0, 5\)/);
   assert.match(source, /<ol class="space-y-3" aria-label="Recent journal entries">/);
@@ -37,7 +34,7 @@ test('homepage shows the five newest journal entries using the archive list card
   assert.doesNotMatch(source, /variant="featured"/);
 });
 
-test('homepage retains the existing all-projects and all-entries navigation', () => {
+test('homepage retains project and writing archive navigation', () => {
   assert.match(source, /href=\{withBase\('\/projects\/'\)\}>All projects/);
-  assert.match(source, /href=\{withBase\('\/journal\/'\)\}>All entries/);
+  assert.match(source, /href=\{withBase\('\/journal\/'\)\}>All writings/);
 });

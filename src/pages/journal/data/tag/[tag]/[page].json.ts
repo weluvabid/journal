@@ -7,7 +7,7 @@ import { JOURNAL_PAGE_SIZE, paginateItems } from '@lib/journal-pagination';
 import { getJournalSeriesPartCount } from '@lib/journal-series-navigation';
 
 export async function getStaticPaths() {
-  const entries = (await getCollection('journal', ({ data }) => !data.draft)).sort(
+  const entries = (await getCollection('journal', ({ data }) => !data.draft && data.kind === 'article')).sort(
     (left, right) =>
       right.data.date.valueOf() - left.data.date.valueOf() ||
       left.data.id.localeCompare(right.data.id),

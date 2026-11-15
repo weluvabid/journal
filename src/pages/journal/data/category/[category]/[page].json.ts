@@ -10,7 +10,10 @@ import {
 } from '@lib/journal-series-navigation';
 
 export async function getStaticPaths() {
-  const allEntries = await getCollection('journal', ({ data }) => !data.draft);
+  const allEntries = await getCollection(
+    'journal',
+    ({ data }) => !data.draft && data.kind === 'article',
+  );
   const paths = [];
 
   for (const category of categoryById.values()) {

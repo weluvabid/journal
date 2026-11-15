@@ -45,8 +45,8 @@ test('journal landing and category archives use the compact shared archive layou
   const index = await read('src/pages/journal/index.astro');
   const category = await read('src/pages/journal/category/[...slug].astro');
 
-  assert.match(index, /<Breadcrumb\.Page>Journal<\/Breadcrumb\.Page>/);
-  assert.match(index, /<h1 class="sr-only">Journal<\/h1>/);
+  assert.match(index, /<Breadcrumb\.Page>Writings<\/Breadcrumb\.Page>/);
+  assert.match(index, /<h1 class="sr-only">Writings<\/h1>/);
   assert.match(index, /pluralize\(entries\.length, INTENTS\.entry\)/);
   assert.doesNotMatch(index, /Writing & notes|An evolving record of experiments/);
   assert.ok(index.indexOf('pluralize(entries.length') < index.indexOf('<CategorySelect'));

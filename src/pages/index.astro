@@ -6,44 +6,37 @@ import { withBase, entryHref } from '@lib/journal';
 import ProjectCard from '@components/cards/ProjectCard.svelte';
 import JournalEntryCard from '@components/cards/JournalEntryCard.svelte';
 import { getJournalSeriesPartCount } from '@lib/journal-series-navigation';
+import {
+  assertFeaturedProjectCount,
+  FEATURED_PROJECT_COUNT,
+  rankProjects,
+} from '@lib/project-ranking';
 
 const allEntries = await getCollection('journal', ({ data }) => !data.draft);
-const entries = [...allEntries].sort((a, b) => b.data.date.valueOf() - a.data.date.valueOf());
+const entries = [...allEntries]
+  .filter((entry) => entry.data.kind === 'article')
+  .sort((a, b) => b.data.date.valueOf() - a.data.date.valueOf());
 const latestEntries = entries.slice(0, 5);
-const projects = (
-  await getCollection('journal', ({ data }) => !data.draft && data.kind === 'project')
-).sort((a, b) => (a.data.projectDetails?.order ?? 0) - (b.data.projectDetails?.order ?? 0));
-const featuredProjectIds = [
-  'structaura',
-  'jsonplus',
-  'frontend-atlas',
-  'cachewise',
-  'copy-2-markdown',
-  'envsentry',
-] as const;
-const projectsById = new Map(projects.map((project) => [project.data.project, project]));
-const selectedProjects = featuredProjectIds.map((id) => {
-  const project = projectsById.get(id);
-
-  if (!project) {
-    throw new Error(`Homepage features missing project "${id}"`);
-  }
-
-  return project;
-});
+const publishedProjects = await getCollection(
+  'journal',
+  ({ data }) => !data.draft && data.kind === 'project',
+);
+assertFeaturedProjectCount(publishedProjects);
+const projects = rankProjects(publishedProjects);
+const selectedProjects = projects.slice(0, FEATURED_PROJECT_COUNT);
 ---
 
 <BaseLayout
-  title="Journal — How I think. What I build."
-  description="Engineering notes, experiments, project write-ups and technical deep dives."
+  title="Journal — What I build and how I think."
+  description="Software projects, engineering notes and technical deep dives."
 >
   <section class="mx-auto max-w-3xl py-10 sm:py-14">
     <p class="text-xs font-semibold uppercase tracking-[0.18em] text-muted-foreground">
-      Engineering Notes
+      ENGINEERING PORTFOLIO
     </p>
     <p class="mt-5 max-w-2xl text-pretty text-base leading-8 text-muted-foreground sm:text-lg">
-      Notes from building software: projects, experiments, engineering decisions, and the occasional
-      dead end.{' '}
+      I build systems, developer tools, runtimes and thoughtful frontend software. Explore the
+      projects I've made and the engineering decisions behind them.{' '}
       <a
         href={withBase('/about/')}
         class="font-medium text-foreground underline decoration-border underline-offset-4 transition-colors hover:decoration-foreground focus-visible:rounded-sm focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-ring"
@@ -52,8 +45,8 @@ const selectedProjects = featuredProjectIds.map((id) => {
       </a>
     </p>
     <div class="mt-7 flex flex-wrap gap-3">
-      <Button.Root href={withBase('/journal/')} variant="default">Read the journal</Button.Root>
-      <Button.Root href={withBase('/projects/')} variant="outline">View projects</Button.Root>
+      <Button.Root href={withBase('/projects/')} variant="default">Explore projects</Button.Root>
+      <Button.Root href={withBase('/journal/')} variant="outline">Read writings</Button.Root>
     </div>
   </section>
 
@@ -62,7 +55,7 @@ const selectedProjects = featuredProjectIds.map((id) => {
       <div class="mb-8 flex items-end justify-between gap-4">
         <div>
           <p class="text-xs font-semibold uppercase tracking-[0.18em] text-muted-foreground">
-            The work
+            Selected engineering work
           </p>
           <h2 id="projects-heading" class="mt-2 text-2xl font-semibold tracking-tight">Projects</h2>
         </div>
@@ -93,11 +86,11 @@ const selectedProjects = featuredProjectIds.map((id) => {
       <div class="mb-8 flex items-end justify-between gap-4">
         <div>
           <p class="text-xs font-semibold uppercase tracking-[0.18em] text-muted-foreground">
-            The journal
+            How I think
           </p>
-          <h2 id="featured-heading" class="mt-2 text-2xl font-semibold tracking-tight">Writing</h2>
+          <h2 id="featured-heading" class="mt-2 text-2xl font-semibold tracking-tight">Writings</h2>
         </div>
-        <Button.Root variant="link" href={withBase('/journal/')}>All entries</Button.Root>
+        <Button.Root variant="link" href={withBase('/journal/')}>All writings</Button.Root>
       </div>
       <ol class="space-y-3" aria-label="Recent journal entries">
         {
@@ -119,7 +112,7 @@ const selectedProjects = featuredProjectIds.map((id) => {
                     ? {
                         series: {
                           part: entry.data.series.part,
-                          totalParts: getJournalSeriesPartCount(allEntries, entry.data.series.id),
+                          totalParts: getJournalSeriesPartCount(entries, entry.data.series.id),
                         },
                       }
                     : {}),

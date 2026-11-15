@@ -16,7 +16,7 @@ import {
 import { INTENTS, pluralize } from '@lib/content-text';
 
 const entries = sortJournalEntriesWithSeriesGroups(
-  await getCollection('journal', ({ data }) => !data.draft),
+  await getCollection('journal', ({ data }) => !data.draft && data.kind === 'article'),
 );
 const { items: firstPage, nextPage } = paginateItems(entries, 1);
 const initialEntries = serializeJournalEntries(
@@ -33,16 +33,16 @@ const nextPageUrl = nextPage === null ? null : withBase(`/journal/data/all/${nex
 ---
 
 <BaseLayout
-  title="Journal — Writing and engineering notes"
+  title="Writings — Journal"
   description="Engineering notes, build logs, deep dives and retrospectives."
 >
   <Breadcrumb.Root class="mb-8"
     ><Breadcrumb.List
-      ><Breadcrumb.Item><Breadcrumb.Page>Journal</Breadcrumb.Page></Breadcrumb.Item
+      ><Breadcrumb.Item><Breadcrumb.Page>Writings</Breadcrumb.Page></Breadcrumb.Item
       ></Breadcrumb.List
     ></Breadcrumb.Root
   >
-  <h1 class="sr-only">Journal</h1>
+  <h1 class="sr-only">Writings</h1>
   <p class="mb-4 text-xs font-semibold uppercase tracking-[0.18em] text-muted-foreground">
     {pluralize(entries.length, INTENTS.entry)}
   </p>
@@ -53,10 +53,10 @@ const nextPageUrl = nextPage === null ? null : withBase(`/journal/data/all/${nex
     client:load
     initialEntries={initialEntries}
     nextPageUrl={nextPageUrl}
-    ariaLabel="Journal entries"
+    ariaLabel="Writings"
   />
   <noscript>
-    <ol class="mt-3 space-y-3" aria-label={'Remaining journal entries'}>
+    <ol class="mt-3 space-y-3" aria-label={'Remaining writings'}>
       {
         entries.slice(JOURNAL_PAGE_SIZE).map((_, index) => (
           <li>

@@ -4,15 +4,15 @@ import { readFile } from 'node:fs/promises';
 
 const source = await readFile(new URL('../src/pages/journal/index.astro', import.meta.url), 'utf8');
 
-test('main Journal label uses the same non-linked breadcrumb presentation as archive pages', () => {
+test('main Writings label uses the same non-linked breadcrumb presentation as archive pages', () => {
   assert.match(
     source,
     /import\s+\{\s*Breadcrumb\s*\}\s+from\s+['"]@weluvabid\/iris\/components['"]/,
   );
   assert.match(source, /<Breadcrumb\.Root class="mb-8"/);
-  assert.match(source, /<Breadcrumb\.Page>Journal<\/Breadcrumb\.Page>/);
-  assert.doesNotMatch(source, /<Breadcrumb\.Link[^>]*>Journal<\/Breadcrumb\.Link>/);
-  assert.match(source, /<h1 class="sr-only">Journal<\/h1>/);
+  assert.match(source, /<Breadcrumb\.Page>Writings<\/Breadcrumb\.Page>/);
+  assert.doesNotMatch(source, /<Breadcrumb\.Link[^>]*>Writings<\/Breadcrumb\.Link>/);
+  assert.match(source, /<h1 class="sr-only">Writings<\/h1>/);
   assert.doesNotMatch(source, /<h1 class="mb-8 text-2xl/);
 });
 

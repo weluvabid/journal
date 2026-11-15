@@ -11,7 +11,7 @@ const footer = readFileSync(
   'utf8',
 );
 
-test('desktop primary navigation groups Writing, Projects and Resume before utilities', () => {
+test('desktop primary navigation groups Writings, Projects and Resume before utilities', () => {
   const mainSections = header.indexOf('aria-label="Main sections"');
   const separator = header.indexOf('h-6 w-px');
   const otherControls = header.indexOf('aria-label="Other controls"');

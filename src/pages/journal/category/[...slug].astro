@@ -23,9 +23,15 @@ export async function getStaticPaths() {
 }
 
 const { category } = Astro.props;
-const allJournalEntries = await getCollection('journal', ({ data }) => !data.draft);
+const allJournalEntries = await getCollection(
+  'journal',
+  ({ data }) => !data.draft && data.kind === 'article',
+);
 const entries = sortJournalEntriesWithSeriesGroups(
-  await getCollection('journal', ({ data }) => !data.draft && data.category === category.id),
+  await getCollection(
+    'journal',
+    ({ data }) => !data.draft && data.kind === 'article' && data.category === category.id,
+  ),
 );
 const { items: firstPage, nextPage } = paginateItems(entries, 1);
 const initialEntries = serializeJournalEntries(
@@ -46,7 +52,7 @@ const nextPageUrl =
   <Breadcrumb.Root class="mb-8"
     ><Breadcrumb.List
       ><Breadcrumb.Item
-        ><Breadcrumb.Link href={withBase('/journal/')}>Journal</Breadcrumb.Link></Breadcrumb.Item
+        ><Breadcrumb.Link href={withBase('/journal/')}>Writings</Breadcrumb.Link></Breadcrumb.Item
       ><Breadcrumb.Separator /><Breadcrumb.Item
         ><Breadcrumb.Page>{category.name}</Breadcrumb.Page></Breadcrumb.Item
       ></Breadcrumb.List

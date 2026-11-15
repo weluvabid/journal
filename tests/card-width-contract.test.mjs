@@ -8,7 +8,7 @@ test('shared card root can shrink inside a CSS Grid track', async () => {
   const source = await read('../src/components/cards/ContentCard.svelte');
 
   assert.match(source, /<article[\s\S]*?w-full min-w-0 max-w-full/);
-  assert.match(source, /relative z-10 min-w-0 max-w-full/);
+  assert.match(source, /relative z-10 (?:h-full )?min-w-0 max-w-full/);
 });
 
 test('all card and detail-page tag wrappers use the available content width', async () => {

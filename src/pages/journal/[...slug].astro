@@ -57,16 +57,20 @@ const stackblitzDemo =
   projectEntry?.data.projectDetails?.stackblitz ??
   entry.data.projectDetails?.stackblitz ??
   entry.data.links?.stackblitz;
-const allNavigationEntries = sortJournalEntriesWithSeriesGroups(publishedEntries);
+const writingEntries = publishedEntries.filter((item) => item.data.kind === 'article');
+const allNavigationEntries = sortJournalEntriesWithSeriesGroups(writingEntries);
 const categoryNavigationEntries = sortJournalEntriesWithSeriesGroups(
-  publishedEntries.filter((item) => item.data.category === entry.data.category),
+  writingEntries.filter((item) => item.data.category === entry.data.category),
 );
-const initialNavigation = resolveJournalNavigation(entry.data.id, allNavigationEntries);
+const initialNavigation =
+  entry.data.kind === 'article'
+    ? resolveJournalNavigation(entry.data.id, allNavigationEntries)
+    : { previous: null, next: null };
 const seriesPartCount = entry.data.series
-  ? getJournalSeriesPartCount(publishedEntries, entry.data.series.id)
+  ? getJournalSeriesPartCount(writingEntries, entry.data.series.id)
   : 0;
 const seriesEntries = entry.data.series
-  ? getJournalSeriesEntries(publishedEntries, entry.data.series.id)
+  ? getJournalSeriesEntries(writingEntries, entry.data.series.id)
   : [];
 ---
 
@@ -75,7 +79,11 @@ const seriesEntries = entry.data.series
     <Breadcrumb.Root class="mb-8"
       ><Breadcrumb.List
         ><Breadcrumb.Item
-          ><Breadcrumb.Link href={withBase('/journal/')}>Journal</Breadcrumb.Link></Breadcrumb.Item
+          ><Breadcrumb.Link
+            href={withBase(entry.data.kind === 'project' ? '/projects/' : '/journal/')}
+          >
+            {entry.data.kind === 'project' ? 'Projects' : 'Writings'}
+          </Breadcrumb.Link></Breadcrumb.Item
         ><Breadcrumb.Separator /><Breadcrumb.Item
           ><Breadcrumb.Page>{entry.data.title}</Breadcrumb.Page></Breadcrumb.Item
         ></Breadcrumb.List
@@ -114,8 +122,25 @@ const seriesEntries = entry.data.series
           />
         )
       }
+      {
+        entry.data.kind === 'article' && projectEntry && (
+          <p class="mt-4 text-sm text-muted-foreground">
+            Related project:{' '}
+            <a
+              href={entryHref(projectEntry.data.id)}
+              class="font-medium text-foreground underline decoration-border underline-offset-4 hover:decoration-foreground"
+            >
+              {projectEntry.data.title}
+            </a>
+          </p>
+        )
+      }
       <div class="block w-full min-w-0 max-w-full">
-        <TagList tags={entry.data.tags} label={entry.data.title} />
+        <TagList
+          tags={entry.data.tags}
+          label={entry.data.title}
+          scope={entry.data.kind === 'project' ? 'projects' : 'journal'}
+        />
       </div>
     </header>
     <div class="prose-journal"><Content components={tableComponents} /></div>
@@ -154,36 +179,46 @@ const seriesEntries = entry.data.series
       )
     }
     <div class="mt-10">
-      <Button.Root variant="ghost" href={withBase(`/journal/category/${category.id}/`)}
-        ><ArrowLeft class="size-4" aria-hidden="true" />Back to {category.name}</Button.Root
+      <Button.Root
+        variant="ghost"
+        href={withBase(
+          entry.data.kind === 'project' ? '/projects/' : `/journal/category/${category.id}/`,
+        )}
       >
+        <ArrowLeft class="size-4" aria-hidden="true" />
+        {entry.data.kind === 'project' ? 'Back to projects' : `Back to ${category.name}`}
+      </Button.Root>
     </div>
-    <ArticleNavigation
-      client:load
-      currentId={entry.data.id}
-      categoryId={entry.data.category}
-      allEntries={allNavigationEntries.map((item) => ({
-        id: item.data.id,
-        title: item.data.title,
-      }))}
-      categoryEntries={categoryNavigationEntries.map((item) => ({
-        id: item.data.id,
-        title: item.data.title,
-      }))}
-      previous={initialNavigation.previous
-        ? {
-            id: initialNavigation.previous.data.id,
-            title: initialNavigation.previous.data.title,
-            url: entryHref(initialNavigation.previous.data.id),
-          }
-        : null}
-      next={initialNavigation.next
-        ? {
-            id: initialNavigation.next.data.id,
-            title: initialNavigation.next.data.title,
-            url: entryHref(initialNavigation.next.data.id),
-          }
-        : null}
-    />
+    {
+      entry.data.kind === 'article' && (
+        <ArticleNavigation
+          client:load
+          currentId={entry.data.id}
+          categoryId={entry.data.category}
+          allEntries={allNavigationEntries.map((item) => ({
+            id: item.data.id,
+            title: item.data.title,
+          }))}
+          categoryEntries={categoryNavigationEntries.map((item) => ({
+            id: item.data.id,
+            title: item.data.title,
+          }))}
+          previous={initialNavigation.previous
+            ? {
+                id: initialNavigation.previous.data.id,
+                title: initialNavigation.previous.data.title,
+                url: entryHref(initialNavigation.previous.data.id),
+              }
+            : null}
+          next={initialNavigation.next
+            ? {
+                id: initialNavigation.next.data.id,
+                title: initialNavigation.next.data.title,
+                url: entryHref(initialNavigation.next.data.id),
+              }
+            : null}
+        />
+      )
+    }
   </article>
 </BaseLayout>

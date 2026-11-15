@@ -18,9 +18,9 @@ test('homepage omits the topic directory in favour of selected projects and rece
   assert.match(page, /aria-labelledby="projects-heading"/);
   assert.match(page, /<h2 id="projects-heading"[^>]*>\s*Projects\s*<\/h2>/);
   assert.match(page, /aria-labelledby="featured-heading"/);
-  assert.match(page, /<h2 id="featured-heading"[^>]*>\s*Writing\s*<\/h2>/);
+  assert.match(page, /<h2 id="featured-heading"[^>]*>\s*Writings\s*<\/h2>/);
   assert.ok(page.indexOf('id="projects-heading"') < page.indexOf('id="featured-heading"'));
-  assert.match(page, /const selectedProjects = featuredProjectIds\.map\(\(id\) =>/);
-  assert.match(page, /'structaura',[\s\S]*?'envsentry'/);
+  assert.match(page, /rankProjects\(/);
+  assert.match(page, /projects\.slice\(0, FEATURED_PROJECT_COUNT\)/);
   assert.match(page, /const latestEntries = entries\.slice\(0, 5\)/);
 });

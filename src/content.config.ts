@@ -33,8 +33,7 @@ const journal = defineCollection({
           resources: z
             .array(z.object({ label: z.string().min(1), url: z.url().optional() }))
             .default([]),
-          featured: z.boolean().default(false),
-          order: z.number().int().nonnegative(),
+          order: z.number().int().positive(),
         })
         .optional(),
       series: z
@@ -52,7 +51,6 @@ const journal = defineCollection({
           mermaid: z.url().optional(),
         })
         .optional(),
-      featured: z.boolean().default(false),
       draft: z.boolean().default(false),
     })
     .superRefine((data, context) => {

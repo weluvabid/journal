@@ -19,8 +19,11 @@ export function tagToSlug(tag: string): string {
   return slug;
 }
 
-export function tagHref(tag: string): string {
-  return withBase(`/journal/tag/${tagToSlug(tag)}/`);
+export type TagScope = 'projects' | 'journal';
+
+/** Build a tag archive URL within the owning content section. */
+export function tagHref(tag: string, scope: TagScope = 'journal'): string {
+  return withBase(`/${scope}/tag/${tagToSlug(tag)}/`);
 }
 
 /** Build deterministic tag groups and fail on ambiguous slug collisions. */
@@ -45,7 +48,7 @@ export function groupContentByTag<
 
       if (existing && existing.label !== label) {
         throw new Error(
-          `Journal tags "${existing.label}" and "${label}" produce the same URL slug: ${slug}`,
+          `Tags "${existing.label}" and "${label}" produce the same URL slug: ${slug}`,
         );
       }
 

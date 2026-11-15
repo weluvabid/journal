@@ -51,7 +51,7 @@ summary: A concise description of the entry.
 date: 2026-11-12
 tags: [rust, systems]
 searchTerms: [ownership, concurrency]
-featured: false
+kind: article
 draft: false
 ---
 ```

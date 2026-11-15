@@ -12,7 +12,9 @@ import { INTENTS, pluralize } from '@lib/content-text';
 import { getJournalSeriesPartCount } from '@lib/journal-series-navigation';
 
 export async function getStaticPaths() {
-  const entries = (await getCollection('journal', ({ data }) => !data.draft)).sort(
+  const entries = (
+    await getCollection('journal', ({ data }) => !data.draft && data.kind === 'article')
+  ).sort(
     (left, right) =>
       right.data.date.valueOf() - left.data.date.valueOf() ||
       left.data.id.localeCompare(right.data.id),
@@ -25,7 +27,10 @@ export async function getStaticPaths() {
 }
 
 const { slug, label, entries } = Astro.props;
-const allJournalEntries = await getCollection('journal', ({ data }) => !data.draft);
+const allJournalEntries = await getCollection(
+  'journal',
+  ({ data }) => !data.draft && data.kind === 'article',
+);
 const { items: firstPage, nextPage } = paginateItems(entries, 1);
 const initialEntries = serializeJournalEntries(
   firstPage,
@@ -41,11 +46,11 @@ const nextPageUrl =
   nextPage === null ? null : withBase(`/journal/data/tag/${slug}/${nextPage}.json`);
 ---
 
-<BaseLayout title={`Tagged “${label}” — Journal`} description={`Journal entries tagged ${label}.`}>
+<BaseLayout title={`Tagged “${label}” — Writings`} description={`Writings tagged ${label}.`}>
   <Breadcrumb.Root class="mb-8"
     ><Breadcrumb.List
       ><Breadcrumb.Item
-        ><Breadcrumb.Link href={withBase('/journal/')}>Journal</Breadcrumb.Link></Breadcrumb.Item
+        ><Breadcrumb.Link href={withBase('/journal/')}>Writings</Breadcrumb.Link></Breadcrumb.Item
       ><Breadcrumb.Separator /><Breadcrumb.Item
         ><Breadcrumb.Page>#{label}</Breadcrumb.Page></Breadcrumb.Item
       ></Breadcrumb.List
@@ -58,7 +63,7 @@ const nextPageUrl =
     client:load
     initialEntries={initialEntries}
     nextPageUrl={nextPageUrl}
-    ariaLabel={`Journal entries tagged ${label}`}
+    ariaLabel={`Writings tagged ${label}`}
   />
   <noscript>
     <ol class="mt-3 space-y-3" aria-label={`Entries tagged ${label}`}>

@@ -10,7 +10,7 @@ import {
 
 export async function getStaticPaths() {
   const entries = sortJournalEntriesWithSeriesGroups(
-    await getCollection('journal', ({ data }) => !data.draft),
+    await getCollection('journal', ({ data }) => !data.draft && data.kind === 'article'),
   );
   const pageCount = Math.ceil(entries.length / JOURNAL_PAGE_SIZE);
 

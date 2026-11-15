@@ -35,7 +35,7 @@
       <p class="mt-2 text-sm leading-6 text-muted-foreground">{project.summary}</p>
     </div>
     <div class="mt-auto block w-full min-w-0 max-w-full pt-1">
-      <TagList tags={project.tags} label={project.title} />
+      <TagList tags={project.tags} label={project.title} scope="projects" />
     </div>
   </div>
 </ContentCard>

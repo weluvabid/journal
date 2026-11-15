@@ -67,13 +67,13 @@
                 size="icon"
                 class="rounded-full"
                 href={withBase('/journal/')}
-                aria-label="Browse writing"
+                aria-label="Browse writings"
               >
                 <NotebookText aria-hidden="true" />
               </Button.Root>
             {/snippet}
           </Tooltip.Trigger>
-          <Tooltip.Content>Writing</Tooltip.Content>
+          <Tooltip.Content>Writings</Tooltip.Content>
         </Tooltip.Root>
 
         <Tooltip.Root>

@@ -47,7 +47,7 @@ test('each project has exactly one canonical journal entry and related articles 
     associated.set(entry.data.project, group);
   }
 
-  assert.equal(associated.size, 11);
+  assert.equal(associated.size, 12);
 
   for (const [id, group] of associated) {
     const canonical = group.filter(({ data }) => data.kind === 'project');
@@ -131,4 +131,13 @@ test('project association validation rejects orphaned and duplicate canonical pr
       ]),
     /multiple canonical articles/,
   );
+});
+
+test('writing details link back to their canonical project and project pages return to Projects', async () => {
+  const source = await readFile(new URL('../src/pages/journal/[...slug].astro', import.meta.url), 'utf8');
+  assert.match(source, /entry\.data\.kind === 'article' && projectEntry/);
+  assert.match(source, /Related project:/);
+  assert.match(source, /entryHref\(projectEntry\.data\.id\)/);
+  assert.match(source, /entry\.data\.kind === 'project' \? 'Projects' : 'Writings'/);
+  assert.match(source, /entry\.data\.kind === 'project' \? '\/projects\/'/);
 });

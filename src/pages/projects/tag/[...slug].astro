@@ -1,25 +1,64 @@
 ---
 import { getCollection } from 'astro:content';
-import { withBase } from '@lib/journal';
+import BaseLayout from '@layouts/BaseLayout.astro';
+import ProjectCard from '@components/cards/ProjectCard.svelte';
+import { Breadcrumb } from '@weluvabid/iris/components';
+import { entryHref, withBase } from '@lib/journal';
+import { groupContentByTag } from '@lib/journal-tags';
+import { rankProjects } from '@lib/project-ranking';
+import { INTENTS, pluralize } from '@lib/content-text';
 
 export async function getStaticPaths() {
   const projects = await getCollection(
     'journal',
     ({ data }) => !data.draft && data.kind === 'project',
   );
-  const tags = new Set(
-    projects.flatMap((entry) =>
-      entry.data.tags.map((tag) =>
-        tag
-          .toLowerCase()
-          .replace(/[^a-z0-9]+/g, '-')
-          .replace(/^-+|-+$/g, ''),
-      ),
-    ),
-  );
 
-  return [...tags].map((slug) => ({ params: { slug } }));
+  return [...groupContentByTag(projects).entries()].map(([slug, group]) => ({
+    params: { slug },
+    props: { slug, label: group.label, projects: group.entries },
+  }));
 }
 
-return Astro.redirect(withBase('/projects/'), 301);
+const { label, projects: taggedProjects } = Astro.props;
+const projects = rankProjects(taggedProjects);
 ---
+
+<BaseLayout
+  title={`Tagged “${label}” — Projects`}
+  description={`Projects tagged ${label}.`}
+>
+  <Breadcrumb.Root class="mb-8">
+    <Breadcrumb.List>
+      <Breadcrumb.Item>
+        <Breadcrumb.Link href={withBase('/projects/')}>Projects</Breadcrumb.Link>
+      </Breadcrumb.Item>
+      <Breadcrumb.Separator />
+      <Breadcrumb.Item><Breadcrumb.Page>#{label}</Breadcrumb.Page></Breadcrumb.Item>
+    </Breadcrumb.List>
+  </Breadcrumb.Root>
+  <h1 class="sr-only">Projects tagged {label}</h1>
+  <p class="mb-8 text-xs font-semibold uppercase tracking-[0.18em] text-muted-foreground">
+    {pluralize(projects.length, INTENTS.project)}
+  </p>
+  <ol class="grid items-stretch gap-3 sm:grid-cols-2" aria-label={`Projects tagged ${label}`}>
+    {
+      projects.map((entry) => (
+        <li>
+          <ProjectCard
+            project={{
+              id: entry.data.project!,
+              title: entry.data.title,
+              summary: entry.data.summary,
+              status: entry.data.projectDetails!.status,
+              order: entry.data.projectDetails!.order,
+              tags: entry.data.tags.filter((tag) => tag !== 'project'),
+            }}
+            href={entryHref(entry.data.id)}
+            class="h-full"
+          />
+        </li>
+      ))
+    }
+  </ol>
+</BaseLayout>

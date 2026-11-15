@@ -7,11 +7,11 @@ All editorial and project content lives in `src/content/journal/`. There is one 
 Every entry has a `kind`:
 
 - `article` is a journal entry.
-- `project` is the canonical project article and carries the complete `projectDetails` record: status, stack, repository/demo links, curated repository resources, featured state and display order.
+- `project` is the canonical project article and carries the complete `projectDetails` record: status, stack, repository/demo links, curated repository resources, display order. The first six ranked projects are featured automatically; rank is the only editorial ordering field.
 
-The optional `project` ID associates related engineering notes with that canonical project article. Related entries link back to the canonical project article; they do not repeat its metadata. A canonical project article carries the `project` tag, so it is discoverable through the ordinary Journal tag archive. Subject categories remain topical classifications, not project/non-project flags.
+The optional `project` ID associates related engineering notes with that canonical project article. Related writing entries link back to the canonical project article; they do not repeat its metadata. A canonical project article carries the `project` tag, so it is discoverable through the ordinary Journal tag archive. Subject categories remain topical classifications, not project/non-project flags.
 
-The Projects archive and homepage project cards are generated from published entries where `kind: project`. The project resource section is rendered at the end of that same article. There is no separately maintained project description or project content collection. Legacy `/projects/<id>/` URLs redirect to the canonical `/journal/<id>/` article.
+The Projects archive and homepage project cards are generated from published entries where `kind: project`. `projectDetails.order` is the sole ranking source: the Projects archive displays all projects in that order, and the homepage takes the first six. No separate featured list or featured boolean is maintained. The project resource section is rendered at the end of that same article. There is no separately maintained project description or project content collection. Legacy `/projects/<id>/` URLs redirect to the canonical `/journal/<id>/` article.
 
 Journal IDs are stable kebab-case values used for public routes. Draft entries are excluded from public routes, listing data and search.
 
@@ -19,7 +19,7 @@ Journal IDs are stable kebab-case values used for public routes. Draft entries a
 
 `src/data/categories.ts` is the single category registry. It supplies human-readable labels, descriptions and stable IDs to the homepage, category selector and category archive routes. The content schema constrains journal category values to the supported IDs.
 
-Tags belong to the Journal collection and share one canonical route model under `/journal/tag/<slug>/`. The `project` tag identifies canonical project articles.
+Tags belong to the Journal collection and share one canonical route model under `/journal/tag/<slug>/`. The `project` tag identifies canonical project articles. The Journal archive, category archives and tag archives list `kind: article` entries only; project write-ups remain available through Projects and global search.
 
 ## Search
 

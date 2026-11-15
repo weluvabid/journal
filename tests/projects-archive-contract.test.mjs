@@ -8,7 +8,9 @@ test('Projects archive is a generated view over canonical Journal project entrie
 
   assert.match(source, /getCollection\('journal'/);
   assert.match(source, /data\.kind === 'project'/);
-  assert.match(source, /projectDetails\?\.order/);
+  assert.match(source, /rankProjects\(/);
+  assert.match(source, /featuredProjects = projects\.slice\(0, FEATURED_PROJECT_COUNT\)/);
+  assert.match(source, /additionalProjects = projects\.slice\(FEATURED_PROJECT_COUNT\)/);
   assert.match(source, /<ProjectCard/);
   assert.match(source, /entryHref\(entry\.data\.id\)/);
   assert.doesNotMatch(source, /getCollection\('projects'\)/);
