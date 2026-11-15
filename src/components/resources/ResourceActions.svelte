@@ -29,48 +29,48 @@
 
 <Tooltip.Provider delayDuration={300}>
   {#if section !== 'additional'}
-  <nav class="mt-3 flex flex-wrap items-center gap-2" aria-label={`${title} resources`}>
-    <Tooltip.Root>
-      <Tooltip.Trigger>
-        {#snippet child({ props })}
-          <Button.Root
-            {...props}
-            href={git}
-            target="_blank"
-            rel="noopener noreferrer"
-            variant="ghost"
-            size="icon"
-            class="rounded-full"
-            aria-label="Source repository (opens in a new tab)"
-          >
-            <SiGit class="size-5" aria-hidden="true" />
-          </Button.Root>
-        {/snippet}
-      </Tooltip.Trigger>
-      <Tooltip.Content>Source repository</Tooltip.Content>
-    </Tooltip.Root>
-    {#if stackblitz}
+    <nav class="mt-3 flex flex-wrap items-center gap-2" aria-label={`${title} resources`}>
       <Tooltip.Root>
         <Tooltip.Trigger>
           {#snippet child({ props })}
             <Button.Root
               {...props}
-              href={stackblitz}
+              href={git}
               target="_blank"
               rel="noopener noreferrer"
               variant="ghost"
               size="icon"
               class="rounded-full"
-              aria-label="Open StackBlitz demo (opens in a new tab)"
+              aria-label="Source repository (opens in a new tab)"
             >
-              <SiStackblitz class="size-5" aria-hidden="true" />
+              <SiGit class="size-5" aria-hidden="true" />
             </Button.Root>
           {/snippet}
         </Tooltip.Trigger>
-        <Tooltip.Content>Live demo on StackBlitz</Tooltip.Content>
+        <Tooltip.Content>Source repository</Tooltip.Content>
       </Tooltip.Root>
-    {/if}
-  </nav>
+      {#if stackblitz}
+        <Tooltip.Root>
+          <Tooltip.Trigger>
+            {#snippet child({ props })}
+              <Button.Root
+                {...props}
+                href={stackblitz}
+                target="_blank"
+                rel="noopener noreferrer"
+                variant="ghost"
+                size="icon"
+                class="rounded-full"
+                aria-label="Open StackBlitz demo (opens in a new tab)"
+              >
+                <SiStackblitz class="size-5" aria-hidden="true" />
+              </Button.Root>
+            {/snippet}
+          </Tooltip.Trigger>
+          <Tooltip.Content>Live demo on StackBlitz</Tooltip.Content>
+        </Tooltip.Root>
+      {/if}
+    </nav>
   {/if}
   {#if section !== 'actions' && visibleResources.length > 0}
     <Collapsible.Root class="mt-3 min-w-0">
@@ -83,7 +83,9 @@
           aria-hidden="true"
         />
       </Collapsible.Trigger>
-      <Collapsible.Content class="overflow-hidden data-open:animate-accordion-down data-closed:animate-accordion-up">
+      <Collapsible.Content
+        class="overflow-hidden data-open:animate-accordion-down data-closed:animate-accordion-up"
+      >
         <nav aria-label={`${title} additional resources`}>
           <ul class="flex flex-col gap-2 pt-2">
             {#each visibleResources as resource (resource.url)}

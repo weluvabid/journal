@@ -1,6 +1,7 @@
 <script lang="ts">
-  import { Root } from '@weluvabid/iris/components/ui/scroll-area';
+  import { onMount, tick } from 'svelte';
   import { tagHref, type TagScope } from '@lib/journal-tags';
+  import { getHorizontalScrollState, observeHorizontalScroll } from '@lib/horizontal-scroll';
 
   interface Props {
     tags?: readonly string[];
@@ -9,19 +10,58 @@
   }
 
   let { tags = [], label, scope = 'journal' }: Props = $props();
+
+  let viewport: HTMLDivElement;
+  let track: HTMLDivElement;
+  let canScrollLeft = $state(false);
+  let canScrollRight = $state(false);
+
+  function syncScrollState(state: { canScrollLeft: boolean; canScrollRight: boolean }) {
+    canScrollLeft = state.canScrollLeft;
+    canScrollRight = state.canScrollRight;
+  }
+
+  onMount(() => {
+    let cleanup: (() => void) | undefined;
+    let cancelled = false;
+
+    void tick().then(() => {
+      if (cancelled || !viewport || !track) {
+        return;
+      }
+
+      cleanup = observeHorizontalScroll(viewport, track, syncScrollState);
+    });
+
+    return () => {
+      cancelled = true;
+
+      cleanup?.();
+    };
+  });
+
+  $effect(() => {
+    void tags;
+    void tick().then(() => {
+      if (viewport) {
+        syncScrollState(getHorizontalScrollState(viewport));
+      }
+    });
+  });
 </script>
 
 {#if tags.length > 0}
   <div class="relative mt-3 min-w-0 max-w-full overflow-hidden">
-    <Root
-      orientation="horizontal"
-      class="pointer-events-auto relative h-9 w-full min-w-0 max-w-full"
-      scrollbarXClasses="!absolute !inset-x-0 !bottom-0 !left-0 !right-0 !h-1.5 !w-full"
+    <div
+      bind:this={viewport}
+      class="pointer-events-auto block w-fit min-w-0 max-w-full overflow-x-auto overscroll-x-contain pb-1"
+      aria-label={`Tags for ${label}`}
     >
       <div
+        bind:this={track}
         role="group"
         aria-label={`Tags for ${label}`}
-        class="flex w-max min-w-full flex-nowrap gap-2 px-0.5 pb-2"
+        class="flex w-max flex-nowrap gap-2"
       >
         {#each tags as tag (tag)}
           <a
@@ -31,6 +71,18 @@
           >
         {/each}
       </div>
-    </Root>
+    </div>
+    <span
+      class="pointer-events-none absolute inset-y-0 left-0 z-10 w-3 shadow-[inset_12px_0_16px_-14px_rgba(255,255,255,0.18)] motion-safe:transition-opacity"
+      class:opacity-100={canScrollLeft}
+      class:opacity-0={!canScrollLeft}
+      aria-hidden="true"
+    ></span>
+    <span
+      class="pointer-events-none absolute inset-y-0 right-0 z-10 w-3 shadow-[inset_-12px_0_16px_-14px_rgba(255,255,255,0.18)] motion-safe:transition-opacity"
+      class:opacity-100={canScrollRight}
+      class:opacity-0={!canScrollRight}
+      aria-hidden="true"
+    ></span>
   </div>
 {/if}

@@ -5,14 +5,15 @@ import ProjectCard from '@components/cards/ProjectCard.svelte';
 import { Breadcrumb } from '@weluvabid/iris/components';
 import { entryHref, withBase } from '@lib/journal';
 import { groupContentByTag } from '@lib/journal-tags';
-import { rankProjects } from '@lib/project-ranking';
+import { isProjectEntry, rankProjects } from '@lib/project-ranking';
 import { INTENTS, pluralize } from '@lib/content-text';
 
 export async function getStaticPaths() {
-  const projects = await getCollection(
+  const projectCandidates = await getCollection(
     'journal',
     ({ data }) => !data.draft && data.kind === 'project',
   );
+  const projects = projectCandidates.filter(isProjectEntry);
 
   return [...groupContentByTag(projects).entries()].map(([slug, group]) => ({
     params: { slug },
@@ -24,10 +25,7 @@ const { label, projects: taggedProjects } = Astro.props;
 const projects = rankProjects(taggedProjects);
 ---
 
-<BaseLayout
-  title={`Tagged “${label}” — Projects`}
-  description={`Projects tagged ${label}.`}
->
+<BaseLayout title={`Tagged “${label}” — Projects`} description={`Projects tagged ${label}.`}>
   <Breadcrumb.Root class="mb-8">
     <Breadcrumb.List>
       <Breadcrumb.Item>

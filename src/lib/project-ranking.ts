@@ -7,6 +7,10 @@ type ProjectEntry = CollectionEntry<'journal'> & {
   };
 };
 
+export function isProjectEntry(entry: CollectionEntry<'journal'>): entry is ProjectEntry {
+  return entry.data.kind === 'project' && entry.data.projectDetails !== undefined;
+}
+
 export const FEATURED_PROJECT_COUNT = 6;
 
 /** Validate the global published-project inventory used by featured sections. */
@@ -37,9 +41,14 @@ export function rankProjects<T extends ProjectEntry>(projects: readonly T[]): T[
       );
     }
 
-    ranks.set(rank, project.data.project!);
-  }
+    const projectId = project.data.project;
 
+    if (!projectId) {
+      throw new Error(`Project entry "${project.data.id}" is missing its project id`);
+    }
+
+    ranks.set(rank, projectId);
+  }
 
   return [...projects].sort(
     (left, right) => left.data.projectDetails.order - right.data.projectDetails.order,

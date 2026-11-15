@@ -4,7 +4,10 @@ import { Card } from '@weluvabid/iris/components';
 import { withBase } from '@lib/journal';
 ---
 
-<BaseLayout title="About — Journal" description="How I approach software engineering and the things I like building.">
+<BaseLayout
+  title="About — Journal"
+  description="How I approach software engineering and the things I like building."
+>
   <article class="mx-auto max-w-3xl">
     <p class="text-xs font-semibold uppercase tracking-[0.18em] text-muted-foreground">About</p>
     <h1 class="mt-3 text-4xl font-semibold tracking-tight">
@@ -13,19 +16,31 @@ import { withBase } from '@lib/journal';
 
     <div class="prose-journal mt-8">
       <p>
-        Hi, I’m Abid. My name is technically Abith, thanks to a spelling mistake my grandfather made, but I go by Abid. I really enjoy digging into code. Sometimes I’ll just look at documentation or go through source code. Sometimes I just like building things from scratch so I can learn how everything works.
+        I'm Abid, a software engineer. My name is technically Abith, thanks to a spelling mistake my
+        grandfather made, but I go by Abid. I really enjoy digging into code. Sometimes I’ll just
+        look at documentation or go through source code. Sometimes I just like building things from
+        scratch so I can learn how everything works.
       </p>
       <p>
-        This has led me to work on a wide range of problems. Caching, serialisation, storage engines, language tooling, reactive runtimes, browser extensions, frontend architectures. Some were driven by a need, but most were driven by the question I couldn’t get out of my head. Either way, I enjoy both.
+        This has led me to work on a wide range of problems. Caching, serialisation, storage
+        engines, language tooling, reactive runtimes, browser extensions, frontend architectures.
+        Some were driven by a need, but most were driven by the question I couldn’t get out of my
+        head. Either way, I enjoy both.
       </p>
       <p>
-        I enjoy getting into detail, but I don’t think complex code is always good code. I enjoy having a stable implementation that’s logical and easy to reason about. I enjoy automating repetitive tasks rather than making every developer remember another step. I enjoy having measurable gains rather than just saying something is fast.
+        I enjoy getting into detail, but I don’t think complex code is always good code. I enjoy
+        having a stable implementation that's predictable, testable and easy to follow. I enjoy
+        automating repetitive tasks rather than making every developer remember another step. I
+        prefer to measure a performance improvement rather than just say something is fast.
       </p>
       <p>
-        I also enjoy working on the product side of engineering. Why do we need this? How will users use this? How can we avoid any nasty edge cases? While I enjoy the implementation side, I also enjoy the actual product.
+        I also enjoy working on the product side of engineering. Why do we need this? How will users
+        use this? How can we avoid any nasty edge cases? While I enjoy the implementation side, I
+        also enjoy the actual product.
       </p>
       <p>
-        Not every experiment will be a product. There’s always something to learn when working with real code in a constrained environment.
+        Not every experiment will be a product. Some are just tools or proofs of concept. There’s
+        always something to learn when working with real code in a constrained environment.
       </p>
     </div>
 
@@ -41,6 +56,14 @@ import { withBase } from '@lib/journal';
           </a>
           <a class="text-sm font-medium underline underline-offset-4" href={withBase('/journal/')}>
             Writings
+          </a>
+          <a
+            class="text-sm font-medium underline underline-offset-4"
+            href="https://github.com/weluvabid"
+            target="_blank"
+            rel="noreferrer"
+          >
+            GitHub
           </a>
         </div>
       </Card.Header>

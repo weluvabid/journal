@@ -57,9 +57,8 @@ const stackblitzDemo =
   projectEntry?.data.projectDetails?.stackblitz ??
   entry.data.projectDetails?.stackblitz ??
   entry.data.links?.stackblitz;
-const projectResources = projectEntry?.data.projectDetails?.resources ??
-  entry.data.projectDetails?.resources ??
-  [];
+const projectResources =
+  projectEntry?.data.projectDetails?.resources ?? entry.data.projectDetails?.resources ?? [];
 const writingEntries = publishedEntries.filter((item) => item.data.kind === 'article');
 const allNavigationEntries = sortJournalEntriesWithSeriesGroups(writingEntries);
 const categoryNavigationEntries = sortJournalEntriesWithSeriesGroups(
@@ -184,18 +183,18 @@ const seriesEntries = entry.data.series
         </nav>
       )
     }
-      {
-        sourceRepository && (
-          <ResourceActions
-            client:load
-            git={sourceRepository}
-            stackblitz={stackblitzDemo}
-            resources={projectResources}
-            title={entry.data.title}
-            section="additional"
-          />
-        )
-      }
+    {
+      sourceRepository && (
+        <ResourceActions
+          client:load
+          git={sourceRepository}
+          stackblitz={stackblitzDemo}
+          resources={projectResources}
+          title={entry.data.title}
+          section="additional"
+        />
+      )
+    }
     <div class="mt-10">
       <Button.Root
         variant="ghost"
@@ -221,20 +220,24 @@ const seriesEntries = entry.data.series
             id: item.data.id,
             title: item.data.title,
           }))}
-          previous={initialNavigation.previous
-            ? {
-                id: initialNavigation.previous.data.id,
-                title: initialNavigation.previous.data.title,
-                url: entryHref(initialNavigation.previous.data.id),
-              }
-            : null}
-          next={initialNavigation.next
-            ? {
-                id: initialNavigation.next.data.id,
-                title: initialNavigation.next.data.title,
-                url: entryHref(initialNavigation.next.data.id),
-              }
-            : null}
+          previous={
+            initialNavigation.previous
+              ? {
+                  id: initialNavigation.previous.data.id,
+                  title: initialNavigation.previous.data.title,
+                  url: entryHref(initialNavigation.previous.data.id),
+                }
+              : null
+          }
+          next={
+            initialNavigation.next
+              ? {
+                  id: initialNavigation.next.data.id,
+                  title: initialNavigation.next.data.title,
+                  url: entryHref(initialNavigation.next.data.id),
+                }
+              : null
+          }
         />
       )
     }

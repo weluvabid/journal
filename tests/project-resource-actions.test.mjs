@@ -134,7 +134,11 @@ test('project association validation rejects orphaned and duplicate canonical pr
 });
 
 test('writing details link back to their canonical project and project pages return to Projects', async () => {
-  const source = await readFile(new URL('../src/pages/journal/[...slug].astro', import.meta.url), 'utf8');
+  const source = await readFile(
+    new URL('../src/pages/journal/[...slug].astro', import.meta.url),
+    'utf8',
+  );
+
   assert.match(source, /entry\.data\.kind === 'article' && projectEntry/);
   assert.match(source, /Related project:/);
   assert.match(source, /entryHref\(projectEntry\.data\.id\)/);

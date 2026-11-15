@@ -26,7 +26,7 @@ test('homepage derives its featured six from canonical project ranking metadata'
 test('homepage shows the five newest journal entries using the archive list card variant', () => {
   assert.match(
     source,
-    /const entries = \[\.\.\.allEntries\][\s\S]*?\.filter\(\(entry\) => entry\.data\.kind === \'article\'\)[\s\S]*?\.sort\(/,
+    /const entries = \[\.\.\.allEntries\][\s\S]*?\.filter\(\(entry\) => entry\.data\.kind === 'article'\)[\s\S]*?\.sort\(/,
   );
   assert.match(source, /const latestEntries = entries\.slice\(0, 5\)/);
   assert.match(source, /<ol class="space-y-3" aria-label="Recent journal entries">/);

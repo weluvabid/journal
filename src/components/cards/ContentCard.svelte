@@ -20,5 +20,7 @@
     data-card-navigation
     class="absolute inset-0 z-0 rounded-2xl focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-ring"
   ></a>
-  <div class="relative z-10 h-full min-w-0 max-w-full pointer-events-none">{@render children()}</div>
+  <div class="relative z-10 h-full min-w-0 max-w-full pointer-events-none">
+    {@render children()}
+  </div>
 </article>

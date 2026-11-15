@@ -9,13 +9,16 @@ import {
   assertFeaturedProjectCount,
   FEATURED_PROJECT_COUNT,
   rankProjects,
+  isProjectEntry,
 } from '@lib/project-ranking';
 import { INTENTS, pluralize } from '@lib/content-text';
 
 const allEntries = await getCollection('journal');
 const entries = allEntries.filter((entry) => !entry.data.draft);
 assertProjectAssociations(allEntries, entries);
-const publishedProjects = entries.filter((entry) => entry.data.kind === 'project');
+const publishedProjects = entries
+  .filter((entry) => entry.data.kind === 'project')
+  .filter(isProjectEntry);
 assertFeaturedProjectCount(publishedProjects);
 const projects = rankProjects(publishedProjects);
 const featuredProjects = projects.slice(0, FEATURED_PROJECT_COUNT);

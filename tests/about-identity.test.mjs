@@ -6,14 +6,15 @@ const read = (path) => readFile(new URL(`../${path}`, import.meta.url), 'utf8');
 
 test('About page describes the engineering approach and links to real work and contact destination', async () => {
   const about = await read('src/pages/about.astro');
+  const normalized = about.replace(/\s+/g, ' ');
 
-  assert.match(about, /I'm Abid, a software engineer/);
-  assert.match(about, /storage engines/);
-  assert.match(about, /predictable, testable and easy to follow/);
-  assert.match(about, /measure a\s+performance improvement/);
-  assert.match(about, /href=\{withBase\('\/projects\/'\)\}/);
-  assert.match(about, /href=\{withBase\('\/journal\/'\)\}/);
-  assert.match(about, /https:\/\/github\.com\/weluvabid/);
+  assert.match(normalized, /I'm Abid, a software engineer/);
+  assert.match(normalized, /storage engines/);
+  assert.match(normalized, /predictable, testable and easy to follow/);
+  assert.match(normalized, /measure a\s+performance improvement/);
+  assert.match(normalized, /href=\{withBase\('\/projects\/'\)\}/);
+  assert.match(normalized, /href=\{withBase\('\/journal\/'\)\}/);
+  assert.match(normalized, /https:\/\/github\.com\/weluvabid/);
 });
 
 test('homepage identifies the engineer without changing its selected-project source of truth', async () => {

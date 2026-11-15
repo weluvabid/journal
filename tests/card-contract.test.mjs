@@ -42,7 +42,6 @@ test('tag scrollports stay width constrained and horizontally scrollable', async
   assert.match(tags, /flex w-max flex-nowrap gap-2/);
 });
 
-
 test('canonical detail-page tags follow the entry content kind', async () => {
   const detail = await read('../src/pages/journal/[...slug].astro');
 

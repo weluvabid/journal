@@ -10,6 +10,7 @@ import {
   assertFeaturedProjectCount,
   FEATURED_PROJECT_COUNT,
   rankProjects,
+  isProjectEntry,
 } from '@lib/project-ranking';
 
 const allEntries = await getCollection('journal', ({ data }) => !data.draft);
@@ -17,10 +18,9 @@ const entries = [...allEntries]
   .filter((entry) => entry.data.kind === 'article')
   .sort((a, b) => b.data.date.valueOf() - a.data.date.valueOf());
 const latestEntries = entries.slice(0, 5);
-const publishedProjects = await getCollection(
-  'journal',
-  ({ data }) => !data.draft && data.kind === 'project',
-);
+const publishedProjects = allEntries
+  .filter((entry) => !entry.data.draft && entry.data.kind === 'project')
+  .filter(isProjectEntry);
 assertFeaturedProjectCount(publishedProjects);
 const projects = rankProjects(publishedProjects);
 const selectedProjects = projects.slice(0, FEATURED_PROJECT_COUNT);
@@ -34,7 +34,9 @@ const selectedProjects = projects.slice(0, FEATURED_PROJECT_COUNT);
     <p class="text-xs font-semibold uppercase tracking-[0.18em] text-muted-foreground">
       ENGINEERING PORTFOLIO
     </p>
-    <h1 class="mt-3 text-3xl font-semibold tracking-tight sm:text-4xl">Abid <span class="text-muted-foreground">— Software Engineer</span></h1>
+    <h1 class="mt-3 text-3xl font-semibold tracking-tight sm:text-4xl">
+      Abid <span class="text-muted-foreground">— Software Engineer</span>
+    </h1>
     <p class="mt-5 max-w-2xl text-pretty text-base leading-8 text-muted-foreground sm:text-lg">
       I build systems, developer tools, runtimes and thoughtful frontend software. Explore the
       projects I've made and the engineering decisions behind them.{' '}

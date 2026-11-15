@@ -30,8 +30,8 @@ test('all twelve projects live in Journal frontmatter; no duplicate project coll
   for (const frontmatter of canonical) {
     assert.match(frontmatter, /^project: [a-z0-9-]+$/mu);
     assert.match(frontmatter, /^projectDetails:/mu);
-    assert.match(frontmatter, /^  order: [1-9][0-9]*$/mu);
-    assert.doesNotMatch(frontmatter, /^featured:|^  featured:/mu);
+    assert.match(frontmatter, /^ {2}order: [1-9][0-9]*$/mu);
+    assert.doesNotMatch(frontmatter, /^featured:|^ {2}featured:/mu);
     assert.match(frontmatter, /^\s+- project$/mu);
   }
 
@@ -64,7 +64,11 @@ test('Journal has two writing entries and one canonical project entry for Journa
   for (const file of files) {
     const source = await readFile(new URL(file, journalRoot), 'utf8');
     const frontmatter = source.match(/^---\n([\s\S]*?)\n---/u)?.[1] ?? '';
-    if (/^kind: article$/mu.test(frontmatter)) articles += 1;
+
+    if (/^kind: article$/mu.test(frontmatter)) {
+      articles += 1;
+    }
+
     if (/^project: journal$/mu.test(frontmatter) && /^kind: project$/mu.test(frontmatter)) {
       journalProject = true;
     }

@@ -17,7 +17,10 @@ test('journal schema retains optional external resource metadata', async () => {
 test('article resource actions reuse the existing Git and StackBlitz icons', async () => {
   const component = await read('src/components/resources/ResourceActions.svelte');
 
-  assert.match(component, /import \{ Button, Collapsible, Tooltip \} from '@weluvabid\/iris\/components'/);
+  assert.match(
+    component,
+    /import \{ Button, Collapsible, Tooltip \} from '@weluvabid\/iris\/components'/,
+  );
   assert.match(component, /import \{ SiGit, SiStackblitz \} from '@weluvabid\/iris\/simple-icons'/);
   assert.equal((component.match(/<Button\.Root/g) ?? []).length, 2);
   assert.match(component, /href=\{git\}/);
@@ -46,7 +49,6 @@ test('article page resolves one repository URL from canonical project metadata o
   );
   assert.doesNotMatch(page, /ProjectResources|entry\.data\.links &&/);
 });
-
 
 test('additional external resources use Iris Collapsible and retain semantic link lists', async () => {
   const component = await read('src/components/resources/ResourceActions.svelte');
