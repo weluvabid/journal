@@ -46,6 +46,7 @@ const projects = rankProjects(taggedProjects);
       projects.map((entry) => (
         <li>
           <ProjectCard
+            client:load
             project={{
               id: entry.data.project!,
               title: entry.data.title,

@@ -66,6 +66,7 @@ const selectedProjects = projects.slice(0, FEATURED_PROJECT_COUNT);
         {
           selectedProjects.map((project, index) => (
             <ProjectCard
+              client:load
               project={{
                 id: project.data.project!,
                 title: project.data.title,
@@ -98,6 +99,7 @@ const selectedProjects = projects.slice(0, FEATURED_PROJECT_COUNT);
           latestEntries.map((entry, index) => (
             <li>
               <JournalEntryCard
+                client:load
                 entry={{
                   id: entry.data.id,
                   title: entry.data.title,

@@ -116,17 +116,6 @@ const seriesEntries = entry.data.series
       </h1>
       <p class="mt-5 text-base leading-8 text-muted-foreground">{entry.data.summary}</p>
       {
-        sourceRepository && (
-          <ResourceActions
-            client:load
-            git={sourceRepository}
-            stackblitz={stackblitzDemo}
-            resources={projectResources}
-            title={entry.data.title}
-          />
-        )
-      }
-      {
         entry.data.kind === 'article' && projectEntry && (
           <p class="mt-4 text-sm text-muted-foreground">
             Related project:{' '}
@@ -139,8 +128,21 @@ const seriesEntries = entry.data.series
           </p>
         )
       }
+      {
+        sourceRepository && (
+          <ResourceActions
+            client:load
+            git={sourceRepository}
+            stackblitz={stackblitzDemo}
+            resources={projectResources}
+            title={entry.data.title}
+            section="actions"
+          />
+        )
+      }
       <div class="block w-full min-w-0 max-w-full">
         <TagList
+          client:load
           tags={entry.data.tags}
           label={entry.data.title}
           scope={entry.data.kind === 'project' ? 'projects' : 'journal'}
@@ -182,6 +184,18 @@ const seriesEntries = entry.data.series
         </nav>
       )
     }
+      {
+        sourceRepository && (
+          <ResourceActions
+            client:load
+            git={sourceRepository}
+            stackblitz={stackblitzDemo}
+            resources={projectResources}
+            title={entry.data.title}
+            section="additional"
+          />
+        )
+      }
     <div class="mt-10">
       <Button.Root
         variant="ghost"

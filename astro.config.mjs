@@ -25,6 +25,6 @@ export default defineConfig({
   // Careful, I use this to check on my phones and other devices
   server: {
     host: true,
-    allowedHosts: ['committee-jane-technology-offer.trycloudflare.com'],
+    allowedHosts: ['tourism-strategies-managed-doubt.trycloudflare.com'],
   },
 });

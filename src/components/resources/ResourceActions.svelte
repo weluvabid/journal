@@ -10,11 +10,13 @@
     stackblitz,
     resources = [],
     title,
+    section = 'all',
   }: {
     git: string;
     stackblitz?: string;
     resources?: readonly Resource[];
     title: string;
+    section?: 'all' | 'actions' | 'additional';
   } = $props();
 
   const visibleResources = $derived(
@@ -26,6 +28,7 @@
 </script>
 
 <Tooltip.Provider delayDuration={300}>
+  {#if section !== 'additional'}
   <nav class="mt-3 flex flex-wrap items-center gap-2" aria-label={`${title} resources`}>
     <Tooltip.Root>
       <Tooltip.Trigger>
@@ -68,7 +71,8 @@
       </Tooltip.Root>
     {/if}
   </nav>
-  {#if visibleResources.length > 0}
+  {/if}
+  {#if section !== 'actions' && visibleResources.length > 0}
     <Collapsible.Root class="mt-3 min-w-0">
       <Collapsible.Trigger
         class="group inline-flex min-h-9 items-center gap-2 rounded-sm text-sm text-muted-foreground transition-colors hover:text-foreground focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-ring"
