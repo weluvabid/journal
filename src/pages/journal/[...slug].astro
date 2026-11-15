@@ -59,6 +59,16 @@ const stackblitzDemo =
   entry.data.links?.stackblitz;
 const projectResources =
   projectEntry?.data.projectDetails?.resources ?? entry.data.projectDetails?.resources ?? [];
+const relatedWritingEntries =
+  entry.data.kind === 'project' && entry.data.project
+    ? publishedEntries
+        .filter((item) => item.data.kind === 'article' && item.data.project === entry.data.project)
+        .sort(
+          (left, right) =>
+            right.data.date.getTime() - left.data.date.getTime() ||
+            left.data.id.localeCompare(right.data.id),
+        )
+    : [];
 const writingEntries = publishedEntries.filter((item) => item.data.kind === 'article');
 const allNavigationEntries = sortJournalEntriesWithSeriesGroups(writingEntries);
 const categoryNavigationEntries = sortJournalEntriesWithSeriesGroups(
@@ -149,6 +159,33 @@ const seriesEntries = entry.data.series
       </div>
     </header>
     <div class="prose-journal"><Content components={tableComponents} /></div>
+    {
+      relatedWritingEntries.length > 0 && (
+        <section
+          class="mt-12 border-t border-border pt-8"
+          aria-labelledby="related-writing-heading"
+        >
+          <h2 id="related-writing-heading" class="text-lg font-semibold tracking-tight">
+            Related writing
+          </h2>
+          <ul class="mt-4 space-y-4">
+            {relatedWritingEntries.map((relatedEntry) => (
+              <li>
+                <a
+                  href={entryHref(relatedEntry.data.id)}
+                  class="font-medium text-foreground underline decoration-border underline-offset-4 hover:decoration-foreground"
+                >
+                  {relatedEntry.data.title}
+                </a>
+                <p class="mt-1 text-sm leading-6 text-muted-foreground">
+                  {relatedEntry.data.summary}
+                </p>
+              </li>
+            ))}
+          </ul>
+        </section>
+      )
+    }
     {
       seriesEntries.length > 1 && (
         <nav class="mt-10 border-t border-border pt-6" aria-label="Articles in this series">

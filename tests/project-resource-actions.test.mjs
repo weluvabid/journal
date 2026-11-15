@@ -145,3 +145,26 @@ test('writing details link back to their canonical project and project pages ret
   assert.match(source, /entry\.data\.kind === 'project' \? 'Projects' : 'Writings'/);
   assert.match(source, /entry\.data\.kind === 'project' \? '\/projects\/'/);
 });
+
+test('web performance metrics article is associated with the Journal project', async () => {
+  const article = await read('src/content/journal/reading-web-performance-metrics.mdx');
+  const frontmatter = article.match(/^---\n([\s\S]*?)\n---/u)?.[1] ?? '';
+
+  assert.match(frontmatter, /^kind: article$/mu);
+  assert.match(frontmatter, /^project: journal$/mu);
+});
+
+test('canonical project pages list their published related writings', async () => {
+  const page = await read('src/pages/journal/[...slug].astro');
+
+  assert.match(page, /relatedWritingEntries/);
+  assert.match(page, /entry\.data\.kind === 'project' && entry\.data\.project/);
+  assert.match(
+    page,
+    /item\.data\.kind === 'article' && item\.data\.project === entry\.data\.project/,
+  );
+  assert.match(page, /right\.data\.date\.getTime\(\) - left\.data\.date\.getTime\(\)/);
+  assert.match(page, /Related writing/);
+  assert.match(page, /entryHref\(relatedEntry\.data\.id\)/);
+  assert.match(page, /relatedEntry\.data\.summary/);
+});
