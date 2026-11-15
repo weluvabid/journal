@@ -18,7 +18,8 @@ test('journal tags remain independent links above the stretched card link', asyn
 
   assert.match(card, /<ContentCard href=\{entry\.href\}/);
   assert.match(tags, /tagHref\(tag, scope\)/);
-  assert.match(tags, /pointer-events-auto block w-fit min-w-0 max-w-full/);
+  assert.match(tags, /pointer-events-auto relative h-9 w-full min-w-0 max-w-full/);
+  assert.match(tags, /orientation="horizontal"/);
 });
 
 test('homepage and Projects archive render canonical project articles through shared cards', async () => {
@@ -38,8 +39,9 @@ test('tag scrollports stay width constrained and horizontally scrollable', async
   const tags = await read('../src/components/cards/TagList.svelte');
 
   assert.match(tags, /min-w-0 max-w-full/);
-  assert.match(tags, /overflow-x-auto/);
-  assert.match(tags, /flex w-max flex-nowrap gap-2/);
+  assert.match(tags, /<Root[\s\S]*?orientation="horizontal"/);
+  assert.match(tags, /scrollbarXClasses=/);
+  assert.match(tags, /flex w-max min-w-full flex-nowrap gap-2/);
 });
 
 test('canonical detail-page tags follow the entry content kind', async () => {

@@ -4,17 +4,20 @@ import { readFile } from 'node:fs/promises';
 
 const read = (path) => readFile(new URL(`../${path}`, import.meta.url), 'utf8');
 
-test('horizontal scrollports do not draw focus outlines that can be clipped by overflow', async () => {
+test('category native scrollport and Iris tag ScrollArea keep focus outlines on links', async () => {
   const categorySelect = await read('src/components/journal/CategorySelect.svelte');
   const tagList = await read('src/components/cards/TagList.svelte');
 
-  for (const source of [categorySelect, tagList]) {
-    const scrollport = source.match(/bind:this=\{viewport\}[\s\S]{0,200}?class="([^"]+)"/);
+  const categoryScrollport = categorySelect.match(
+    /bind:this=\{viewport\}[\s\S]{0,200}?class="([^"]+)"/,
+  );
 
-    assert.ok(scrollport, 'expected a horizontal scrollport');
-    assert.match(scrollport[1], /overflow-x-auto/);
-    assert.doesNotMatch(scrollport[1], /focus-visible:outline/);
-  }
+  assert.ok(categoryScrollport, 'expected the category horizontal scrollport');
+  assert.match(categoryScrollport[1], /overflow-x-auto/);
+  assert.doesNotMatch(categoryScrollport[1], /focus-visible:outline/);
+
+  assert.match(tagList, /<Root[\s\S]*?orientation="horizontal"/);
+  assert.match(tagList, /scrollbarXClasses=/);
 });
 
 test('category and tag links keep their keyboard focus outlines inside their scrollports', async () => {
