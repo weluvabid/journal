@@ -61,12 +61,12 @@ The page contains 100,000 timers, but the renderer does not need to draw all of 
 
 I also compared Chrome DevTools traces from the earlier virtual-scrolling implementation with two Canvas recordings. The difference in main-thread work was substantial:
 
-| Chrome DevTools measurement | Virtual scrolling | Canvas trace 1 | Canvas trace 2 |
-| --- | ---: | ---: | ---: |
-| Main-thread `RunTask` duration | 5,003 ms | 1,039 ms | 689 ms |
-| Layout duration | 476.9 ms | 55.5 ms | 49.3 ms |
-| `UpdateLayoutTree` duration | 766.4 ms | 43.7 ms | 38.5 ms |
-| Paint duration | 646.1 ms | 115.6 ms | 103.4 ms |
+| Chrome DevTools measurement    | Virtual scrolling | Canvas trace 1 | Canvas trace 2 |
+| ------------------------------ | ----------------: | -------------: | -------------: |
+| Main-thread `RunTask` duration |          5,003 ms |       1,039 ms |         689 ms |
+| Layout duration                |          476.9 ms |        55.5 ms |        49.3 ms |
+| `UpdateLayoutTree` duration    |          766.4 ms |        43.7 ms |        38.5 ms |
+| Paint duration                 |          646.1 ms |       115.6 ms |       103.4 ms |
 
 The recordings cover roughly 15–16 seconds. The virtual-scrolling trace accumulated about 5 seconds of main-thread `RunTask` time, while the Canvas traces accumulated about 1.04 seconds and 0.69 seconds. Layout and style-tree updates were also substantially lower in the Canvas recordings. These event durations overlap as part of the rendering pipeline, so they should be read as separate measurements rather than summed into a total.
 

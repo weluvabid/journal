@@ -52,7 +52,10 @@ const relatedProjectIds = new Set([
 const relatedProjectEntries =
   entry.data.kind === 'article'
     ? publishedEntries.filter(
-        (item) => item.data.kind === 'project' && item.data.project && relatedProjectIds.has(item.data.project),
+        (item) =>
+          item.data.kind === 'project' &&
+          item.data.project &&
+          relatedProjectIds.has(item.data.project),
       )
     : [];
 const projectEntry =
@@ -275,35 +278,31 @@ const seriesEntries = entry.data.series
       </Button.Root>
     </div>
     <ArticleNavigation
-          client:load
-          currentId={entry.data.id}
-          categoryId={entry.data.category}
-          allEntries={allNavigationEntries.map((item) => ({
-            id: item.data.id,
-            title: item.data.title,
-          }))}
-          categoryEntries={categoryNavigationEntries.map((item) => ({
-            id: item.data.id,
-            title: item.data.title,
-          }))}
-          previous={
-            initialNavigation.previous
-              ? {
-                  id: initialNavigation.previous.data.id,
-                  title: initialNavigation.previous.data.title,
-                  url: entryHref(initialNavigation.previous.data.id),
-                }
-              : null
+      client:load
+      currentId={entry.data.id}
+      categoryId={entry.data.category}
+      allEntries={allNavigationEntries.map((item) => ({
+        id: item.data.id,
+        title: item.data.title,
+      }))}
+      categoryEntries={categoryNavigationEntries.map((item) => ({
+        id: item.data.id,
+        title: item.data.title,
+      }))}
+      previous={initialNavigation.previous
+        ? {
+            id: initialNavigation.previous.data.id,
+            title: initialNavigation.previous.data.title,
+            url: entryHref(initialNavigation.previous.data.id),
           }
-          next={
-            initialNavigation.next
-              ? {
-                  id: initialNavigation.next.data.id,
-                  title: initialNavigation.next.data.title,
-                  url: entryHref(initialNavigation.next.data.id),
-                }
-              : null
+        : null}
+      next={initialNavigation.next
+        ? {
+            id: initialNavigation.next.data.id,
+            title: initialNavigation.next.data.title,
+            url: entryHref(initialNavigation.next.data.id),
           }
-        />
+        : null}
+    />
   </article>
 </BaseLayout>

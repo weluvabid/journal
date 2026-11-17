@@ -39,7 +39,10 @@ const projects = rankProjects(taggedProjects);
   <p class="mb-8 text-xs font-semibold uppercase tracking-[0.18em] text-muted-foreground">
     {pluralize(projects.length, INTENTS.project)}
   </p>
-  <ol class="grid min-w-0 grid-cols-1 items-stretch gap-3 sm:grid-cols-[repeat(2,minmax(0,1fr))]" aria-label={`Projects tagged ${label}`}>
+  <ol
+    class="grid min-w-0 grid-cols-1 items-stretch gap-3 sm:grid-cols-[repeat(2,minmax(0,1fr))]"
+    aria-label={`Projects tagged ${label}`}
+  >
     {
       projects.map((entry) => (
         <li class="min-w-0">

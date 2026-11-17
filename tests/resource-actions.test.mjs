@@ -28,8 +28,8 @@ test('article resource actions reuse the existing Git and StackBlitz icons', asy
   assert.match(component, /rel="noopener noreferrer"/);
   assert.match(component, /aria-label="Source repository \(opens in a new tab\)"/);
   assert.match(component, /href=\{demo\}/);
-  assert.match(component, /<ExternalLink class=\"size-5\" aria-hidden=\"true\" \/>/);
-  assert.match(component, /aria-label=\"Live demo \(opens in a new tab\)\"/);
+  assert.match(component, /<ExternalLink class="size-5" aria-hidden="true" \/>/);
+  assert.match(component, /aria-label="Live demo \(opens in a new tab\)"/);
   assert.match(component, /href=\{stackblitz\}/);
   assert.match(component, /<SiStackblitz class="size-5" aria-hidden="true" \/>/);
   assert.match(component, /aria-label="Open StackBlitz demo \(opens in a new tab\)"/);
@@ -72,7 +72,10 @@ test('project documentation resources are passed from canonical metadata and ren
   const page = await read('src/pages/journal/[...slug].astro');
 
   assert.match(component, /resources = \[\]/);
-  assert.match(component, /resource\.url !== git &&[\s\S]*?resource\.url !== demo &&[\s\S]*?resource\.url !== stackblitz/);
+  assert.match(
+    component,
+    /resource\.url !== git &&[\s\S]*?resource\.url !== demo &&[\s\S]*?resource\.url !== stackblitz/,
+  );
   assert.match(component, /aria-label=\{`\$\{title\} additional resources`\}/);
   assert.match(component, /href=\{resource\.url\}/);
   assert.match(page, /projectResources/);

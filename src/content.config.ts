@@ -60,11 +60,17 @@ const journal = defineCollection({
     })
     .superRefine((data, context) => {
       if (data.kind === 'article' && data.title.length < 8) {
-        context.addIssue({ code: 'custom', message: 'Article titles must contain at least 8 characters.' });
+        context.addIssue({
+          code: 'custom',
+          message: 'Article titles must contain at least 8 characters.',
+        });
       }
 
       if (data.kind === 'project' && data.relatedProjects) {
-        context.addIssue({ code: 'custom', message: 'Canonical project entries cannot define relatedProjects.' });
+        context.addIssue({
+          code: 'custom',
+          message: 'Canonical project entries cannot define relatedProjects.',
+        });
       }
 
       if (data.kind === 'project' && (!data.project || !data.projectDetails)) {

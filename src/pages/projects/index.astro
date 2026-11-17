@@ -40,7 +40,9 @@ const additionalProjects = projects.slice(FEATURED_PROJECT_COUNT);
   </p>
   <section aria-labelledby="featured-projects-heading">
     <h2 id="featured-projects-heading" class="mb-5 text-lg font-semibold tracking-tight">My Fav</h2>
-    <div class="grid min-w-0 grid-cols-1 items-stretch gap-3 sm:grid-cols-[repeat(2,minmax(0,1fr))]">
+    <div
+      class="grid min-w-0 grid-cols-1 items-stretch gap-3 sm:grid-cols-[repeat(2,minmax(0,1fr))]"
+    >
       {
         featuredProjects.map((entry, index) => (
           <ProjectCard

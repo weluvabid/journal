@@ -23,7 +23,7 @@
         aria-label={`Tags for ${label}`}
         class="flex w-max min-w-full flex-nowrap gap-2 px-0.5 pb-2"
       >
-        <div class="inline-flex w-max flex-nowrap gap-2 pointer-events-auto ">
+        <div class="inline-flex w-max flex-nowrap gap-2 pointer-events-auto">
           {#each tags as tag (tag)}
             <a
               href={tagHref(tag, scope)}

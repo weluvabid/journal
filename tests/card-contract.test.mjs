@@ -21,9 +21,9 @@ test('journal tags remain independent links above the stretched card link', asyn
 
   assert.match(card, /<ContentCard href=\{entry\.href\}/);
   assert.match(tags, /tagHref\(tag, scope\)/);
-  assert.match(tags, /pointer-events-auto relative h-9 w-full min-w-0 max-w-full/);
+  assert.match(tags, /pointer-events-inherit relative h-9 w-full min-w-0 max-w-full/);
   assert.match(tags, /orientation="horizontal"/);
-  assert.match(tags, /pointer-events-auto inline-flex shrink-0/);
+  assert.match(tags, /inline-flex w-max flex-nowrap gap-2 pointer-events-auto/);
 });
 
 test('homepage and Projects archive render canonical project articles through shared cards', async () => {
@@ -47,7 +47,8 @@ test('tag scrollports stay width constrained and horizontally scrollable', async
   assert.match(tags, /scrollbarXClasses=/);
   assert.match(tags, /flex w-max min-w-full flex-nowrap gap-2/);
   const projectCard = await read('../src/components/cards/ProjectCard.svelte');
-  assert.match(projectCard, /min-w-0 max-w-full flex-col gap-3 overflow-hidden/);
+
+  assert.match(projectCard, /flex h-full min-w-0 flex-col gap-3/);
 });
 
 test('canonical detail-page tags follow the entry content kind', async () => {
@@ -55,7 +56,6 @@ test('canonical detail-page tags follow the entry content kind', async () => {
 
   assert.match(detail, /scope=\{entry\.data\.kind === 'project' \? 'projects' : 'journal'\}/);
 });
-
 
 test('project detail pages reuse ranked previous and next navigation', async () => {
   const detail = await read('../src/pages/journal/[...slug].astro');

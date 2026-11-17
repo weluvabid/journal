@@ -63,10 +63,10 @@ The renderer draws the viewport and its overscan region. The worker handles reco
 
 Visible images receive priority. Nearby images are prepared through overscan after a 120 ms settle delay. Obsolete requests can be aborted when the viewport changes, and duplicate requests reuse in-flight work.
 
-| Operation | Concurrent work |
-| --- | ---: |
-| Image fetches | 6 |
-| Image decoding | 4 |
+| Operation      | Concurrent work |
+| -------------- | --------------: |
+| Image fetches  |               6 |
+| Image decoding |               4 |
 
 Decoded `ImageBitmap` instances are held in an LRU cache capped at 48 entries. The browser's HTTP cache serves a different purpose: it can avoid downloading image bytes again after a decoded bitmap has been evicted. Image failures are aggregated and surfaced through a toast rather than producing one notification per failed image.
 

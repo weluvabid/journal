@@ -109,7 +109,13 @@ test('project association validation rejects orphaned and duplicate canonical pr
     assertProjectAssociations([
       canonical,
       { data: { id: 'pixelflow', kind: 'project', project: 'pixelflow', projectDetails: {} } },
-      { data: { id: 'canvas-article', kind: 'article', relatedProjects: ['cachewise', 'pixelflow'] } },
+      {
+        data: {
+          id: 'canvas-article',
+          kind: 'article',
+          relatedProjects: ['cachewise', 'pixelflow'],
+        },
+      },
     ]),
   );
   assert.throws(
@@ -166,28 +172,28 @@ test('canonical project pages list their published related writings', async () =
 
   assert.match(page, /relatedWritingEntries/);
   assert.match(page, /entry\.data\.kind === 'project' && entry\.data\.project/);
-  assert.match(
-    page,
-    /item\.data\.relatedProjects\?\.includes/,
-  );
+  assert.match(page, /item\.data\.relatedProjects\?\.includes/);
   assert.match(page, /right\.data\.date\.getTime\(\) - left\.data\.date\.getTime\(\)/);
   assert.match(page, /Related writing/);
   assert.match(page, /entryHref\(relatedEntry\.data\.id\)/);
   assert.match(page, /relatedEntry\.data\.summary/);
 });
 
-
 test('Canvas article relates to both canonical projects and projects occupy positions three and four', async () => {
-  const article = await read('src/content/journal/beyond-the-comfort-zone-pushing-canvas-beyond-games-and-drawing.mdx');
+  const article = await read(
+    'src/content/journal/beyond-the-comfort-zone-pushing-canvas-beyond-games-and-drawing.mdx',
+  );
   const chronos = await read('src/content/journal/100k-timers-pushing-canvas-beyond-the-dom.mdx');
-  const pixelflow = await read('src/content/journal/beyond-timers-pixelflow-canvas-image-rendering.mdx');
+  const pixelflow = await read(
+    'src/content/journal/beyond-timers-pixelflow-canvas-image-rendering.mdx',
+  );
   const atlas = await read('src/content/journal/frontend-atlas-progress-without-accounts.mdx');
 
-  assert.match(article, /^relatedProjects:\n  - chronos\n  - pixelflow$/mu);
+  assert.match(article, /^relatedProjects:\n {2}- chronos\n {2}- pixelflow$/mu);
   assert.match(chronos, /^title: 'Chronos'$/mu);
   assert.match(pixelflow, /^title: 'Pixelflow'$/mu);
-  assert.match(chronos, /^  order: 3$/mu);
-  assert.match(pixelflow, /^  order: 4$/mu);
-  assert.match(atlas, /^  order: 5$/mu);
-  assert.match(atlas, /^  demo: https:\/\/weluvabid\.github\.io\/frontend-atlas\/$/mu);
+  assert.match(chronos, /^ {2}order: 3$/mu);
+  assert.match(pixelflow, /^ {2}order: 4$/mu);
+  assert.match(atlas, /^ {2}order: 5$/mu);
+  assert.match(atlas, /^ {2}demo: https:\/\/weluvabid\.github\.io\/frontend-atlas\/$/mu);
 });

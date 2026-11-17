@@ -59,12 +59,12 @@ The Canvas implementation reached more than 115 FPS with 100,000 continuously up
 
 Across the recorded intervals, the virtual-scrolling trace accumulated 5,003 ms of main-thread `RunTask` time. The two Canvas traces accumulated 1,039 ms and 689 ms. Layout accounted for 476.9 ms in the virtual-scrolling trace, compared with 55.5 ms and 49.3 ms in the Canvas traces. `UpdateLayoutTree` accounted for 766.4 ms, compared with 43.7 ms and 38.5 ms respectively.
 
-| Chrome DevTools measurement | Virtual scrolling | Canvas trace 1 | Canvas trace 2 |
-| --- | ---: | ---: | ---: |
-| Main-thread `RunTask` duration | 5,003 ms | 1,039 ms | 689 ms |
-| Layout duration | 476.9 ms | 55.5 ms | 49.3 ms |
-| `UpdateLayoutTree` duration | 766.4 ms | 43.7 ms | 38.5 ms |
-| Paint duration | 646.1 ms | 115.6 ms | 103.4 ms |
+| Chrome DevTools measurement    | Virtual scrolling | Canvas trace 1 | Canvas trace 2 |
+| ------------------------------ | ----------------: | -------------: | -------------: |
+| Main-thread `RunTask` duration |          5,003 ms |       1,039 ms |         689 ms |
+| Layout duration                |          476.9 ms |        55.5 ms |        49.3 ms |
+| `UpdateLayoutTree` duration    |          766.4 ms |        43.7 ms |        38.5 ms |
+| Paint duration                 |          646.1 ms |       115.6 ms |       103.4 ms |
 
 These are cumulative event durations from the recordings, not mutually exclusive buckets; layout, style updates and paint are part of the broader rendering work, so their durations should not be added together. The recordings show a substantial reduction in main-thread work after moving the timer rendering to Canvas.
 

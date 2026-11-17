@@ -6,7 +6,7 @@ const journalRoot = new URL('../src/content/journal/', import.meta.url);
 test('Journal contains fourteen MDX entries with stable kebab-case filenames', async () => {
   const files = (await readdir(journalRoot)).filter((file) => file.endsWith('.mdx'));
 
-  assert.equal(files.length, 14);
+  assert.equal(files.length, 17);
 
   for (const file of files) {
     assert.match(file.slice(0, -4), /^[a-z0-9]+(?:-[a-z0-9]+)*$/u);
@@ -25,7 +25,7 @@ test('all twelve projects live in Journal frontmatter; no duplicate project coll
     }
   }
 
-  assert.equal(canonical.length, 12);
+  assert.equal(canonical.length, 14);
 
   for (const frontmatter of canonical) {
     assert.match(frontmatter, /^project: [a-z0-9-]+$/mu);
@@ -74,6 +74,6 @@ test('Journal has two writing entries and one canonical project entry for Journa
     }
   }
 
-  assert.equal(articles, 2);
+  assert.equal(articles, 3);
   assert.equal(journalProject, true);
 });
