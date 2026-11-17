@@ -3,14 +3,9 @@ id: beyond-timers-pixelflow-canvas-image-rendering
 title: 'Beyond Timers: Building a Canvas Image Collection'
 type: deep-dive
 category: frontend-engineering
-summary: How I carried the Canvas rendering approach from 100,000 timers into a large image collection, with worker-backed data, prioritised image loading, decoded-image caching and screen-reader access.
+summary: A large image collection rendered with Canvas, backed by worker-based data lookup, prioritised image loading, decoded-image caching and a bounded screen-reader representation.
 date: 2026-11-17
-series:
-  id: canvas-beyond-the-dom
-  part: 2
-links:
-  git: https://github.com/weluvabid/pixelflow
-  demo: https://weluvabid.github.io/pixelflow/
+project: pixelflow
 tags:
   - canvas
   - image-rendering
@@ -20,6 +15,7 @@ tags:
   - image-cache
   - frontend-engineering
   - benchmarking
+  - project
 searchTerms:
   - Pixelflow
   - Canvas image collection
@@ -32,88 +28,54 @@ searchTerms:
   - VoiceOver
   - DOM versus Canvas
 draft: false
-kind: article
+kind: project
+projectDetails:
+  status: released
+  stack:
+    - Astro
+    - Svelte 5
+    - TypeScript
+    - Web Workers
+    - Canvas 2D
+  github: https://github.com/weluvabid/pixelflow
+  demo: https://weluvabid.github.io/pixelflow/
+  order: 14
+  resources:
+    - label: 24,997 image records organised across 50 chunks
+    - label: Worker-backed bounded dataset lookup for the current viewport
+    - label: Viewport-prioritised fetching with aborts, in-flight deduplication and bounded concurrency
+    - label: ImageBitmap LRU cache limited to 48 decoded images
+    - label: Bounded semantic DOM layer with VoiceOver testing on macOS and iPhone
+    - label: Live performance dock exposing render and loading measurements
 ---
 
-The 100K timer experiment left me with an approach I wanted to try somewhere else: keep the collection as data, let the viewport decide what needs to be drawn, and use Canvas instead of creating an element for every visual item.
+Pixelflow carries the Canvas rendering approach from Chronos into a collection of real photographs. The dataset contains 24,997 image records across 50 chunks. Instead of creating an image element for every record, Pixelflow keeps the collection as data and draws the visible images onto Canvas.
 
-Pixelflow is the next step. This time the items are real photographs. That changes the work quite a bit. A timer needs its value updated and drawn; an image needs to be found, fetched, decoded and kept around for drawing. The user can also scroll away before any of that work has finished.
+The added complexity is the image resource pipeline. Each image must be fetched, decoded and kept available for drawing, and the user may have scrolled elsewhere before that work finishes.
 
-The dataset contains 24,997 image records across 50 chunks. I didn't want to turn those records into thousands of image elements. A worker handles dataset lookup, and the main thread coordinates the viewport, image resources and Canvas rendering.
+## Data and rendering
 
-## From timer updates to image resources
+A Web Worker owns dataset lookup and returns bounded ranges for the viewport. The main thread coordinates image resources and Canvas rendering. Requests crossing the worker message boundary are validated at runtime; unsupported message types and invalid ranges fail explicitly.
 
-The timer experiment was mostly about rendering frequently changing values. Pixelflow adds a resource pipeline around the renderer.
+The renderer draws the viewport and its overscan region. The worker handles record lookup, while the image pipeline prepares decoded resources. Keeping those responsibilities separate means the renderer does not need to know how the dataset is stored, and the worker does not need to know how images are painted.
 
-For an image to appear, the browser needs the image bytes and a decoded resource that Canvas can draw. Those steps are asynchronous, and their results can arrive after the viewport has moved. Loading every image in advance would waste bandwidth and memory, so the viewport needs to drive which images get attention first.
+## Image pipeline
 
-I kept the data, loading and drawing responsibilities separate. The worker looks up the records needed for a bounded window. The image pipeline prepares the resources for that window. The Canvas renderer paints the images that are ready.
-
-## Dataset and worker
-
-The image dataset is split into 50 chunks. A Web Worker owns the dataset lookup and returns bounded ranges for the viewport to use. The main thread does not need to expand the whole collection into DOM elements just to find the records currently on screen.
-
-The worker has a message boundary, so incoming requests are validated at runtime. It checks the request shape and range, and unsupported message types fail explicitly. TypeScript types help while writing the application, but messages arriving through `postMessage` are still runtime data.
-
-This keeps dataset access separate from rendering. The Canvas code does not need to know how the records are stored, and the worker does not need to know how the images are drawn.
-
-## Loading what the viewport needs
-
-Pixelflow prioritises images in the visible region and uses overscan to prepare nearby images before they enter the viewport. There is a short 120 ms settle delay for overscan, which avoids starting extra work for every small scroll movement.
-
-Requests that are no longer relevant can be aborted when the viewport changes. If the same image is requested more than once while a request is already in flight, the pipeline reuses that in-flight work rather than starting another fetch.
-
-Fetching and decoding have separate concurrency limits:
+Visible images receive priority. Nearby images are prepared through overscan after a 120 ms settle delay. Obsolete requests can be aborted when the viewport changes, and duplicate requests reuse in-flight work.
 
 | Operation | Concurrent work |
 | --- | ---: |
 | Image fetches | 6 |
 | Image decoding | 4 |
 
-The visible images get priority. Nearby images can load ahead of the viewport, but they should not crowd out the resources needed for what is on screen now.
+Decoded `ImageBitmap` instances are held in an LRU cache capped at 48 entries. The browser's HTTP cache serves a different purpose: it can avoid downloading image bytes again after a decoded bitmap has been evicted. Image failures are aggregated and surfaced through a toast rather than producing one notification per failed image.
 
-## Keeping decoded images under control
+## Accessibility
 
-Once an image has been decoded, Pixelflow keeps its `ImageBitmap` in an LRU cache with a limit of 48 entries. This gives the renderer a chance to reuse recently viewed images without keeping every decoded bitmap in memory.
+Canvas is marked `aria-hidden="true"`. A bounded, visually hidden semantic DOM layer exposes the current viewport's photograph information and photographer attribution, including `aria-posinset` and `aria-setsize`. It follows the same bounded-window model as the renderer rather than creating accessible entries for all 24,997 records.
 
-The decoded-image cache and the browser's HTTP cache do different jobs. The LRU cache keeps decoded resources ready for Canvas. The HTTP cache can help avoid downloading the same image bytes again if an image needs to be fetched after its bitmap has been evicted.
+I tested the result with VoiceOver on macOS and iPhone. The semantic layer gives assistive technology actual HTML content to navigate while keeping the visual collection on Canvas.
 
-Cancellation has a few awkward edges. An image can become visible again while an earlier request or decode is being aborted. The pipeline needs to allow the newly relevant request to complete rather than leaving the image stuck in an unloaded state. In-flight deduplication, abort handling and cache state all have to agree about which work is still useful.
+## Result
 
-Image failures are collected and surfaced through a single toast. That gives the user feedback when images fail without producing a separate notification for every failed item.
-
-## Drawing the collection
-
-Canvas is still responsible for the visual collection. The renderer draws the images for the viewport and its overscan region. It does not create a corresponding image element for every photograph.
-
-This is the same difference I explored with timers. Virtual scrolling keeps the DOM bounded by mounting only the visible items. Canvas uses a shared drawing surface for those visual items. The viewport bounds both the drawing work and the image resources being prepared.
-
-The loading pipeline and renderer have separate jobs. The pipeline makes decoded images available; the renderer decides where they are painted. This matters because an image can finish decoding after the user has already moved to another part of the collection.
-
-Pixelflow also has a live performance dock. It exposes measurements such as render time and loaded-image counts while the collection is being used. I wanted the rendering behaviour to be visible during interaction, rather than relying only on a number captured after a run.
-
-## A screen-reader representation alongside Canvas
-
-Canvas gives me control over the visual output, but its pixels do not provide a screen reader with a list of photographs to navigate. I still wanted the collection to have a useful semantic representation.
-
-Pixelflow keeps the Canvas out of the accessibility tree with `aria-hidden="true"` and provides a small, visually hidden semantic DOM layer for the current viewport records. That layer exposes the photograph information and photographer attribution, along with positional information through `aria-posinset` and `aria-setsize`.
-
-The semantic layer follows the same bounded-window idea as the renderer. It represents the current viewport rather than creating accessible DOM entries for all 24,997 photographs. This keeps the visual collection on Canvas while giving assistive technology actual HTML content to navigate.
-
-I tested the result with VoiceOver on macOS and iPhone. The screen-reader experience remained useful while moving through the collection, and the Canvas did not announce itself as a second, empty group.
-
-## What the measurements show
-
-The final rendering work reached more than 115 FPS on desktop and around 58–60 FPS on an older iPhone. The page also recorded an LCP of 0.30 seconds and CLS of 0.00 in the measured run.
-
-The performance dock reports live rendering and loading information, including render time and loaded-image counts. Those measurements are useful while scrolling because they show how the renderer and image pipeline behave as the viewport changes.
-
-For a DOM comparison, I would keep three implementations in view: a normal image list, a virtual-scrolling image list and the Canvas collection. They should use the same image records, image dimensions, viewport and scroll pattern. I would measure DOM nodes, initialisation, memory, frame time, FPS, image loading and decoding separately. Cold and warm cache runs should also be reported separately because the browser's HTTP cache changes the amount of network work.
-
-The important architectural difference is visible in the implementations. A normal list creates an element for every image. Virtual scrolling mounts a bounded set of image elements. Pixelflow paints the visible images on Canvas and maintains a bounded semantic layer for screen readers. The image fetch and decode costs still exist in all three approaches; Canvas changes the visual representation, not the cost of obtaining the image itself.
-
-## Where I want to take this
-
-The useful part of this experiment is that the same rendering approach moved from timers to a workload with network requests, decoding, caching and accessibility requirements. The work around the Canvas changed, but keeping the collection as data and letting the viewport drive the rendering remained useful.
-
-I can see this model being useful for other dense visual collections where individual DOM elements are not needed for every item: image browsers, visual dashboards, timelines and other interfaces where the viewport determines what the user can see. Each one would bring its own interaction and accessibility requirements, but Pixelflow gives me a working place to start from.
+The final rendering work reached more than 115 FPS on desktop, with an observed run reaching around 120 FPS, and around 58–60 FPS on an older iPhone. The measured page recorded an LCP of 0.30 seconds and CLS of 0.00. A live performance dock exposes render time and loaded-image counts during interaction. [The accompanying article](/journal/beyond-the-comfort-zone-pushing-canvas-beyond-games-and-drawing/) connects these results to the Chronos trace comparison and discusses the rendering trade-offs across both experiments.

@@ -1,0 +1,121 @@
+---
+id: beyond-the-comfort-zone-pushing-canvas-beyond-games-and-drawing
+title: 'Beyond the Comfort Zone: Pushing Canvas Beyond Games and Drawing'
+type: deep-dive
+category: engineering-thinking
+summary: What changed when I used Canvas for dense interfaces, first with 100,000 timers and then with a large image collection, and where this rendering model makes sense.
+date: 2026-11-17
+tags:
+  - canvas
+  - browser-rendering
+  - frontend-engineering
+  - performance
+  - virtualisation
+  - accessibility
+  - image-rendering
+  - engineering-thinking
+searchTerms:
+  - Canvas beyond games
+  - Canvas interface rendering
+  - DOM versus Canvas
+  - virtual scrolling
+  - 100k timers
+  - Pixelflow
+  - Chronos
+  - large visual collections
+  - Canvas accessibility
+draft: false
+kind: article
+---
+
+Canvas is usually associated with games, drawing tools, visual effects and other interfaces where pixels are the product. I wanted to see how far I could take it in a more ordinary interface: a large collection of items that people scroll through and expect to remain responsive.
+
+The first experiment was [Chronos](/journal/100k-timers-pushing-canvas-beyond-the-dom/), with 100,000 timers updating on a page. The second was [Pixelflow](/journal/beyond-timers-pixelflow-canvas-image-rendering/), a collection of 24,997 photographs. They have different workloads, but both explore the same idea: keep the collection as data, let the viewport determine what needs to be drawn, and avoid creating a separate visual DOM element for every item.
+
+## The rendering boundary matters
+
+A normal DOM list creates an element for each item. That is convenient because the browser handles layout, painting, focus and much of the interaction model. At large collection sizes, though, the number of elements can become part of the cost.
+
+Virtual scrolling addresses that by keeping only the visible range and a buffer mounted. The full collection remains in data, while the DOM contains a bounded window. This is a strong approach for many interfaces, especially when items need normal document semantics and interaction.
+
+Canvas changes the boundary again. Rather than maintaining an element for each visible item, the renderer paints those items onto a shared surface. The collection remains data, and the renderer maps the visible portion of that data to pixels.
+
+The distinction is worth being precise about:
+
+- A regular DOM list represents every item with an element.
+- Virtual scrolling represents a bounded set of items with elements.
+- Canvas represents the visual items as pixels on a shared drawing surface.
+
+Virtualisation reduces how many DOM elements are maintained. Canvas avoids individual visual elements altogether. That does not make Canvas automatically faster or better. It removes one category of DOM work and transfers responsibility to application code.
+
+I now own drawing, positioning, hit testing where needed, invalidation, and the relationship between viewport coordinates and collection data. The browser no longer gives every visual item its own built-in semantics and interaction behaviour. Those costs do not disappear; they move.
+
+## First, 100,000 timers
+
+Chronos was a useful first test because timers keep changing. Rendering a static grid would test initial drawing, but continuously updating values also tests how the renderer behaves over time.
+
+The page contains 100,000 timers, but the renderer does not need to draw all of them on every frame. It calculates which items intersect the viewport and paints that visible region. Chronos reached more than 115 FPS.
+
+I also compared Chrome DevTools traces from the earlier virtual-scrolling implementation with two Canvas recordings. The difference in main-thread work was substantial:
+
+| Chrome DevTools measurement | Virtual scrolling | Canvas trace 1 | Canvas trace 2 |
+| --- | ---: | ---: | ---: |
+| Main-thread `RunTask` duration | 5,003 ms | 1,039 ms | 689 ms |
+| Layout duration | 476.9 ms | 55.5 ms | 49.3 ms |
+| `UpdateLayoutTree` duration | 766.4 ms | 43.7 ms | 38.5 ms |
+| Paint duration | 646.1 ms | 115.6 ms | 103.4 ms |
+
+The recordings cover roughly 15–16 seconds. The virtual-scrolling trace accumulated about 5 seconds of main-thread `RunTask` time, while the Canvas traces accumulated about 1.04 seconds and 0.69 seconds. Layout and style-tree updates were also substantially lower in the Canvas recordings. These event durations overlap as part of the rendering pipeline, so they should be read as separate measurements rather than summed into a total.
+
+A plain DOM list of 100,000 continuously updating timers was not a viable comparison: the tab became unresponsive and the browser terminated it. Virtual scrolling was the practical DOM-based baseline. The useful comparison was between virtual scrolling and Canvas, and the traces show why changing the rendering boundary mattered for this workload.
+
+The important part for me was not just the number. It was seeing that a dense, frequently changing interface could use a shared drawing surface without maintaining an element for each timer. It gave me a concrete rendering model to try on a workload that was less synthetic.
+
+## Then, real images
+
+Pixelflow took the same idea into a much more involved pipeline. Its 24,997 image records are split across 50 chunks, and a Web Worker handles bounded dataset lookup. Canvas still draws the visible collection, but each image now has to be fetched, decoded and managed as a resource.
+
+That changes the problem. A timer value is available to draw; an image may still be downloading or decoding. By the time it is ready, the user may have moved to another part of the collection.
+
+The viewport therefore drives more than drawing. It also drives resource priority:
+
+- Images in the visible region are prioritised.
+- Nearby images are prepared through overscan after a short settle delay.
+- Obsolete fetches can be aborted when the viewport changes.
+- Duplicate requests share in-flight work.
+- Fetching and decoding have separate concurrency limits.
+- Decoded `ImageBitmap` instances are kept in a bounded LRU cache.
+
+The cache is capped at 48 decoded images. That is separate from the browser's HTTP cache: one keeps decoded resources ready for Canvas, while the other can help avoid downloading bytes again after a bitmap has been evicted.
+
+Canvas did not remove the cost of obtaining and decoding images. It changed how the resulting images are represented visually. The data lookup, network, decode and cache work still need to be designed and measured.
+
+## Canvas does not get to ignore accessibility
+
+The biggest difference from a conventional DOM interface is not drawing. It is everything the DOM normally gives you around the drawing.
+
+A Canvas surface exposes pixels, not a navigable list of photographs. Marking it as hidden from assistive technology without providing another representation would leave screen-reader users with nothing useful to navigate.
+
+Pixelflow keeps the Canvas out of the accessibility tree and provides a bounded, visually hidden semantic DOM layer for the current viewport records. It includes photograph information, photographer attribution and positional metadata through `aria-posinset` and `aria-setsize`. I tested this with VoiceOver on macOS and iPhone.
+
+The semantic layer follows the same bounded-window principle as the renderer. It does not create accessible entries for all 24,997 records at once. This is a practical compromise for this collection, not a universal accessibility recipe. Any Canvas interface still needs an interaction and semantic model designed around what users must be able to do.
+
+## What the measurements tell me
+
+Both Chronos and Pixelflow reached more than 115 FPS in the desktop measurements; Pixelflow reached around 120 FPS in the observed run. On an older iPhone, Pixelflow sustained around 58–60 FPS. Its measured page recorded an LCP of 0.30 seconds and CLS of 0.00.
+
+The Chronos table above contains the direct virtual-scrolling comparison. It shows the reduction in main-thread work, layout, style-tree updates and paint work in the Canvas recordings. The plain DOM implementation is not included as a third benchmark: a list of 100,000 continuously updating elements made the browser tab unresponsive and caused it to be terminated. Virtual scrolling was the viable DOM-based baseline for this workload.
+
+Pixelflow extends the approach to a different workload: a large image collection with network, decoding and cache costs. Its performance dock exposes runtime rendering and image-loading behaviour. Chronos provides the direct virtual-scrolling comparison; Pixelflow shows that the same rendering model also works with real images and their resource pipeline.
+
+## Where this model makes sense
+
+I would consider Canvas when the interface is primarily a dense visual surface, the visible region can be derived efficiently from data, and individual items do not need to behave like independent document elements.
+
+Image browsers, timelines, dense visual dashboards and large diagram-like collections are plausible candidates. They share a useful property: the viewport determines which visual items matter at a given moment.
+
+I would be much less inclined to use Canvas for a form, a document, a content-heavy page or an interface where every item needs native focus, selection, text navigation and independent semantics. Rebuilding those behaviours around pixels can cost more than the rendering model saves.
+
+The two experiments gave me a better way to think about that trade-off. Virtual scrolling is a way to keep a DOM interface bounded. Canvas is a way to build a visual interface without representing each item as a DOM element. Neither is a universal replacement for the other.
+
+I started with 100,000 timers because I wanted to push Canvas beyond its familiar territory. Pixelflow showed that the same idea could survive a much more demanding resource pipeline, provided I treated loading, decoding, caching and accessibility as first-class parts of the architecture rather than details around the renderer.
