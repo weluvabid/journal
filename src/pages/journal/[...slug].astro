@@ -45,11 +45,20 @@ const tableComponents = {
 const category = categoryById.get(entry.data.category);
 if (!category) throw new Error(`Unknown journal category: ${entry.data.category}`);
 const publishedEntries = await getCollection('journal', ({ data }) => !data.draft);
-const projectEntry = entry.data.project
-  ? publishedEntries.find(
-      (item) => item.data.kind === 'project' && item.data.project === entry.data.project,
-    )
-  : undefined;
+const relatedProjectIds = new Set([
+  ...(entry.data.project ? [entry.data.project] : []),
+  ...(entry.data.relatedProjects ?? []),
+]);
+const relatedProjectEntries =
+  entry.data.kind === 'article'
+    ? publishedEntries.filter(
+        (item) => item.data.kind === 'project' && item.data.project && relatedProjectIds.has(item.data.project),
+      )
+    : [];
+const projectEntry =
+  entry.data.kind === 'article' && relatedProjectEntries.length === 1
+    ? relatedProjectEntries[0]
+    : undefined;
 const sourceRepository =
   projectEntry?.data.projectDetails?.github ??
   entry.data.projectDetails?.github ??
@@ -67,7 +76,12 @@ const projectResources =
 const relatedWritingEntries =
   entry.data.kind === 'project' && entry.data.project
     ? publishedEntries
-        .filter((item) => item.data.kind === 'article' && item.data.project === entry.data.project)
+        .filter(
+          (item) =>
+            item.data.kind === 'article' &&
+            (item.data.project === entry.data.project ||
+              item.data.relatedProjects?.includes(entry.data.project ?? '')),
+        )
         .sort(
           (left, right) =>
             right.data.date.getTime() - left.data.date.getTime() ||
@@ -135,15 +149,20 @@ const seriesEntries = entry.data.series
       </h1>
       <p class="mt-5 text-base leading-8 text-muted-foreground">{entry.data.summary}</p>
       {
-        entry.data.kind === 'article' && projectEntry && (
+        entry.data.kind === 'article' && relatedProjectEntries.length > 0 && (
           <p class="mt-4 text-sm text-muted-foreground">
-            Related project:{' '}
-            <a
-              href={entryHref(projectEntry.data.id)}
-              class="font-medium text-foreground underline decoration-border underline-offset-4 hover:decoration-foreground"
-            >
-              {projectEntry.data.title}
-            </a>
+            Related {relatedProjectEntries.length === 1 ? 'project' : 'projects'}:{' '}
+            {relatedProjectEntries.map((relatedProject, index) => (
+              <>
+                {index > 0 && ' · '}
+                <a
+                  href={entryHref(relatedProject.data.id)}
+                  class="font-medium text-foreground underline decoration-border underline-offset-4 hover:decoration-foreground"
+                >
+                  {relatedProject.data.title}
+                </a>
+              </>
+            ))}
           </p>
         )
       }

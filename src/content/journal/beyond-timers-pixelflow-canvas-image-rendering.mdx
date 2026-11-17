@@ -1,6 +1,6 @@
 ---
 id: beyond-timers-pixelflow-canvas-image-rendering
-title: 'Beyond Timers: Building a Canvas Image Collection'
+title: 'Pixelflow'
 type: deep-dive
 category: frontend-engineering
 summary: A large image collection rendered with Canvas, backed by worker-based data lookup, prioritised image loading, decoded-image caching and a bounded screen-reader representation.
@@ -39,7 +39,7 @@ projectDetails:
     - Canvas 2D
   github: https://github.com/weluvabid/pixelflow
   demo: https://weluvabid.github.io/pixelflow/
-  order: 14
+  order: 4
   resources:
     - label: 24,997 image records organised across 50 chunks
     - label: Worker-backed bounded dataset lookup for the current viewport
@@ -78,4 +78,4 @@ I tested the result with VoiceOver on macOS and iPhone. The semantic layer gives
 
 ## Result
 
-The final rendering work reached more than 115 FPS on desktop, with an observed run reaching around 120 FPS, and around 58–60 FPS on an older iPhone. The measured page recorded an LCP of 0.30 seconds and CLS of 0.00. A live performance dock exposes render time and loaded-image counts during interaction. [The accompanying article](/journal/beyond-the-comfort-zone-pushing-canvas-beyond-games-and-drawing/) connects these results to the Chronos trace comparison and discusses the rendering trade-offs across both experiments.
+The final rendering work reached more than 115 FPS on desktop, with an observed run reaching around 120 FPS, and around 58–60 FPS on an older iPhone. The measured page recorded an LCP of 0.30 seconds and CLS of 0.00. A live performance dock exposes render time and loaded-image counts during interaction.

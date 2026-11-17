@@ -47,7 +47,7 @@ test('each project has exactly one canonical journal entry and related articles 
     associated.set(entry.data.project, group);
   }
 
-  assert.equal(associated.size, 12);
+  assert.equal(associated.size, 14);
 
   for (const [id, group] of associated) {
     const canonical = group.filter(({ data }) => data.kind === 'project');
@@ -105,6 +105,13 @@ test('project association validation rejects orphaned and duplicate canonical pr
   const related = { data: { id: 'cachewise-part-two', kind: 'article', project: 'cachewise' } };
 
   assert.doesNotThrow(() => assertProjectAssociations([canonical, related]));
+  assert.doesNotThrow(() =>
+    assertProjectAssociations([
+      canonical,
+      { data: { id: 'pixelflow', kind: 'project', project: 'pixelflow', projectDetails: {} } },
+      { data: { id: 'canvas-article', kind: 'article', relatedProjects: ['cachewise', 'pixelflow'] } },
+    ]),
+  );
   assert.throws(
     () => assertProjectAssociations([related]),
     /references missing project "cachewise"/,
@@ -139,9 +146,9 @@ test('writing details link back to their canonical project and project pages ret
     'utf8',
   );
 
-  assert.match(source, /entry\.data\.kind === 'article' && projectEntry/);
-  assert.match(source, /Related project:/);
-  assert.match(source, /entryHref\(projectEntry\.data\.id\)/);
+  assert.match(source, /entry\.data\.kind === 'article' && relatedProjectEntries\.length > 0/);
+  assert.match(source, /Related \{relatedProjectEntries/);
+  assert.match(source, /entryHref\(relatedProject\.data\.id\)/);
   assert.match(source, /entry\.data\.kind === 'project' \? 'Projects' : 'Writings'/);
   assert.match(source, /entry\.data\.kind === 'project' \? '\/projects\/'/);
 });
@@ -161,10 +168,26 @@ test('canonical project pages list their published related writings', async () =
   assert.match(page, /entry\.data\.kind === 'project' && entry\.data\.project/);
   assert.match(
     page,
-    /item\.data\.kind === 'article' && item\.data\.project === entry\.data\.project/,
+    /item\.data\.relatedProjects\?\.includes/,
   );
   assert.match(page, /right\.data\.date\.getTime\(\) - left\.data\.date\.getTime\(\)/);
   assert.match(page, /Related writing/);
   assert.match(page, /entryHref\(relatedEntry\.data\.id\)/);
   assert.match(page, /relatedEntry\.data\.summary/);
+});
+
+
+test('Canvas article relates to both canonical projects and projects occupy positions three and four', async () => {
+  const article = await read('src/content/journal/beyond-the-comfort-zone-pushing-canvas-beyond-games-and-drawing.mdx');
+  const chronos = await read('src/content/journal/100k-timers-pushing-canvas-beyond-the-dom.mdx');
+  const pixelflow = await read('src/content/journal/beyond-timers-pixelflow-canvas-image-rendering.mdx');
+  const atlas = await read('src/content/journal/frontend-atlas-progress-without-accounts.mdx');
+
+  assert.match(article, /^relatedProjects:\n  - chronos\n  - pixelflow$/mu);
+  assert.match(chronos, /^title: 'Chronos'$/mu);
+  assert.match(pixelflow, /^title: 'Pixelflow'$/mu);
+  assert.match(chronos, /^  order: 3$/mu);
+  assert.match(pixelflow, /^  order: 4$/mu);
+  assert.match(atlas, /^  order: 5$/mu);
+  assert.match(atlas, /^  demo: https:\/\/weluvabid\.github\.io\/frontend-atlas\/$/mu);
 });

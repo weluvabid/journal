@@ -38,33 +38,34 @@ export function assertProjectAssociations(
   }
 
   for (const entry of publishedEntries) {
-    const projectId = entry.data.project;
+    const projectIds = new Set([
+      ...(entry.data.project ? [entry.data.project] : []),
+      ...(entry.data.relatedProjects ?? []),
+    ]);
 
-    if (!projectId) {
-      continue;
-    }
+    for (const projectId of projectIds) {
+      const projectEntry = canonical.get(projectId);
 
-    const projectEntry = canonical.get(projectId);
+      if (!projectEntry) {
+        const candidates = allEntries
+          .filter((candidate) => candidate.data.project === projectId)
+          .map((candidate) => candidate.data.id);
 
-    if (!projectEntry) {
-      const candidates = allEntries
-        .filter((candidate) => candidate.data.project === projectId)
-        .map((candidate) => candidate.data.id);
+        throw new Error(
+          `Journal entry "${entry.data.id}" references missing project "${projectId}". ${
+            candidates.length
+              ? `Matching entries exist but none is canonical (kind: "project"): ${candidates.join(', ')}.`
+              : 'No journal entry declares this project id.'
+          }`,
+        );
+      }
 
-      throw new Error(
-        `Journal entry "${entry.data.id}" references missing project "${projectId}". ${
-          candidates.length
-            ? `Matching entries exist but none is canonical (kind: "project"): ${candidates.join(', ')}.`
-            : 'No journal entry declares this project id.'
-        }`,
-      );
-    }
-
-    if (projectEntry.data.draft) {
-      throw new Error(
-        `Published journal entry "${entry.data.id}" references unpublished project "${projectId}" ` +
-          `("${projectEntry.data.id}" is marked draft).`,
-      );
+      if (projectEntry.data.draft) {
+        throw new Error(
+          `Published journal entry "${entry.data.id}" references unpublished project "${projectId}" ` +
+            `("${projectEntry.data.id}" is marked draft).`,
+        );
+      }
     }
   }
 }

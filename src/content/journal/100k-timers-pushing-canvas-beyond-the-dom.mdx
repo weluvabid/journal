@@ -1,6 +1,6 @@
 ---
 id: 100k-timers-pushing-canvas-beyond-the-dom
-title: '100K Timers: Pushing Canvas Beyond the DOM'
+title: 'Chronos'
 type: deep-dive
 category: frontend-engineering
 summary: A Canvas experiment rendering 100,000 continuously updating timers, with viewport-bound drawing instead of one DOM element per timer.
@@ -35,7 +35,7 @@ projectDetails:
     - Browser APIs
   github: https://github.com/weluvabid/chronos
   demo: https://weluvabid.github.io/chronos/
-  order: 13
+  order: 3
   resources:
     - label: 100,000 continuously updating timers rendered on a shared Canvas surface
     - label: Viewport-bound drawing so work follows visible content rather than collection size
@@ -70,4 +70,4 @@ These are cumulative event durations from the recordings, not mutually exclusive
 
 A plain DOM list of 100,000 continuously updating timers was not a viable baseline: the tab became unresponsive and the browser terminated it. Virtual scrolling was the practical DOM-based implementation to compare against. The useful comparison was therefore between a bounded set of DOM elements and a shared Canvas surface—not between Canvas and an intentionally unbounded DOM tree.
 
-Chronos is the first experiment in a broader exploration of Canvas as a rendering model for dense interfaces. [The accompanying article](/journal/beyond-the-comfort-zone-pushing-canvas-beyond-games-and-drawing/) connects this timer experiment to Pixelflow and explains where I think the approach is useful.
+Chronos is the first experiment in a broader exploration of Canvas as a rendering model for dense interfaces.

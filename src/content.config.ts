@@ -7,7 +7,7 @@ const journal = defineCollection({
   schema: z
     .object({
       id: z.string().regex(/^[a-z0-9]+(?:-[a-z0-9]+)*$/),
-      title: z.string().min(8).max(120),
+      title: z.string().min(1).max(120),
       type: z.enum(['engineering-note', 'build-log', 'deep-dive', 'retrospective']),
       kind: z.enum(['article', 'project']).default('article'),
       category: z.enum([
@@ -21,6 +21,10 @@ const journal = defineCollection({
       project: z
         .string()
         .regex(/^[a-z0-9]+(?:-[a-z0-9]+)*$/)
+        .optional(),
+      relatedProjects: z
+        .array(z.string().regex(/^[a-z0-9]+(?:-[a-z0-9]+)*$/))
+        .min(1)
         .optional(),
       projectDetails: z
         .object({
@@ -55,6 +59,14 @@ const journal = defineCollection({
       draft: z.boolean().default(false),
     })
     .superRefine((data, context) => {
+      if (data.kind === 'article' && data.title.length < 8) {
+        context.addIssue({ code: 'custom', message: 'Article titles must contain at least 8 characters.' });
+      }
+
+      if (data.kind === 'project' && data.relatedProjects) {
+        context.addIssue({ code: 'custom', message: 'Canonical project entries cannot define relatedProjects.' });
+      }
+
       if (data.kind === 'project' && (!data.project || !data.projectDetails)) {
         context.addIssue({
           code: 'custom',
