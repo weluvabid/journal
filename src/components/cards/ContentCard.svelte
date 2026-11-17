@@ -12,15 +12,15 @@
 </script>
 
 <article
-  class={`group relative w-full min-w-0 max-w-full rounded-2xl border border-border transition-colors hover:ring-1 hover:ring-ring/50 ${className}`}
+  class={`group pointer-events-none relative w-full min-w-0 max-w-full rounded-2xl border border-border transition-colors hover:ring-1 hover:ring-ring/50 ${className}`}
 >
   <a
     {href}
     aria-label={label}
     data-card-navigation
-    class="absolute inset-0 z-0 rounded-2xl focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-ring"
+    class="pointer-events-auto absolute inset-0 z-0 rounded-2xl focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-ring"
   ></a>
-  <div class="relative z-10 h-full min-w-0 max-w-full pointer-events-none">
+  <div class="relative z-10 h-full min-w-0 max-w-full [pointer-events:inherit]">
     {@render children()}
   </div>
 </article>

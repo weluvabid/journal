@@ -9,7 +9,7 @@ test('journal schema retains optional external resource metadata', async () => {
 
   assert.match(schema, /links:\s*z\s*\.object\(/);
 
-  for (const key of ['git', 'stackblitz', 'mermaid']) {
+  for (const key of ['git', 'demo', 'stackblitz', 'mermaid']) {
     assert.match(schema, new RegExp(`${key}: z\\.url\\(\\)\\.optional\\(\\)`));
   }
 });
@@ -22,11 +22,14 @@ test('article resource actions reuse the existing Git and StackBlitz icons', asy
     /import \{ Button, Collapsible, Tooltip \} from '@weluvabid\/iris\/components'/,
   );
   assert.match(component, /import \{ SiGit, SiStackblitz \} from '@weluvabid\/iris\/simple-icons'/);
-  assert.equal((component.match(/<Button\.Root/g) ?? []).length, 2);
+  assert.equal((component.match(/<Button\.Root/g) ?? []).length, 3);
   assert.match(component, /href=\{git\}/);
   assert.match(component, /target="_blank"/);
   assert.match(component, /rel="noopener noreferrer"/);
   assert.match(component, /aria-label="Source repository \(opens in a new tab\)"/);
+  assert.match(component, /href=\{demo\}/);
+  assert.match(component, /<ExternalLink class=\"size-5\" aria-hidden=\"true\" \/>/);
+  assert.match(component, /aria-label=\"Live demo \(opens in a new tab\)\"/);
   assert.match(component, /href=\{stackblitz\}/);
   assert.match(component, /<SiStackblitz class="size-5" aria-hidden="true" \/>/);
   assert.match(component, /aria-label="Open StackBlitz demo \(opens in a new tab\)"/);
@@ -42,6 +45,8 @@ test('article page resolves one repository URL from canonical project metadata o
     page,
     /<ResourceActions[\s\S]*?git=\{sourceRepository\}[\s\S]*?stackblitz=\{stackblitzDemo\}/,
   );
+  assert.match(page, /projectEntry\?\.data\.projectDetails\?\.demo/);
+  assert.match(page, /entry\.data\.links\?\.demo/);
   assert.match(page, /projectEntry\?\.data\.projectDetails\?\.stackblitz/);
   assert.match(
     page,
@@ -67,7 +72,7 @@ test('project documentation resources are passed from canonical metadata and ren
   const page = await read('src/pages/journal/[...slug].astro');
 
   assert.match(component, /resources = \[\]/);
-  assert.match(component, /resource\.url !== git && resource\.url !== stackblitz/);
+  assert.match(component, /resource\.url !== git &&[\s\S]*?resource\.url !== demo &&[\s\S]*?resource\.url !== stackblitz/);
   assert.match(component, /aria-label=\{`\$\{title\} additional resources`\}/);
   assert.match(component, /href=\{resource\.url\}/);
   assert.match(page, /projectResources/);

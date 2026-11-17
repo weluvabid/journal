@@ -62,7 +62,7 @@
   <Tooltip.Provider delayDuration={350}>
     <nav
       class="pointer-events-none fixed inset-0 z-30 hidden lg:block"
-      aria-label="Navigate between journal entries"
+      aria-label="Navigate between entries"
     >
       {#if previousTarget}
         {@const target = previousTarget}

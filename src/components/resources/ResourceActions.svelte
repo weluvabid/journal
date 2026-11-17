@@ -7,12 +7,14 @@
 
   let {
     git,
+    demo,
     stackblitz,
     resources = [],
     title,
     section = 'all',
   }: {
-    git: string;
+    git?: string;
+    demo?: string;
     stackblitz?: string;
     resources?: readonly Resource[];
     title: string;
@@ -22,33 +24,59 @@
   const visibleResources = $derived(
     resources.filter(
       (resource): resource is Resource & { url: string } =>
-        Boolean(resource.url) && resource.url !== git && resource.url !== stackblitz,
+        Boolean(resource.url) &&
+        resource.url !== git &&
+        resource.url !== demo &&
+        resource.url !== stackblitz,
     ),
   );
 </script>
 
 <Tooltip.Provider delayDuration={300}>
-  {#if section !== 'additional'}
+  {#if section !== 'additional' && (git || demo || stackblitz)}
     <nav class="mt-3 flex flex-wrap items-center gap-2" aria-label={`${title} resources`}>
-      <Tooltip.Root>
-        <Tooltip.Trigger>
-          {#snippet child({ props })}
-            <Button.Root
-              {...props}
-              href={git}
-              target="_blank"
-              rel="noopener noreferrer"
-              variant="ghost"
-              size="icon"
-              class="rounded-full"
-              aria-label="Source repository (opens in a new tab)"
-            >
-              <SiGit class="size-5" aria-hidden="true" />
-            </Button.Root>
-          {/snippet}
-        </Tooltip.Trigger>
-        <Tooltip.Content>Source repository</Tooltip.Content>
-      </Tooltip.Root>
+      {#if git}
+        <Tooltip.Root>
+          <Tooltip.Trigger>
+            {#snippet child({ props })}
+              <Button.Root
+                {...props}
+                href={git}
+                target="_blank"
+                rel="noopener noreferrer"
+                variant="ghost"
+                size="icon"
+                class="rounded-full"
+                aria-label="Source repository (opens in a new tab)"
+              >
+                <SiGit class="size-5" aria-hidden="true" />
+              </Button.Root>
+            {/snippet}
+          </Tooltip.Trigger>
+          <Tooltip.Content>Source repository</Tooltip.Content>
+        </Tooltip.Root>
+      {/if}
+      {#if demo}
+        <Tooltip.Root>
+          <Tooltip.Trigger>
+            {#snippet child({ props })}
+              <Button.Root
+                {...props}
+                href={demo}
+                target="_blank"
+                rel="noopener noreferrer"
+                variant="ghost"
+                size="icon"
+                class="rounded-full"
+                aria-label="Live demo (opens in a new tab)"
+              >
+                <ExternalLink class="size-5" aria-hidden="true" />
+              </Button.Root>
+            {/snippet}
+          </Tooltip.Trigger>
+          <Tooltip.Content>Live demo</Tooltip.Content>
+        </Tooltip.Root>
+      {/if}
       {#if stackblitz}
         <Tooltip.Root>
           <Tooltip.Trigger>

@@ -10,6 +10,9 @@ test('journal lists use the shared entry card and content card owns the stretche
   assert.match(list, /JournalEntryCard/);
   assert.match(card, /absolute inset-0/);
   assert.match(card, /focus-visible:outline/);
+  assert.match(card, /pointer-events-none relative w-full/);
+  assert.match(card, /pointer-events-auto absolute inset-0/);
+  assert.match(card, /\[pointer-events:inherit\]/);
 });
 
 test('journal tags remain independent links above the stretched card link', async () => {
@@ -20,6 +23,7 @@ test('journal tags remain independent links above the stretched card link', asyn
   assert.match(tags, /tagHref\(tag, scope\)/);
   assert.match(tags, /pointer-events-auto relative h-9 w-full min-w-0 max-w-full/);
   assert.match(tags, /orientation="horizontal"/);
+  assert.match(tags, /pointer-events-auto inline-flex shrink-0/);
 });
 
 test('homepage and Projects archive render canonical project articles through shared cards', async () => {
@@ -42,10 +46,25 @@ test('tag scrollports stay width constrained and horizontally scrollable', async
   assert.match(tags, /<Root[\s\S]*?orientation="horizontal"/);
   assert.match(tags, /scrollbarXClasses=/);
   assert.match(tags, /flex w-max min-w-full flex-nowrap gap-2/);
+  const projectCard = await read('../src/components/cards/ProjectCard.svelte');
+  assert.match(projectCard, /min-w-0 max-w-full flex-col gap-3 overflow-hidden/);
 });
 
 test('canonical detail-page tags follow the entry content kind', async () => {
   const detail = await read('../src/pages/journal/[...slug].astro');
 
   assert.match(detail, /scope=\{entry\.data\.kind === 'project' \? 'projects' : 'journal'\}/);
+});
+
+
+test('project detail pages reuse ranked previous and next navigation', async () => {
+  const detail = await read('../src/pages/journal/[...slug].astro');
+  const navigation = await read('../src/components/article/ArticleNavigation.svelte');
+
+  assert.match(detail, /rankProjects\(publishedEntries\.filter\(isProjectEntry\)\)/);
+  assert.match(detail, /entry\.data\.kind === 'project' \? projectEntries : writingEntries/);
+  assert.match(detail, /const initialNavigation = resolveJournalNavigation/);
+  assert.match(detail, /<ArticleNavigation[\s\S]*?allEntries=\{allNavigationEntries/);
+  assert.match(navigation, /attachArticleSwipeNavigation/);
+  assert.match(navigation, /Navigate between entries/);
 });

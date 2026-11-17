@@ -18,6 +18,7 @@ import { categoryById } from '@data/categories';
 import { withBase, entryHref } from '@lib/journal';
 import { assertProjectAssociations } from '@lib/journal-projects';
 import { resolveJournalNavigation } from '@lib/journal-navigation';
+import { isProjectEntry, rankProjects } from '@lib/project-ranking';
 import {
   assertUniqueSeriesParts,
   getJournalSeriesEntries,
@@ -53,6 +54,10 @@ const sourceRepository =
   projectEntry?.data.projectDetails?.github ??
   entry.data.projectDetails?.github ??
   entry.data.links?.git;
+const liveDemo =
+  projectEntry?.data.projectDetails?.demo ??
+  entry.data.projectDetails?.demo ??
+  entry.data.links?.demo;
 const stackblitzDemo =
   projectEntry?.data.projectDetails?.stackblitz ??
   entry.data.projectDetails?.stackblitz ??
@@ -70,14 +75,19 @@ const relatedWritingEntries =
         )
     : [];
 const writingEntries = publishedEntries.filter((item) => item.data.kind === 'article');
-const allNavigationEntries = sortJournalEntriesWithSeriesGroups(writingEntries);
-const categoryNavigationEntries = sortJournalEntriesWithSeriesGroups(
-  writingEntries.filter((item) => item.data.category === entry.data.category),
-);
-const initialNavigation =
-  entry.data.kind === 'article'
-    ? resolveJournalNavigation(entry.data.id, allNavigationEntries)
-    : { previous: null, next: null };
+const projectEntries = rankProjects(publishedEntries.filter(isProjectEntry));
+const navigationEntries = entry.data.kind === 'project' ? projectEntries : writingEntries;
+const allNavigationEntries =
+  entry.data.kind === 'project'
+    ? navigationEntries
+    : sortJournalEntriesWithSeriesGroups(navigationEntries);
+const categoryNavigationEntries =
+  entry.data.kind === 'project'
+    ? projectEntries.filter((item) => item.data.category === entry.data.category)
+    : sortJournalEntriesWithSeriesGroups(
+        writingEntries.filter((item) => item.data.category === entry.data.category),
+      );
+const initialNavigation = resolveJournalNavigation(entry.data.id, allNavigationEntries);
 const seriesPartCount = entry.data.series
   ? getJournalSeriesPartCount(writingEntries, entry.data.series.id)
   : 0;
@@ -138,10 +148,11 @@ const seriesEntries = entry.data.series
         )
       }
       {
-        sourceRepository && (
+        (sourceRepository || liveDemo || stackblitzDemo) && (
           <ResourceActions
             client:load
             git={sourceRepository}
+            demo={liveDemo}
             stackblitz={stackblitzDemo}
             resources={projectResources}
             title={entry.data.title}
@@ -221,10 +232,11 @@ const seriesEntries = entry.data.series
       )
     }
     {
-      sourceRepository && (
+      (sourceRepository || liveDemo || stackblitzDemo || projectResources.length > 0) && (
         <ResourceActions
           client:load
           git={sourceRepository}
+          demo={liveDemo}
           stackblitz={stackblitzDemo}
           resources={projectResources}
           title={entry.data.title}
@@ -243,9 +255,7 @@ const seriesEntries = entry.data.series
         {entry.data.kind === 'project' ? 'Back to projects' : `Back to ${category.name}`}
       </Button.Root>
     </div>
-    {
-      entry.data.kind === 'article' && (
-        <ArticleNavigation
+    <ArticleNavigation
           client:load
           currentId={entry.data.id}
           categoryId={entry.data.category}
@@ -276,7 +286,5 @@ const seriesEntries = entry.data.series
               : null
           }
         />
-      )
-    }
   </article>
 </BaseLayout>

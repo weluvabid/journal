@@ -47,6 +47,7 @@ const journal = defineCollection({
       links: z
         .object({
           git: z.url().optional(),
+          demo: z.url().optional(),
           stackblitz: z.url().optional(),
           mermaid: z.url().optional(),
         })
