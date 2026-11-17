@@ -1,0 +1,89 @@
+---
+id: 100k-timers-pushing-canvas-beyond-the-dom
+title: '100K Timers: Pushing Canvas Beyond the DOM'
+type: deep-dive
+category: frontend-engineering
+summary: How I used Canvas to render 100,000 timers, compared the approach with DOM and virtual scrolling, and carried the same idea into Pixelflow.
+date: 2026-11-17
+series:
+  id: canvas-beyond-the-dom
+  part: 1
+tags:
+  - canvas
+  - browser-rendering
+  - performance
+  - virtualisation
+  - javascript
+  - frontend-engineering
+  - benchmarking
+searchTerms:
+  - 100k timers
+  - 100000 timers
+  - canvas rendering
+  - dom virtualisation
+  - virtual scrolling
+  - requestAnimationFrame
+  - frame budget
+  - browser performance
+  - large interfaces
+draft: false
+kind: article
+---
+
+I wanted to see what happens when I put 100,000 timers on a page and keep them updating. Not a static list of numbers, but timers that continue to change while I scroll through them.
+
+The first approach that comes to mind is to render them as normal elements. That gives every timer its own DOM node. Virtual scrolling improves this by keeping only the visible range and a buffer mounted. It works well for large lists, but I wanted to try a different route.
+
+I wanted to push Canvas outside the things it is usually used for — games, drawing and visual effects — and see whether it could handle a dense interface without creating an element for every item. The experiment reached around 60 FPS with 100,000 timers. That was enough to make me curious about what else the same rendering model could handle.
+
+## DOM, virtual scrolling and Canvas
+
+A normal DOM implementation creates an element for each timer. At this scale, that means a very large document tree, with each element participating in the browser's style, layout and rendering work.
+
+Virtual scrolling changes the amount of DOM involved. It keeps the visible items and some surrounding items mounted, then updates that window as the user scrolls. The rest of the collection stays out of the DOM. This is a good solution for many interfaces, and it reduces the number of elements substantially.
+
+There is still an element for every item in that visible window. With Canvas, I can draw the visible timers onto one surface instead. The collection stays as data; the renderer works out which items intersect the viewport and paints them. There is no per-timer element to mount, update or remove as the visible range changes.
+
+That is the distinction I wanted to explore. Virtual scrolling limits how many elements are mounted. Canvas removes the individual visual elements from the rendering path altogether. The trade-off is that I now own the drawing, positioning and update logic that the browser would otherwise handle for those elements.
+
+## Keeping the work inside the viewport
+
+The page contains 100,000 timers, but the renderer does not need to draw all 100,000 on every frame. It only needs the items that can appear in the current viewport.
+
+The rendering path follows the viewport:
+
+1. Read the current viewport and scroll position.
+2. Work out which timers intersect the visible region.
+3. Resolve the data needed for those items.
+4. Draw them onto the Canvas.
+5. Render again when the displayed state or viewport changes.
+
+This is the useful part of the architecture. The collection can remain large while the drawing work is tied to what the user can actually see. It also gives me a clear place to control when another frame is needed instead of updating a separate DOM node for every timer.
+
+## The result
+
+The experiment reached around 60 FPS with 100,000 timers. I wanted to keep an eye on more than the frame rate, though. FPS gives a quick indication of how smoothly frames are being presented, while frame time, memory and main-thread activity help explain the work behind it.
+
+These are the measurements I use when comparing the approaches:
+
+| Measurement | What I look at |
+| --- | --- |
+| DOM node count | How many elements each implementation creates |
+| Initialisation time | How long it takes to prepare the collection |
+| Memory usage | The cost of the data and rendering representation |
+| Frame time | How much work happens within a frame |
+| FPS | Whether frames are being presented consistently |
+| Main-thread activity | How much time updates and rendering occupy |
+| Scroll responsiveness | How the implementation behaves while the viewport moves |
+
+For a useful comparison, I would run the same collection through three implementations: a normal DOM list, a virtual-scrolling list and the Canvas version. The dataset, viewport, update cadence and scroll pattern need to stay the same. I would also separate initialisation from steady-state interaction, because they describe different parts of the cost.
+
+The implementations have different rendering boundaries. The normal list creates an element for every timer. Virtual scrolling keeps a bounded set of elements mounted. Canvas draws the visible timers on a shared surface. The Canvas version avoids per-item DOM representation, while taking responsibility for the work that comes with drawing and updating that surface.
+
+## Where this led
+
+I didn't want to leave the experiment at timers. Timers are useful for testing frequent updates, but the same idea could be applied to a different kind of collection. I wanted to find out what would happen when each visual item had to be fetched, decoded and managed as a resource.
+
+That became Pixelflow. It takes the rendering approach from 100,000 changing numbers to a collection of real photographs. The Canvas is still the visual surface, but now there is a dataset, a worker, viewport-driven image loading, decoding, caching and an accessibility layer to think about.
+
+That is where the next article picks up.
