@@ -58,7 +58,6 @@
         currentUrl: window.location.href,
         currentOrigin: window.location.origin,
         pageSize: JOURNAL_PAGE_SIZE,
-        seenIds,
         requestedPageUrls,
         signal: controller.signal,
       });
@@ -69,11 +68,13 @@
 
       requestedPageUrls.add(requestUrl.href);
 
-      for (const entry of payload.items) {
+      const newEntries = payload.items.filter((entry) => !seenIds.has(entry.id));
+
+      for (const entry of newEntries) {
         seenIds.add(entry.id);
       }
 
-      entries.push(...payload.items);
+      entries.push(...newEntries);
 
       nextPageUrl = payload.nextPageUrl;
 

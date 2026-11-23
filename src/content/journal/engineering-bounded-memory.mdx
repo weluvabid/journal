@@ -1,0 +1,44 @@
+---
+id: engineering-bounded-memory
+title: The Engineering of Bounded Memory
+type: engineering-note
+category: systems-engineering
+summary: Memory limits become useful when the application accounts for retained resources
+  and defines what happens at the boundary.
+date: 2026-11-18
+relatedProjects:
+- cachewise
+- pixelflow
+- tiny-lsm
+tags:
+- memory-management
+- caching
+- resource-lifecycle
+- storage
+- performance
+searchTerms:
+- memory budget
+- cache eviction
+- ImageBitmap close
+- LSM compaction
+draft: false
+kind: article
+---
+
+A cache with a maximum entry count is not necessarily a cache with a useful memory limit. Ten large values can cost more than ten thousand small ones. A browser image cache also retains graphics resources whose lifetime is not captured by counting JavaScript objects alone.
+
+Cachewise uses a logical byte budget and caller-provided cost estimates to make admission and eviction decisions. The policy considers cost alongside recency, so the cache can reason about values with different estimated sizes. TTL and invalidation govern freshness, while disposal callbacks allow the caller to release resources when an entry leaves the cache.
+
+Pixelflow bounds its decoded bitmap cache by entry count and explicitly closes an `ImageBitmap` on eviction. It also limits concurrent fetch and decode operations. Those limits address different stages: in-flight network work, active decode work and retained decoded images.
+
+TinyLSM manages memory through its memtable and immutable sorted runs. Flushing moves accumulated writes into persisted runs; compaction merges runs and reclaims obsolete versions and tombstones according to the storage policy. The in-memory structure is only one part of the storage footprint, but its flush boundary determines when data moves into the on-disk representation.
+
+## Account for the resource you actually retain
+
+Logical cache cost, decoded bitmap resources, JavaScript heap objects and persisted run files are different quantities. A useful budget is explicit about which resource it controls. Cachewise's cost function gives the application a way to estimate relative entry cost. Pixelflow's bitmap cache owns `ImageBitmap` lifetime. TinyLSM's memtable and run lifecycle separates active writes from persisted storage.
+
+## Eviction is a behaviour, not just a number
+
+When a budget is reached, the system needs a policy. It may evict a least-recently-used entry, reject admission, flush data, close a resource or apply backpressure. The right choice depends on whether the value can be recomputed, whether it is durable and what work is required to recreate it.
+
+A bounded system is not one that never uses much memory. It is one whose retained resources have an owner, whose limits correspond to a real resource, and whose behaviour at the limit is deliberate.

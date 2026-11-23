@@ -1,0 +1,49 @@
+---
+id: production-ready-small-libraries
+title: Making Small Libraries Production-Ready
+type: deep-dive
+category: systems-engineering
+summary: The contracts, tests, package boundaries and release discipline that turn
+  a focused algorithm or runtime into a reusable library.
+date: 2026-11-1
+relatedProjects:
+- arrayforge
+- jsonplus
+- algokit
+- pulse
+tags:
+- open-source
+- library-design
+- api-contracts
+- testing
+- release-engineering
+searchTerms:
+- production ready TypeScript library
+- package exports
+- API contract testing
+- release engineering
+draft: false
+kind: article
+---
+
+A library can have a clever implementation and still be difficult to use. Reusability comes from the contract around the algorithm: predictable inputs, stable errors, clear ownership, tested edge cases and a package that behaves correctly for consumers.
+
+ArrayForge exposes multiple tree engines through a shared collection contract. JSONPlus defines a versioned wire format and validates the document before rebuilding object graphs. AlgoKit separates performance and trace builds so instrumentation does not have to sit in the production hot path. Pulse keeps its runtime API small while testing dependency reconciliation, cleanup and scheduler behaviour.
+
+## Define behaviour before implementation details
+
+A public API should make its important semantics visible. ArrayForge transactions are synchronous and leave the original collection unchanged if the callback throws. JSONPlus preserves cycles and shared references, while unsupported values are rejected rather than silently flattened. Pulse effects track dependencies dynamically and dispose child effects before rerunning.
+
+These are not incidental implementation details. They determine how callers can safely compose the library with the rest of an application.
+
+## Test the edges that define the contract
+
+The useful tests are often the awkward ones. For a persistent collection, that means snapshots, structural sharing and failures during a transaction. For a graph serializer, it means cycles, duplicate references, malformed documents and resource limits. For a reactive runtime, it means conditional dependencies, nested batches, cleanup order and disposal during updates.
+
+A passing happy-path test proves that the obvious example works. Adversarial and boundary tests prove that the contract remains stable when callers use the library in less convenient ways.
+
+## Package the implementation intentionally
+
+Consumer-facing package exports should make supported entry points explicit. Type declarations should match runtime behaviour. Build variants should have clear purposes. CI should run formatting, linting, type checks and tests against the same package that will be released. Release tags and package versions should describe the same artifact.
+
+The result is a small library that can be installed and used without requiring the consumer to understand the repository's internal layout. The implementation may be sophisticated, but the public contract should remain focused.

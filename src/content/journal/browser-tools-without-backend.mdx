@@ -1,0 +1,48 @@
+---
+id: browser-tools-without-backend
+title: Building Useful Browser Tools Without a Backend
+type: deep-dive
+category: product-engineering
+summary: Local-first browser tools can deliver meaningful workflows through browser
+  APIs, local state and deterministic transformations.
+date: 2026-11-06
+relatedProjects:
+- copy-2-markdown
+- wordweave
+- frontend-atlas
+tags:
+- local-first
+- browser-extensions
+- privacy
+- indexeddb
+- product-engineering
+searchTerms:
+- local first browser tools
+- browser APIs
+- no backend application
+- QR state transfer
+draft: false
+kind: article
+---
+
+A browser tool does not need an application server simply because it performs useful work. If the task can be completed with local data and browser capabilities, keeping the workflow on the device can make the product simpler and more private.
+
+Copy-2-Markdown turns selected web content into Markdown in the browser. Its extraction and conversion pipeline operates on the page content and produces a portable text representation without sending the content to a service. WordWeave applies deterministic text transformation locally: selected terms map to reserved four-word phrases, while punctuation, whitespace and casing are preserved. Frontend Atlas stores reading progress locally and can transfer a snapshot between devices using a compact QR payload.
+
+## The browser provides the product primitives
+
+Extensions can access the active page through browser extension APIs. Text transformation can run as deterministic local code. IndexedDB can hold application state. A QR code can move a compact payload between devices without requiring a user account or a synchronization backend.
+
+These tools have different workflows, but each keeps the core operation close to the user. The application owns the transformation and the resulting data. The network is not a mandatory part of every interaction.
+
+## Local-first still needs careful contracts
+
+A local tool must define what it reads, what it changes and where the result goes. Copy-2-Markdown needs a clear extraction boundary. WordWeave needs a stable mapping and a reversible encoding contract. Frontend Atlas needs a versioned transfer format, integrity check and merge/replace semantics so a snapshot can be imported deliberately.
+
+Local storage also has a lifecycle. Data belongs to a browser profile and origin; clearing site data removes it. Cross-device transfer therefore needs an explicit mechanism rather than an assumption that local state will appear elsewhere.
+
+## Choose the smallest infrastructure that fits
+
+A backend is valuable when the product needs shared state, accounts, collaboration, central processing or durable cross-device synchronization. It is unnecessary when the primary job is a local transformation or an explicit user-controlled export.
+
+The interesting product question is not whether a backend can be avoided. It is whether the user receives a complete, dependable workflow with the capabilities already available in the browser.

@@ -1,0 +1,51 @@
+---
+id: responsive-data-pipelines-in-the-browser
+title: Building Responsive Data Pipelines in the Browser
+type: deep-dive
+category: frontend-engineering
+summary: A look at worker ownership, typed storage, bounded work and viewport-driven
+  queries across browser applications.
+date: 2026-11-21
+relatedProjects:
+- vehicle-signal-workbench
+- columnar
+- pixelflow
+- chronos
+tags:
+- web-workers
+- browser-performance
+- typed-arrays
+- backpressure
+- frontend-architecture
+searchTerms:
+- worker data pipeline
+- browser backpressure
+- viewport queries
+- bounded concurrency
+draft: false
+kind: article
+---
+
+A browser application becomes difficult to keep responsive when data work grows with the entire dataset. Parsing, normalization, filtering, decoding and rendering can all compete for the same main thread. The projects in this portfolio approach that problem from different directions, but they share a useful pattern: move data ownership and expensive work away from the presentation layer, then give the UI bounded results.
+
+Vehicle Signal Workbench sends ingestion, normalization, indexing and viewport queries to dedicated workers. Its charts request the data needed for the current time window rather than traversing the full recording. Columnar stores columns in typed-array buffers and executes fused queries over those buffers. Pixelflow keeps dataset access in a worker and schedules image fetch and decode work separately from Canvas drawing.
+
+## Ownership before optimisation
+
+The first decision is where the data lives and which component owns mutations. If the UI owns a giant mutable registry, every interaction risks pulling large amounts of work back onto the main thread. A worker-owned dataset creates a clear boundary: the UI sends a query or range request and receives the result it needs.
+
+Typed arrays are useful when the data is numeric and dense. They make storage layout explicit and avoid the per-record object graph that can accompany large collections. Columnar applies that idea to tables; VSW applies it to time-series signals. Pixelflow uses worker-owned metadata and bounded image pipelines because the expensive resource is not only numeric data but also network and decode capacity.
+
+## Bound the work, not only the thread
+
+Moving work into a worker does not make it bounded. A worker can still accumulate requests faster than it can process them. The useful design is to bound the queue, coalesce superseded viewport requests and cancel work that no longer contributes to the current view.
+
+The same principle applies to resources outside JavaScript computation. Pixelflow limits concurrent fetches and decodes, prioritises visible images and maintains a bounded bitmap cache. Columnar's chunk-at-a-time aggregation applies upstream backpressure so the next chunk is requested only as the previous one is consumed. These are different mechanisms serving the same goal: prevent demand from turning into unbounded in-flight work.
+
+## Let rendering follow the viewport
+
+A chart does not need every sample in a recording to draw the current screen. A gallery does not need every decoded bitmap at once. A dense interface should make the viewport part of its data contract. VSW queries visible signal ranges; Pixelflow renders visible image rows with overscan; Chronos draws visible timers on a shared Canvas surface.
+
+This architecture changes the question from “How fast can the application process everything?” to “How much work is required to keep the current interaction responsive?” That is a much more useful target for interactive software.
+
+The pattern is consistent across the projects: isolate ownership, bound queues and resources, and make the visible interface request only the data it can use.

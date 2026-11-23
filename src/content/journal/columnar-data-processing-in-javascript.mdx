@@ -1,0 +1,71 @@
+---
+id: columnar-data-processing-in-javascript
+title: 'Columnar: Data Processing in JavaScript Without Row-Object Pipelines'
+type: deep-dive
+category: systems-engineering
+summary: A typed-array-native query engine that stores columns contiguously and fuses
+  filtering with aggregation to avoid intermediate row objects.
+date: '2026-11-23'
+project: columnar
+tags:
+- javascript
+- typescript
+- columnar-storage
+- typed-arrays
+- data-processing
+- project
+searchTerms:
+- columnar database
+- typed array query engine
+- fused aggregation
+- streaming aggregation
+draft: false
+kind: project
+projectDetails:
+  status: released
+  stack:
+  - TypeScript
+  - Typed Arrays
+  - Vitest
+  - Node.js
+  github: https://github.com/weluvabid/columnar
+  stackblitz: https://stackblitz.com/edit/columnar?file=index.js
+  order: 17
+  resources:
+  - label: Source repository
+    url: https://github.com/weluvabid/columnar
+  - label: StackBlitz usage playground
+    url: https://stackblitz.com/edit/columnar?file=index.js
+links:
+  git: https://github.com/weluvabid/columnar
+  stackblitz: https://stackblitz.com/edit/columnar?file=index.js
+---
+
+A chain of `filter`, `map` and `reduce` reads naturally. On a large dataset, though, each stage can traverse the data again and allocate another intermediate array. Columnar started with a question about that hidden work: can a JavaScript API stay composable while the execution engine works directly over compact column buffers?
+
+Columnar stores tabular data in contiguous typed-array columns. Numeric input can be ingested without copying its backing buffers. Strings use dictionary encoding, nullable values use bit-packed validity maps, and boolean columns use byte storage. Row-oriented records are also accepted and converted into column storage at ingestion.
+
+## Describe the query, then execute it over columns
+
+The query API composes predicates such as comparisons and boolean combinations, projections, and aggregate expressions. Predicates are compiled once per execution. The engine binds the referenced columns and performs filtered aggregation in a fused traversal, rather than constructing a row object for each match and then traversing that result again.
+
+Projection can retain references to selected columns. Filtering produces compact output buffers for the selected columns. Aggregations include count, sum, mean, min, max and variance. Neumaier compensated summation improves the numerical behaviour of sums; online mean and Welford variance keep aggregate state without retaining all intermediate values.
+
+A hand-written loop remains a good choice when an operation is fixed and the application wants direct control. Columnar gives reusable query logic a home: callers describe predicates and aggregates, while the engine owns null handling, composition and execution mechanics.
+
+## Streaming keeps the input bounded
+
+Columnar also supports chunk-at-a-time asynchronous aggregation. Each chunk is processed before the next is requested, so the consumer's pace applies backpressure to the upstream source. This is useful when the dataset arrives as a stream and retaining the complete input would defeat the purpose of processing it incrementally.
+
+The streaming path and in-memory query path solve related but different problems. The first bounds how much input is in flight; the second executes operations over an already-available table. Keeping those paths explicit makes it easier to reason about where memory is held and when work is performed.
+
+## A measured workload
+
+The browser playground processed one million rows across seven columns in 68.50 ms. A filter-and-projection workload returning 240,000 matching rows took 33.63 ms; fused aggregation took 20.97 ms, and streaming aggregation took 71.50 ms across ten chunks of 100,000 rows. These measurements describe the specific playground workload and its execution path.
+
+The point of Columnar is not to make every loop disappear. It is to offer a reusable, typed-array-native execution path for application analytics where repeated traversals and intermediate row objects become meaningful costs.
+
+## Explore
+
+- [Source repository](https://github.com/weluvabid/columnar)
+- [StackBlitz playground](https://stackblitz.com/edit/columnar?file=index.js)

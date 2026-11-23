@@ -49,16 +49,20 @@ test('page integrity rejects duplicate ids, cycles, cross-origin URLs and empty 
     items: [serialized],
     nextPageUrl: null,
     pageSize: 8,
-    seenIds: new Set(),
     requestedPageUrls: new Set(),
     requestUrl: new URL('https://example.test/journal/data/2.json'),
     followingPageUrl: null,
     currentOrigin: 'https://example.test',
   };
 
+  assert.doesNotThrow(() => assertJournalPageIntegrity(base));
   assert.throws(
-    () => assertJournalPageIntegrity({ ...base, seenIds: new Set(['entry-one']) }),
-    /duplicate entry id/,
+    () =>
+      assertJournalPageIntegrity({
+        ...base,
+        items: [serialized, { ...serialized, id: 'entry-two' }, serialized],
+      }),
+    /duplicate entry id within a page/,
   );
   assert.throws(
     () =>

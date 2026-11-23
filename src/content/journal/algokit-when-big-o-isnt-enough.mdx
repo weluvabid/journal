@@ -1,0 +1,74 @@
+---
+id: algokit-when-big-o-isnt-enough
+title: 'AlgoKit: When Big-O Is Not Enough'
+type: deep-dive
+category: systems-engineering
+summary: A TypeScript algorithms toolkit shaped by representation choices, typed-array
+  implementations and workload-specific benchmark comparisons.
+date: '2026-11-23'
+project: algokit
+tags:
+- typescript
+- algorithms
+- data-structures
+- performance
+- typed-arrays
+- project
+searchTerms:
+- CSR graph
+- Dijkstra indexed heap
+- tournament tree merge
+- Bloom filter
+- HyperLogLog
+- consistent hashing
+draft: false
+kind: project
+projectDetails:
+  status: released
+  stack:
+  - TypeScript
+  - Node.js
+  - Vitest
+  github: https://github.com/weluvabid/algokit
+  stackblitz: https://stackblitz.com/edit/algokit?file=index.js
+  order: 18
+  resources:
+  - label: Source repository
+    url: https://github.com/weluvabid/algokit
+  - label: StackBlitz usage playground
+    url: https://stackblitz.com/edit/algokit?file=index.js
+links:
+  git: https://github.com/weluvabid/algokit
+  stackblitz: https://stackblitz.com/edit/algokit?file=index.js
+---
+
+Big-O describes how an algorithm scales, but it does not describe the cost of the representation used to run it. In JavaScript, object allocation, pointer chasing, temporary buffers and runtime behaviour can change the result substantially. AlgoKit grew into a collection of algorithms and data structures where those implementation details are part of the design.
+
+The toolkit covers graph traversal and shortest paths, priority queues, ordered collections, probabilistic structures, hashing, binary search and sorted-run merging. It is not one large abstraction. Each module has a focused contract and can be used independently.
+
+## Graphs: change the representation
+
+The graph module supports familiar algorithms such as BFS, DFS, Dijkstra, A*, topological sorting and cycle detection. For large numeric graphs, the optimized path uses compressed sparse row storage: offsets and adjacency are held in typed arrays, vertices are numeric IDs, and traversal uses typed-array queues and visited state.
+
+That representation reduces per-edge object overhead and makes adjacency traversal contiguous. In the measured 100K-node BFS workload, CSR traversal took 0.489 ms compared with 6.501 ms for the object graph, around 13.3 times faster. Build-inclusive timings are also reported because constructing CSR has a cost; the benefit becomes more compelling when the graph is traversed repeatedly.
+
+Dijkstra uses an indexed heap so priority updates do not require creating a new heap entry for every change. The algorithm remains recognizable, but its working set is represented explicitly.
+
+## Merge strategy depends on the workload
+
+K-way merging is another example where the algorithm name does not determine the fastest implementation. AlgoKit compares a binary heap with a tournament tree. The tournament tree was faster in the measured 1M-item, 32-run workload (13.328 ms versus 15.515 ms), while the difference narrows or changes as run count and input size vary. An adaptive strategy selects a path for larger workloads, and callers can force a strategy when they know more about their input.
+
+Other modules apply the same attention to representation: Bloom filters use packed `Uint32Array` storage and incremental double hashing; HyperLogLog avoids scanning registers after each insertion when tracing is disabled; consistent hashing defers sorting the ring until the first lookup; and implicit-treap construction and operations use iterative paths to avoid recursion on degenerate trees.
+
+## Keep instrumentation out of the hot path
+
+AlgoKit ships performance and trace builds. The performance build strips trace instrumentation, while the trace build retains typed trace events. This keeps observability available without charging every production operation for instrumentation it does not need.
+
+The benchmark suite records runtime, workload shape and operation boundaries. Comparisons include representation construction when that cost matters, rather than presenting traversal-only numbers as the whole story.
+
+AlgoKit's central lesson is that asymptotic complexity is the beginning of performance analysis. Data layout, allocation patterns, reuse and the exact workload determine how an implementation behaves in a real runtime.
+
+## Explore
+
+- [Source repository](https://github.com/weluvabid/algokit)
+- [StackBlitz playground](https://stackblitz.com/edit/algokit?file=index.js)

@@ -1,0 +1,50 @@
+---
+id: browser-as-execution-environment
+title: The Browser as an Execution Environment
+type: deep-dive
+category: frontend-engineering
+summary: Workers, WebAssembly, typed arrays and browser APIs make the browser a capable
+  runtime for substantial local computation.
+date: 2026-11-7
+relatedProjects:
+- vehicle-signal-workbench
+- pixelflow
+- structaura
+- columnar
+- pairwire
+tags:
+- web-workers
+- webassembly
+- browser-apis
+- typed-arrays
+- local-first
+searchTerms:
+- browser runtime
+- WebAssembly browser
+- worker architecture
+- local computation
+draft: false
+kind: article
+---
+
+The browser is often treated as a presentation layer: fetch data from a server, render it and send user actions back. Several projects here use it differently. They treat the browser as an execution environment with its own storage, workers, binary interfaces, networking and rendering capabilities.
+
+Vehicle Signal Workbench performs ingestion, normalization, indexing and viewport queries in workers. The UI asks for the signal range needed by the current chart view. Pixelflow uses a worker for dataset access and coordinates network fetch, image decode and Canvas rendering. StructAura shares a Rust core with a browser WebAssembly build, so the same fingerprinting logic can run in native and browser environments.
+
+## Separate the execution contexts
+
+A worker is useful when a task can be expressed as messages and does not need synchronous access to the DOM. It provides a separate JavaScript agent for parsing, indexing or data preparation. The main thread remains responsible for interaction and rendering.
+
+That boundary has a cost: data must cross a message interface, and the application must define request identity, cancellation and ownership. Typed arrays help make large numeric payloads more compact, while transferable buffers can move ownership when the workflow permits it. The interface between worker and UI should describe the result needed, not expose the worker's internal data structures.
+
+## Use the right representation for the work
+
+Typed arrays are a natural fit for dense numeric data. VSW uses them for measurement storage; Columnar uses typed-array-backed columns for query execution. StructAura's Rust core and WASM target make a different trade: share a deterministic algorithm across runtimes, with an explicit boundary for input and output.
+
+The browser also provides useful capabilities beyond computation. IndexedDB gives Pairwire durable local message state. WebRTC provides direct peer transport. Canvas provides a shared rendering surface for Chronos and Pixelflow. These are not substitutes for a backend in every application, but they make local-first and computation-heavy products possible.
+
+## Architecture follows the workload
+
+The browser does not remove the need for systems design. It makes resource boundaries more visible. Main-thread time, worker queues, transfer costs, memory, storage quota, network concurrency and rendering budgets all matter. The strongest implementations give each responsibility a clear owner and keep the user interface from becoming the coordinator for every expensive operation.
+
+Thinking of the browser as an execution environment changes what can be built locally. It also makes the architecture more interesting: the browser is not merely where the application appears; it is where meaningful parts of the system run.

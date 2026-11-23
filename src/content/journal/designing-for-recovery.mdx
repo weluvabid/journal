@@ -1,0 +1,46 @@
+---
+id: designing-for-recovery
+title: Designing for Recovery Instead of Happy Paths
+type: deep-dive
+category: systems-engineering
+summary: 'Recovery-oriented design across storage, messaging and caching: durable
+  state, idempotency, retry boundaries and cleanup.'
+date: 2026-11-14
+relatedProjects:
+- tiny-lsm
+- pairwire
+- cachewise
+tags:
+- recovery
+- idempotency
+- storage
+- distributed-systems
+- retries
+searchTerms:
+- crash recovery
+- transactional outbox
+- idempotent processing
+- single flight
+draft: false
+kind: article
+---
+
+A system is defined as much by what happens after interruption as by what happens during a successful operation. A process can stop halfway through a write, a network can disconnect after a receiver commits data, or a cached computation can fail while several callers are waiting for it. Recovery needs to be part of the model.
+
+TinyLSM stores data in a memtable and immutable sorted runs. Flush and compaction create new run files, while tombstones preserve deletions across levels. Recovery reads the persisted run metadata and reconstructs the active state. File formats are versioned, and parsing validates lengths and structure before accepting records.
+
+Pairwire handles a network interruption differently. A sender persists a message and its outbox entry transactionally. The receiver commits the message before acknowledging it. If the acknowledgement is lost, the sender retries; the receiver deduplicates by stable message ID and acknowledges the already-persisted message again. That makes repeated delivery attempts safe at the application boundary.
+
+Cachewise addresses concurrent computation. Single-flight ensures callers for the same key share one in-flight promise. If a computation fails, the failure propagates to those callers and the flight can be cleared so a later request can try again. TTL and invalidation govern the lifetime of successful cached values, while disposal callbacks provide a place to release resources.
+
+## Recovery requires stable identity
+
+A retry needs to know whether it is repeating the same operation or creating a new one. Pairwire's message ID gives the receiver a deduplication key. TinyLSM's run metadata and versioned file format identify persisted structures. Cachewise's key identifies the shared computation and cached result.
+
+Without stable identity, retries can duplicate effects or attach new state to old work. With it, a system can recognise repeated attempts and make the recovery path deterministic.
+
+## Commit boundaries matter
+
+Pairwire acknowledges after the IndexedDB transaction commits, not after the transport accepts a frame. TinyLSM must distinguish a completed file write from a fully committed storage transition. Cachewise must distinguish an in-flight promise from a completed cache entry. Each system has a point at which state becomes authoritative.
+
+The practical design exercise is to enumerate interruption points and decide what the next attempt observes. A recovery path should use the same state model as the successful path, not a separate collection of ad hoc cleanup branches.

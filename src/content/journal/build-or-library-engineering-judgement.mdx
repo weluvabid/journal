@@ -1,0 +1,50 @@
+---
+id: build-or-library-engineering-judgement
+title: When to Build a Primitive and When to Use a Library
+type: retrospective
+category: engineering-thinking
+summary: A practical way to decide which parts of a system deserve custom engineering
+  and which should rely on established browser or ecosystem primitives.
+date: 2026-11-20
+relatedProjects:
+- chronos
+- pixelflow
+- structaura
+- vehicle-signal-workbench
+- pairwire
+tags:
+- engineering-judgement
+- libraries
+- architecture
+- trade-offs
+- software-design
+searchTerms:
+- build versus buy
+- library selection
+- engineering scope
+- dependency boundaries
+draft: false
+kind: article
+---
+
+Building everything from scratch is not the same as understanding everything deeply. Good engineering judgement includes deciding where custom code creates value and where an established primitive already solves the problem well.
+
+Chronos uses Canvas 2D rather than implementing a rendering engine. Pixelflow uses the browser's image decoding and Canvas APIs while owning the scheduling and cache policy around them. StructAura uses Tree-sitter adapters for parsing and focuses its custom work on canonicalization and fingerprinting. Vehicle Signal Workbench uses ECharts for chart rendering and concentrates on ingestion, typed storage, viewport queries and synchronized interaction.
+
+## Build the differentiating layer
+
+A library is valuable when it removes a large body of peripheral work and has a contract that fits the application. Canvas provides drawing primitives; the application still needs to decide which items to draw and when. ECharts provides chart rendering; VSW still owns the measurement model and synchronized navigation. Tree-sitter provides syntax trees; StructAura still needs a canonical representation and stable fingerprint identity.
+
+The custom layer should contain the part where the engineering question lives. Reimplementing a charting library would not make VSW's data pipeline better. Writing a parser from scratch would not make StructAura's canonicalization more interesting.
+
+## Own the boundary around the dependency
+
+Using a library does not mean handing over the architecture. The application still owns input validation, resource limits, lifecycle, error propagation and the mapping between its domain model and the library's API.
+
+Pixelflow's image pipeline is a good example. The browser fetch and decode APIs do the underlying work, while the application controls concurrency, prioritisation, cancellation, retries and bitmap lifetime. Pairwire uses WebRTC for transport but defines application-level delivery through IndexedDB commits and acknowledgements.
+
+## Evaluate the cost of custom work
+
+A custom primitive is justified when it provides a measurable capability, a required contract or a meaningful learning objective. Otherwise, it creates maintenance, tests and edge cases that compete with the actual product. The strongest projects here use established components for commodity work and spend custom effort on data representation, execution policy and domain-specific behaviour.
+
+The decision is not “library versus engineering.” It is choosing the layer where engineering effort has the highest return.

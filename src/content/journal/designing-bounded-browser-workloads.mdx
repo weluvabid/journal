@@ -1,0 +1,46 @@
+---
+id: designing-bounded-browser-workloads
+title: Designing Bounded Workloads in Browser Applications
+type: deep-dive
+category: frontend-engineering
+summary: How concurrency limits, cancellation, cache budgets and queue thresholds
+  keep browser applications responsive under changing demand.
+date: 2026-11-9
+relatedProjects:
+- pixelflow
+- cachewise
+- pairwire
+tags:
+- backpressure
+- concurrency
+- cancellation
+- memory-management
+- browser-performance
+searchTerms:
+- bounded concurrency
+- request cancellation
+- resource budgets
+- queue backpressure
+draft: false
+kind: article
+---
+
+A browser application can become unresponsive without one operation being especially expensive. The problem is often accumulation: requests arrive faster than they finish, decoded resources remain retained, or work that is no longer relevant continues to consume capacity.
+
+Pixelflow makes those limits explicit in its image pipeline. It bounds concurrent fetches and decodes, prioritises visible images over overscan work and keeps a bounded bitmap LRU. When a bitmap leaves the cache, its `ImageBitmap` is closed so the underlying graphics resource can be released. Requests that no longer serve the current viewport can be cancelled, and transient failures use a bounded retry policy.
+
+Cachewise applies a memory budget to cached values. Its cost-aware admission and eviction policy uses caller-provided cost information alongside recency, rather than assuming every entry consumes the same amount of memory. TTL and explicit invalidation handle freshness; single-flight prevents duplicate concurrent computation for the same key.
+
+Pairwire bounds both sides of its transport. Incoming frame processing has a maximum backlog; when that limit is exceeded, the transport closes without acknowledging queued frames, allowing retry after reconnect. Outgoing writes are serialized and observe data-channel buffered amount thresholds, so multiple producers do not independently fill the send buffer.
+
+## A limit is useful only when overload has a policy
+
+A concurrency limit says how much work may be active. It does not say what happens when more work arrives. The system needs an overload policy: queue, coalesce, reject, cancel or defer. Pixelflow can supersede stale viewport work. Pairwire closes the transport and relies on durable retry. Cachewise can reject admission when a value does not fit the configured budget.
+
+Those choices should follow the semantics of the work. A superseded image request is disposable. An unacknowledged message is not; it remains in the outbox. A cache entry can be evicted because it can be recomputed or fetched again. The queue policy must match the value's durability and cost.
+
+## Bound resources as a system
+
+Fetch slots, decode slots, bitmap memory, cache bytes, message buffers and pending queues are separate resources. Tuning one in isolation can move the bottleneck somewhere else. A larger fetch limit may simply create more decode pressure. A larger cache may reduce network work but increase retained graphics memory. A deeper queue can absorb bursts but increase latency for the item at the front.
+
+The goal is not to maximise every limit. It is to keep the system's in-flight work proportional to what it can finish and what the user still needs.

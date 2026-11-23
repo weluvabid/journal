@@ -1,0 +1,76 @@
+---
+id: building-arrayforge-persistent-vectors
+title: 'ArrayForge: Persistent Vectors with B+ Trees and RRB Trees'
+type: deep-dive
+category: systems-engineering
+summary: A TypeScript persistent-vector library that compares B+ and RRB tree engines
+  while sharing unchanged pages across immutable versions.
+date: '2026-11-22'
+project: arrayforge
+tags:
+- typescript
+- persistent-data-structures
+- b-plus-tree
+- rrb-tree
+- structural-sharing
+- project
+searchTerms:
+- persistent vectors
+- B+ tree
+- RRB tree
+- path copying
+- immutable collections
+draft: false
+kind: project
+projectDetails:
+  status: released
+  stack:
+  - TypeScript
+  - Vitest
+  - Node.js
+  - Browser benchmarks
+  github: https://github.com/weluvabid/arrayforge
+  demo: https://weluvabid.github.io/arrayforge/
+  order: 16
+  resources:
+  - label: Source repository
+    url: https://github.com/weluvabid/arrayforge
+  - label: Browser benchmark suite
+    url: https://weluvabid.github.io/arrayforge/
+links:
+  git: https://github.com/weluvabid/arrayforge
+  demo: https://weluvabid.github.io/arrayforge/
+---
+
+JavaScript arrays are convenient, but an immutable update to a large array usually means copying the collection or introducing another representation around it. ArrayForge explores a different model: keep multiple versions of a collection while copying only the page and tree path touched by an update.
+
+A snapshot is constant-time because it shares the existing structure. When an item changes, the new version receives a replacement page and new nodes along the path to that page. Everything outside that path remains shared. The previous version is still valid and can continue to be read.
+
+## Two tree engines, one collection contract
+
+ArrayForge implements both a B+ tree and a Relaxed Radix Balanced tree. They expose the same collection operations, so the choice is about workload behaviour rather than a different public API. RRB is the default. Its relaxed structure is useful for sequence operations such as concatenation and slicing. The B+ implementation has a stricter occupancy policy and remains available for mutation-heavy profiles.
+
+The library exposes both engines directly and also provides workload profiles. A caller can select a profile at construction or convert an existing collection to the other tree without first materializing a JavaScript array. Conversion creates a new representation while preserving the original collection and its snapshots.
+
+## Pages are the storage unit
+
+Tree nodes organize pages; pages hold the collection values. Built-in page sizes are 256, 512 and 1024, with validated custom sizes also supported. This gives the implementation a tunable balance between tree height, page copying and local work within a page.
+
+Numeric storage and reference storage use specialized backends behind shared collection interfaces. The public operations remain familiar—`get`, `set`, `insert`, `deleteRange`, `slice`, `concat` and `splice`—while the storage representation can be chosen to suit the values being held.
+
+## Group related writes
+
+Single immutable operations are useful when each result is a meaningful version. For related writes, ArrayForge also provides a synchronous transaction callback and an explicit builder/commit workflow. A transaction applies a group of changes to a draft and returns one new collection. If the callback throws, the original collection remains unchanged.
+
+That distinction keeps the API useful for both functional composition and batches of edits. It also makes the commit boundary explicit: callers can retain the old version, publish the new one, or discard it.
+
+## Measure the engines instead of picking a favourite
+
+The benchmark suite covers 100K, 1M, 5M and 10M element collections and compares representative operations across both trees. The results show different strengths across workloads rather than a universal winner. That is why the library keeps both implementations behind one contract and exposes profiles instead of hiding the trade-off behind a single claim.
+
+The useful engineering result is not simply that persistent vectors can be built in TypeScript. It is that the representation, page size and operation mix can be measured independently, while the caller keeps a stable collection API and immutable snapshots.
+
+## Explore
+
+- [Source repository](https://github.com/weluvabid/arrayforge)
+- [Browser benchmarks](https://weluvabid.github.io/arrayforge/)

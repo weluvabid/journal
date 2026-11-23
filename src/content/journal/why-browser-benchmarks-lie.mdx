@@ -1,0 +1,57 @@
+---
+id: why-browser-benchmarks-lie
+title: Why Browser Benchmarks Lie When You Measure the Wrong Thing
+type: deep-dive
+category: engineering-thinking
+summary: 'Benchmark design across browser workloads: isolate the operation, include
+  setup costs and understand what the measurement actually counts.'
+date: 2026-11-23
+relatedProjects:
+- arrayforge
+- columnar
+- vehicle-signal-workbench
+- chronos
+- algokit
+tags:
+- benchmarking
+- performance
+- browser
+- measurement
+- engineering-methods
+searchTerms:
+- benchmark methodology
+- browser performance measurement
+- p95
+- warmup
+- operation boundary
+draft: false
+kind: article
+---
+
+A benchmark can produce a precise number and still answer the wrong question. The most common problem is not arithmetic; it is measuring a convenient boundary that does not represent the workload being compared.
+
+The projects here exposed several versions of that problem. ArrayForge compares two persistent tree engines across operation profiles and collection sizes. Columnar measures ingestion, filtering, projection and aggregation separately. Vehicle Signal Workbench distinguishes ingestion throughput from chart interaction. Chronos compares rendering approaches using browser traces as well as frame-rate observations.
+
+## Name the operation boundary
+
+If a graph traversal uses a prebuilt compressed sparse row representation, traversal-only timing answers how quickly the representation can be traversed. It does not answer how quickly an application can build the representation and traverse it once. AlgoKit reports both. In its 100K-node BFS workload, CSR traversal measured 0.489 ms compared with 6.501 ms for an object graph; the build-inclusive result is a separate number because construction changes the economics for one-off use.
+
+Columnar makes similar boundaries visible. Ingestion, filter-and-project, fused aggregation and streaming aggregation are different operations. Combining them into one elapsed time would hide which stage dominates and whether an execution strategy helped.
+
+## Measure the user-visible path too
+
+A fast ingestion pipeline does not guarantee a responsive chart. VSW keeps ingestion and viewport interaction as separate measurements. Chronos uses browser performance traces to compare main-thread work, layout, style updates and paint across rendering approaches. Frame rate is useful, but it is not a replacement for understanding where the main thread spends time.
+
+Instrumentation itself can change the result. VSW's Safari experiment showed that progress animation updates were doing work during ingestion. Removing those updates from that path changed observed throughput. That is a reminder that the benchmark harness and the interface around it are part of the measured system.
+
+## Compare the same workload
+
+A useful comparison keeps input size, data shape, warm-up, runtime and operation boundaries aligned. It also records enough context to explain what was measured. Percentiles need enough samples to mean what their labels imply; with a small sample count, reporting a maximum as a maximum is clearer than presenting it as a p95.
+
+The benchmark should also preserve the workload's natural distribution. A data structure tested only with uniform operations may behave differently under clustered edits, repeated reads or large concatenations. ArrayForge's separate profiles exist because the operation mix changes which tree performs better.
+
+## Make the result explain a decision
+
+The best benchmark is one that changes an engineering decision. It might show that a preprocessing cost pays off after repeated traversals, that a fused aggregation avoids intermediate allocations, or that Canvas reduces main-thread layout work for dense interfaces.
+
+A number without its boundary is trivia. A number tied to a repeatable workload, a clear operation and an implementation choice is engineering evidence.

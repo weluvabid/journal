@@ -1,0 +1,46 @@
+---
+id: the-cost-of-doing-work-too-early
+title: The Cost of Doing Work Too Early
+type: engineering-note
+category: engineering-thinking
+summary: Lazy preparation, cached work and deferred computation reduce repeated cost
+  when the application can identify the moment a result is actually needed.
+date: 2026-11-15
+relatedProjects:
+- algokit
+- pulse
+- cachewise
+tags:
+- lazy-evaluation
+- caching
+- reactivity
+- performance
+- runtime-design
+searchTerms:
+- deferred computation
+- lazy computed values
+- single flight
+- lazy initialization
+draft: false
+kind: article
+---
+
+Not every expensive operation needs to happen when an object is created. Sometimes the better design is to retain enough information to perform the work later, at the first point where the result is useful.
+
+AlgoKit uses this idea in consistent hashing: the ring is not sorted during construction; sorting is deferred until the first lookup. That moves work away from instances that may never be queried. Pulse uses a related strategy for computed values. A write marks dependents stale, but a computed function runs when the value is read. The runtime propagates invalidation without eagerly recalculating every derived value.
+
+Cachewise applies the same principle at a different boundary. Single-flight computation shares one in-flight result among concurrent callers for the same key. Instead of starting duplicate work because several callers arrive together, the cache retains the promise and lets those callers share the result.
+
+## Laziness needs an invalidation story
+
+Deferring work creates a responsibility: the system must know when the prepared result is stale. Pulse rebuilds an effect's dependency set on each run, removing subscriptions that no longer belong to the active branch. Cachewise removes or invalidates entries according to TTL and explicit invalidation. AlgoKit's deferred ring sort is tied to the ring's construction state, so the first lookup can prepare the stable ordering it needs.
+
+The useful distinction is between delaying work and losing track of work. Laziness is effective when ownership and invalidation are explicit.
+
+## Choose the boundary carefully
+
+Lazy evaluation is not automatically faster. If every value is always read, deferring computation may only move the cost. If an application needs predictable latency on the first interaction, eager preparation may be preferable. The point is to align the cost with demand and reuse.
+
+A practical question is: will this result be needed, and how many times? If it may never be needed, defer it. If many callers need the same expensive result concurrently, share the in-flight computation. If a derived value is expensive and often unused, invalidate it and recompute on demand.
+
+These patterns appear in different parts of the stack, but the design principle is the same: avoid doing work before the system has a reason to do it.

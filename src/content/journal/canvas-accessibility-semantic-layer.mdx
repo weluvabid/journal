@@ -1,0 +1,47 @@
+---
+id: canvas-accessibility-semantic-layer
+title: Accessibility for Interfaces Rendered on Canvas
+type: engineering-note
+category: frontend-engineering
+summary: Canvas can render dense interfaces efficiently while a bounded semantic DOM
+  layer preserves keyboard and assistive-technology access.
+date: 2026-11-8
+relatedProjects:
+- chronos
+- pixelflow
+tags:
+- accessibility
+- canvas
+- semantic-html
+- keyboard-navigation
+- frontend-engineering
+searchTerms:
+- Canvas accessibility
+- semantic DOM
+- screen reader Canvas
+- accessible virtualized interface
+draft: false
+kind: article
+---
+
+Canvas gives an application control over drawing, but pixels do not expose the structure of an interface to assistive technology. A chart or gallery rendered entirely into one bitmap needs another representation for users who navigate by keyboard or screen reader.
+
+Chronos and Pixelflow use Canvas for dense visual content. Their renderers draw only the visible region and a small overscan area, rather than creating a DOM element for every timer or image. That keeps the visual surface compact, but it also means the application must deliberately expose meaningful content outside the Canvas.
+
+## Separate visual and semantic representations
+
+The Canvas can remain the primary visual renderer while a bounded semantic list describes the visible items. The semantic layer should follow the same viewport model: expose the items that are currently relevant, update as the user moves through the content and avoid constructing a second full-size DOM tree.
+
+The two representations serve different consumers. Canvas provides precise visual control and efficient drawing. Semantic HTML exposes names, roles, relationships and keyboard-operable controls. They need to stay synchronized around stable item identity and current viewport state.
+
+## Keyboard behaviour is part of the model
+
+A dense interface needs a predictable way to move through items, activate actions and return focus. Keyboard navigation should use the same item ordering as the visual surface. Focus changes should update the visible window when necessary, and the semantic representation should not disappear while its item is the active target.
+
+This is not solved by adding an `aria-label` to the Canvas. The application needs to expose the actual content and interaction model. The visual renderer and semantic layer are two views of the same underlying data.
+
+## Keep the semantic layer bounded
+
+Creating a hidden DOM node for every item would reintroduce the cost the Canvas architecture was designed to avoid. A bounded visible list gives assistive technology useful structure while keeping DOM work proportional to the viewport. The key is to keep the data model authoritative and derive both representations from it.
+
+Canvas performance and accessibility are not competing goals. They require separate rendering paths that share identity, ordering and interaction state.

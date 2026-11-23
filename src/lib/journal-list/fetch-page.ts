@@ -6,7 +6,6 @@ export interface FetchJournalPageOptions {
   readonly currentUrl: string;
   readonly currentOrigin: string;
   readonly pageSize: number;
-  readonly seenIds: ReadonlySet<string>;
   readonly requestedPageUrls: ReadonlySet<string>;
   readonly signal: AbortSignal;
   readonly fetcher?: typeof fetch;
@@ -21,7 +20,7 @@ export interface FetchedJournalPage {
 export async function fetchJournalPage(
   options: FetchJournalPageOptions,
 ): Promise<FetchedJournalPage> {
-  const { pageUrl, currentUrl, currentOrigin, pageSize, seenIds, requestedPageUrls, signal } =
+  const { pageUrl, currentUrl, currentOrigin, pageSize, requestedPageUrls, signal } =
     options;
   const requestUrl = new URL(pageUrl, currentUrl);
   const fetcher = options.fetcher ?? fetch;
@@ -57,7 +56,6 @@ export async function fetchJournalPage(
     items: payload.items,
     nextPageUrl: payload.nextPageUrl,
     pageSize,
-    seenIds,
     requestedPageUrls,
     requestUrl,
     followingPageUrl,

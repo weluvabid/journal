@@ -1,0 +1,47 @@
+---
+id: objects-to-bytes-data-representations
+title: 'From Objects to Bytes: Choosing Data Representations'
+type: deep-dive
+category: systems-engineering
+summary: How typed arrays, packed bitmaps, dictionary encoding and binary protocols
+  change memory layout and execution costs.
+date: 2026-11-19
+relatedProjects:
+- columnar
+- algokit
+- frontend-atlas
+tags:
+- typed-arrays
+- binary-formats
+- memory-layout
+- data-structures
+- performance
+searchTerms:
+- typed array memory layout
+- columnar storage
+- CSR representation
+- binary protocol
+- dictionary encoding
+draft: false
+kind: article
+---
+
+JavaScript objects are expressive, but they are not always the best representation for large, regular datasets. When a workload is mostly numeric or tabular, a representation built from typed arrays can reduce per-value overhead and make access patterns more predictable.
+
+Columnar stores numeric columns in contiguous typed-array buffers. String columns use dictionary encoding, nullable values use bit-packed validity maps, and booleans use byte storage. The query engine can operate directly on those buffers instead of creating a row object for every record.
+
+AlgoKit applies packed representations to algorithms. Its CSR graph stores adjacency in typed arrays, while its Bloom filter packs bits into `Uint32Array` words. The representation changes the cost of traversing edges and checking membership because the hot data is stored in compact buffers rather than object graphs.
+
+Frontend Atlas uses binary encoding for a different purpose: transferring local reading progress through a QR snapshot. A versioned payload, manifest and CRC make the transfer compact and verifiable, while the application can merge or replace progress according to the selected operation.
+
+## Representation follows access pattern
+
+A columnar table is effective when queries read a subset of columns across many rows. CSR is effective when graph traversal repeatedly scans adjacency ranges. A packed Bloom filter is effective when the operation is a membership test and false positives are acceptable. A compact QR payload is effective when the data must fit into a constrained transfer medium.
+
+The same representation is not universally useful. Row objects are convenient when records are small and application code frequently manipulates whole entities. Typed arrays are more natural when the data is dense and operations are numeric. Dictionary encoding helps repeated strings; a validity bitmap makes nullability compact; a binary protocol helps when serialization overhead matters.
+
+## Make the conversion boundary visible
+
+Changing representation has a cost. Row records may need to be converted at ingestion. A graph may need to be built into CSR before traversal. A binary snapshot needs encoding and decoding. Those costs belong in the performance model, especially when the representation is used only once.
+
+The useful question is not whether objects are slow or bytes are fast. It is whether the representation matches the operations the application performs most often, and whether the cost of preparing it is recovered through reuse.

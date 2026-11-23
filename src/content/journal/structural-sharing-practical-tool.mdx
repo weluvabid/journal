@@ -1,0 +1,43 @@
+---
+id: structural-sharing-practical-tool
+title: Structural Sharing as a Practical Engineering Tool
+type: engineering-note
+category: systems-engineering
+summary: Structural sharing preserves previous versions while limiting updates to
+  the parts of a data structure that actually change.
+date: 2026-11-22
+relatedProjects:
+- arrayforge
+- jsonplus
+tags:
+- structural-sharing
+- persistent-data-structures
+- serialization
+- memory
+- data-structures
+searchTerms:
+- path copying
+- persistent collections
+- object identity
+- shared references
+draft: false
+kind: article
+---
+
+Structural sharing is often introduced as a property of persistent data structures: when a collection changes, unchanged branches can be reused by the new version. The practical benefit is broader. It gives an application a way to retain snapshots without copying every value on every update.
+
+ArrayForge applies path copying to tree-backed vectors. A point update replaces the affected page and the nodes along its path. Other pages and subtrees remain shared. The old collection continues to refer to its original path, while the new collection reaches the replacement path. Creating a snapshot is constant-time because it does not duplicate the underlying collection.
+
+JSONPlus deals with identity in a different setting. It serializes object graphs, including cycles and shared references. Its node table records a referenceable object once, then subsequent edges point to that node. During decoding, nodes are allocated before edges are wired, which preserves cycles and shared identity.
+
+## Two meanings of sharing
+
+ArrayForge shares storage between versions of a collection. JSONPlus preserves shared object identity across a serialization boundary. They are not the same mechanism, but both require the implementation to treat identity as part of the data model rather than flattening everything into independent copies.
+
+The design question is what must remain shared. In a persistent vector, it is the unchanged structure between versions. In a serialized graph, it is the fact that two properties can point to the same object, or that an object can point back to itself.
+
+## The trade-off is explicit
+
+Sharing reduces copying, but it adds structure. Persistent collections need tree nodes, page occupancy rules and update algorithms. Graph serialization needs reference IDs, validation and a decoding sequence that can rebuild cycles safely. The representation earns its complexity when snapshots, identity or large repeated structures matter to the application.
+
+A useful way to evaluate a design is to look at the operation that changes the data and ask how much of the existing representation must actually change. If most of it remains the same, rebuilding everything is often unnecessary.

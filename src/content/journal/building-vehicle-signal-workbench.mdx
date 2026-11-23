@@ -1,0 +1,75 @@
+---
+id: building-vehicle-signal-workbench
+title: 'Vehicle Signal Workbench: A Local-First Workbench for Large Measurement Recordings'
+type: deep-dive
+category: frontend-engineering
+summary: A browser workbench for deterministic vehicle-drive comparisons, worker-based
+  ingestion and viewport queries across millions of time-series samples.
+date: '2026-11-20'
+project: vehicle-signal-workbench
+tags:
+- browser-performance
+- web-workers
+- time-series
+- typed-arrays
+- visualization
+- project
+searchTerms:
+- vehicle measurements
+- time series browser
+- worker ingestion
+- viewport query
+- ECharts
+draft: false
+kind: project
+projectDetails:
+  status: released
+  stack:
+  - Next.js
+  - React
+  - TypeScript
+  - Web Workers
+  - ECharts
+  github: https://github.com/weluvabid/vehicle-signal-workbench
+  demo: https://vehicle-signal-workbench.vercel.app/
+  order: 15
+  resources:
+  - label: Deterministic vehicle measurement workbench
+    url: https://vehicle-signal-workbench.vercel.app/
+  - label: Source repository
+    url: https://github.com/weluvabid/vehicle-signal-workbench
+links:
+  git: https://github.com/weluvabid/vehicle-signal-workbench
+  demo: https://vehicle-signal-workbench.vercel.app/
+---
+
+I started Vehicle Signal Workbench with a backend-shaped idea: accept vehicle measurement recordings, analyse them and return a report. The more interesting question became whether the browser could do the work locally. That meant treating the browser as the application runtime rather than a thin client that uploads data somewhere else.
+
+The current workbench uses deterministic reference and comparison drives. Both share a 10 ms sampling cadence, with a 35 ms phase offset in the comparison recording. Five related signals make the comparison concrete: Vehicle Speed, Engine RPM, Throttle Position, Brake Pressure and Steering Angle. The generated comparison drive includes repeatable sensor bias, noise and speed-sensor dropouts, so the same workload can be inspected again after an implementation change.
+
+## Keep the data work off the UI thread
+
+Ingestion, normalization, indexing and viewport queries run in dedicated workers. The UI does not own the full measurement registry. It asks for the portion needed by the current chart viewport, while typed-array-backed structures hold the measurement data. This separates the interactive surface from the work that scales with recording size.
+
+That separation matters because the cost of loading a recording and the cost of interacting with a chart are different. A fast ingestion path does not automatically produce responsive zooming and panning. The workbench measures both, and the chart layer receives bounded viewport data rather than repeatedly traversing the complete recording.
+
+ECharts handles chart rendering. The application coordinates synchronized time axes, channel visibility, zoom and pan, while worker queries supply the visible signal ranges. The five channels remain related views of the same drive rather than five independent charts with unrelated navigation state.
+
+## Make the workload repeatable
+
+The generated recordings pass through the CSV ingestion pipeline. That lets the application exercise parsing and normalization with controlled input while keeping the comparison deterministic. The current interface uses generated workloads up to 10 million samples per recording; it does not expose a general-purpose CSV upload workflow.
+
+The repository also contains 18 CSV regression scenarios covering different sampling rates, partial overlap, irregular and duplicate timestamps, missing and extreme values, ambiguous channel names, incompatible units, malformed CSV, timestamp encodings and mixed metadata/columns. Those cases give ingestion changes a stable set of behaviours to preserve.
+
+## Follow the browser's actual bottlenecks
+
+One useful performance improvement came from watching Safari's progress indicator. Ingestion appeared to pause and then catch up, which suggested that progress animation updates were doing work during the most expensive part of the pipeline. Removing those updates from that path moved the observed Safari throughput from roughly 13M to 14M samples per second and saved around 400–800 ms across Safari and Chrome in the experiments.
+
+The project also pushed a large mobile workload: around 250 MB, or roughly 52 million data points, on an iPhone SE (2020). It completed in most attempts, although not reliably on every run. That experiment was useful because it exposed the practical limits of a browser device rather than relying on desktop-only assumptions.
+
+Vehicle Signal Workbench is an exploration of local computation, typed data, worker boundaries and interactive visualization. Its central design choice is simple: keep ingestion and query work away from the UI thread, and make rendering follow the viewport instead of the full recording.
+
+## Explore
+
+- [Source repository](https://github.com/weluvabid/vehicle-signal-workbench)
+- [Live workbench](https://vehicle-signal-workbench.vercel.app/)

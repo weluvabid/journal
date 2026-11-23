@@ -54,7 +54,6 @@ export interface PageIntegrityInput {
   readonly items: readonly JournalListEntry[];
   readonly nextPageUrl: string | null;
   readonly pageSize: number;
-  readonly seenIds: ReadonlySet<string>;
   readonly requestedPageUrls: ReadonlySet<string>;
   readonly requestUrl: URL;
   readonly followingPageUrl: URL | null;
@@ -67,7 +66,6 @@ export function assertJournalPageIntegrity(input: PageIntegrityInput): void {
     items,
     nextPageUrl,
     pageSize,
-    seenIds,
     requestedPageUrls,
     requestUrl,
     followingPageUrl,
@@ -100,8 +98,8 @@ export function assertJournalPageIntegrity(input: PageIntegrityInput): void {
   const pageIds = new Set<string>();
 
   for (const entry of items) {
-    if (pageIds.has(entry.id) || seenIds.has(entry.id)) {
-      throw new Error(`Journal pagination returned duplicate entry id: ${entry.id}`);
+    if (pageIds.has(entry.id)) {
+      throw new Error(`Journal pagination returned duplicate entry id within a page: ${entry.id}`);
     }
 
     pageIds.add(entry.id);

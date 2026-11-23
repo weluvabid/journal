@@ -1,0 +1,46 @@
+---
+id: reactive-runtime-first-principles
+title: 'Building a Reactive Runtime: Dependency Graphs and Scheduling'
+type: deep-dive
+category: frontend-engineering
+summary: A closer look at dependency reconciliation, lazy computed values, effect
+  ownership and synchronous scheduling in Pulse.
+date: 2026-11-13
+relatedProjects:
+- pulse
+tags:
+- reactivity
+- signals
+- dependency-tracking
+- scheduler
+- frontend-runtime
+searchTerms:
+- reactive runtime
+- dynamic dependencies
+- effect cleanup
+- batch scheduling
+draft: false
+kind: article
+---
+
+A reactive API can look small while hiding a graph of subscriptions and scheduled work underneath. Pulse exposes signals, computed values, effects and batching, but the runtime has to keep that graph correct as application reads change over time.
+
+A signal stores a value and notifies its dependents when it changes. A computed value is lazy: writes invalidate it, and its function runs when it is read again. An effect runs synchronously and tracks the signals it reads. Batching delays the flush until the outermost batch completes, so observers do not see intermediate states from a group of related writes.
+
+## Dependencies are rebuilt, not accumulated
+
+An effect's dependencies can change when control flow changes. If an effect reads `primary` in one run and `secondary` in the next, it must stop subscribing to `primary`. Pulse collects the dependencies read during each execution and reconciles them with the previous set. This is the difference between dynamic dependency tracking and a subscription list that only grows.
+
+Effect ownership matters too. Before an effect reruns, child effects are disposed and registered cleanups execute in reverse order. The disposer is idempotent and removes the effect from its dependencies. That gives nested work a lifecycle tied to the effect that created it.
+
+## Keep the scheduler predictable
+
+The scheduler de-duplicates queued effects in a `Set` and flushes synchronously at the update boundary. Nested batches defer that flush until the outermost batch exits. A synchronous re-entry limit prevents a cycle from blocking the JavaScript agent indefinitely. If one queued effect throws, errors are collected while the rest of the queue still gets a chance to run.
+
+Instrumentation is part of the runtime contract too. Pulse emits reactive event types and runtime IDs without exposing application values. Listener failures are contained so an observer cannot interrupt the scheduler.
+
+## The runtime stops at the right boundary
+
+Pulse provides state, dependency tracking and effect scheduling. It does not render components or own a framework's component lifecycle. That keeps the core small and lets an application decide how effects connect to its own rendering model.
+
+The difficult tests are not the happy path where one signal updates one effect. They are conditional dependencies, nested batches, cleanup ordering, disposal during an update and instrumentation listeners that throw. Those cases exercise the runtime's ownership and scheduling rules—the parts that make a reactive system reliable.

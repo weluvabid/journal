@@ -1,0 +1,75 @@
+---
+id: pairwire-reliable-peer-to-peer-messaging
+title: 'Pairwire: Reliable Messaging over WebRTC'
+type: deep-dive
+category: systems-engineering
+summary: A peer-to-peer messaging application with transactional local persistence,
+  application acknowledgements, idempotent receive processing and reconnect recovery.
+date: '2026-10-29'
+project: pairwire
+tags:
+- webrtc
+- indexeddb
+- distributed-systems
+- messaging
+- reliability
+- project
+searchTerms:
+- WebRTC messaging
+- transactional outbox
+- application acknowledgement
+- idempotent delivery
+- data channel backpressure
+draft: false
+kind: project
+projectDetails:
+  status: released
+  stack:
+  - TypeScript
+  - Preact
+  - WebRTC
+  - IndexedDB
+  - Vite
+  github: https://github.com/weluvabid/pairwire
+  demo: https://weluvabid.github.io/pairwire/
+  order: 19
+  resources:
+  - label: Source repository
+    url: https://github.com/weluvabid/pairwire
+  - label: Live Pairwire application
+    url: https://weluvabid.github.io/pairwire/
+links:
+  git: https://github.com/weluvabid/pairwire
+  demo: https://weluvabid.github.io/pairwire/
+---
+
+A successful `RTCDataChannel.send()` call means the browser accepted a frame for transmission. It does not mean the other application received the message, committed it to storage or can show it after a reload. Pairwire makes those states explicit.
+
+Pairwire connects two browser contexts directly through WebRTC data channels. Pairing uses a manual offer/answer exchange, with clipboard-assisted signaling and no messaging server. Conversation history, peer metadata and pending messages are stored locally in IndexedDB.
+
+## Persistence defines delivery
+
+When a message is created, Pairwire writes the message and its outbox entry transactionally. The transport sends the frame, but the sender does not mark it delivered just because the local data channel accepted it. The receiving side validates the versioned envelope, inserts the message and records its identity in one IndexedDB transaction. Only after that commit does it send the application acknowledgement.
+
+This gives the sender meaningful states: pending, sending, sent, delivered and failed. `Sent` means the browser accepted the frame for transmission. `Delivered` means the remote application committed the message locally and acknowledged that commit.
+
+The distinction matters when a connection drops between persistence and acknowledgement. The sender may retry the same message. The receiver uses the stable message ID and transactional deduplication to recognise the duplicate and acknowledge it again without creating another conversation entry. The system uses at-least-once transmission attempts with idempotent receive processing.
+
+## Reconnect from durable state
+
+The outbox survives reloads and disconnects. When the peers reconnect, eligible messages are retried. Reconnection creates a fresh signaling exchange tied to the existing peer identity, and Pairwire checks the remote device ID before accepting the payload for that conversation. The transport can be replaced without deleting local history or pending messages.
+
+The application separates responsibilities. Preact components render state and collect input. `MessagingService` coordinates transport and persistence. `WebRtcTransport` owns connection and data-channel lifecycle. `PairwireStore` owns IndexedDB transactions. Protocol validation rejects malformed identifiers, unsafe timestamps and conflicting reuse of a message ID.
+
+## Bound the transport queues
+
+Incoming frame processing has a bounded backlog. If it exceeds the limit, the transport closes without acknowledging queued frames, allowing the sender to retry after reconnect. Outgoing data-channel writes are serialized and use a 256 KiB high-water mark with a 64 KiB drain threshold. This keeps message and acknowledgement producers within a bounded send queue instead of allowing concurrent writers to grow buffered data without coordination.
+
+Pairwire keeps the networking model deliberately direct. There is no server-side message queue or offline relay; a recipient must reconnect to receive pending messages. The local outbox provides durable retry state, while WebRTC provides the active transport.
+
+The useful design point is the boundary between transport and delivery. Pairwire treats delivery as an application-level state backed by a storage commit, not as a side effect of calling a browser API.
+
+## Explore
+
+- [Source repository](https://github.com/weluvabid/pairwire)
+- [Live application](https://weluvabid.github.io/pairwire/)
