@@ -42,7 +42,7 @@ test('tag overflow uses the shared Iris Popover instead of a nested scrollport',
   const tags = await read('../src/components/cards/TagList.svelte');
 
   assert.match(tags, /@weluvabid\/iris\/components\/ui\/popover/);
-  assert.match(tags, /max-w-\[calc\(100vw-2rem\)\]/);
+  assert.match(tags, /max-w-\[calc\(100vw_-_2rem\)\]/);
   assert.doesNotMatch(tags, /scroll-area|orientation=\"horizontal\"|scrollbarXClasses/);
   const projectCard = await read('../src/components/cards/ProjectCard.svelte');
 

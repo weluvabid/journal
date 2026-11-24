@@ -23,6 +23,6 @@ test('all card and detail-page tag wrappers use the available content width', as
   assert.doesNotMatch(journalCard, /pointer-events-(?:auto|none)/);
   assert.match(journalDetail, /block w-full min-w-0 max-w-full/);
   assert.match(tagList, /relative mt-3 flex min-w-0 max-w-full flex-wrap/);
-  assert.match(tagList, /max-w-\[calc\(100vw-2rem\)\]/);
+  assert.match(tagList, /max-w-\[calc\(100vw_-_2rem\)\]/);
   assert.match(tagList, /tags\.slice\(0, VISIBLE_TAG_LIMIT\)/);
 });

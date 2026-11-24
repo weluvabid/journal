@@ -47,7 +47,7 @@ test('each project has exactly one canonical journal entry and related articles 
     associated.set(entry.data.project, group);
   }
 
-  assert.equal(associated.size, 14);
+  assert.equal(associated.size, 19);
 
   for (const [id, group] of associated) {
     const canonical = group.filter(({ data }) => data.kind === 'project');
@@ -55,7 +55,7 @@ test('each project has exactly one canonical journal entry and related articles 
     assert.equal(canonical.length, 1, `${id} must have one canonical article`);
     assert.match(
       canonical[0].frontmatter,
-      /^\s+- project$/mu,
+      /^[ \t]*- project$/mu,
       `${id} canonical entry needs project tag`,
     );
     assert.match(canonical[0].frontmatter, /^projectDetails:/mu, `${id} needs project metadata`);

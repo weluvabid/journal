@@ -3,16 +3,16 @@ import assert from 'node:assert/strict';
 import { readdir, access, readFile } from 'node:fs/promises';
 const journalRoot = new URL('../src/content/journal/', import.meta.url);
 
-test('Journal contains fourteen MDX entries with stable kebab-case filenames', async () => {
+test('Journal contains MDX entries with stable kebab-case filenames', async () => {
   const files = (await readdir(journalRoot)).filter((file) => file.endsWith('.mdx'));
 
-  assert.equal(files.length, 17);
+  assert.equal(files.length, 37);
 
   for (const file of files) {
     assert.match(file.slice(0, -4), /^[a-z0-9]+(?:-[a-z0-9]+)*$/u);
   }
 });
-test('all twelve projects live in Journal frontmatter; no duplicate project collection remains', async () => {
+test('all canonical projects live in Journal frontmatter; no duplicate project collection remains', async () => {
   const files = (await readdir(journalRoot)).filter((file) => file.endsWith('.mdx'));
   const canonical = [];
 
@@ -25,14 +25,14 @@ test('all twelve projects live in Journal frontmatter; no duplicate project coll
     }
   }
 
-  assert.equal(canonical.length, 14);
+  assert.equal(canonical.length, 19);
 
   for (const frontmatter of canonical) {
     assert.match(frontmatter, /^project: [a-z0-9-]+$/mu);
     assert.match(frontmatter, /^projectDetails:/mu);
     assert.match(frontmatter, /^ {2}order: [1-9][0-9]*$/mu);
     assert.doesNotMatch(frontmatter, /^featured:|^ {2}featured:/mu);
-    assert.match(frontmatter, /^\s+- project$/mu);
+    assert.match(frontmatter, /^[ \t]*- project$/mu);
   }
 
   await assert.rejects(access(new URL('../src/content/projects/', import.meta.url)));
@@ -56,7 +56,7 @@ test('Atlas runtime and question content have been removed', async () => {
   }
 });
 
-test('Journal has two writing entries and one canonical project entry for Journal itself', async () => {
+test('Journal has eighteen writing entries and one canonical project entry for Journal itself', async () => {
   const files = (await readdir(journalRoot)).filter((file) => file.endsWith('.mdx'));
   let articles = 0;
   let journalProject = false;
@@ -74,6 +74,6 @@ test('Journal has two writing entries and one canonical project entry for Journa
     }
   }
 
-  assert.equal(articles, 3);
+  assert.equal(articles, 18);
   assert.equal(journalProject, true);
 });

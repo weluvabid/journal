@@ -46,11 +46,16 @@ test('project ranking is explicit, unique and independent of publication dates',
       'iris',
       'wordweave',
       'journal',
+      'vehicle-signal-workbench',
+      'arrayforge',
+      'columnar',
+      'algokit',
+      'pairwire',
     ],
   );
   assert.deepEqual(
     ranked.map(({ order }) => order),
-    Array.from({ length: 14 }, (_, i) => i + 1),
+    Array.from({ length: 19 }, (_, i) => i + 1),
   );
   assert.equal(new Set(ranked.map(({ order }) => order)).size, ranked.length);
 });

@@ -35,8 +35,8 @@
         <Content
           align="start"
           side="bottom"
-          class="box-border w-full max-w-[24rem] gap-2 p-3"
-          style="width: min(24rem, calc(100vw - 2rem)); max-width: min(24rem, calc(100vw - 2rem));"
+          collisionPadding={16}
+          class="box-border w-[min(24rem,calc(100vw_-_2rem))] max-w-[calc(100vw_-_2rem)] gap-2 p-3"
           aria-label={`More tags for ${label}`}
         >
           <p class="text-xs font-medium text-muted-foreground">More topics</p>

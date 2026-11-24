@@ -15,7 +15,7 @@ test('tag list shows three archive links and exposes remaining tags through Iris
   assert.match(source, /<Trigger[\s\S]*?type="button"/);
   assert.match(source, /\+\{overflowTags\.length\}/);
   assert.match(source, /<Content[\s\S]*?align="start"/);
-  assert.match(source, /w-\[min\(24rem,calc\(100vw-2rem\)\)\]/);
+  assert.match(source, /w-\[min\(24rem,calc\(100vw_-_2rem\)\)\]/);
   assert.match(source, /flex w-full min-w-0 flex-wrap gap-2/);
   assert.match(source, /tagHref\(tag, scope\)/);
   assert.match(source, /More topics/);
