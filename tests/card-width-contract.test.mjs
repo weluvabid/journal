@@ -22,9 +22,7 @@ test('all card and detail-page tag wrappers use the available content width', as
   assert.doesNotMatch(projectCard, /pointer-events-(?:auto|none)/);
   assert.doesNotMatch(journalCard, /pointer-events-(?:auto|none)/);
   assert.match(journalDetail, /block w-full min-w-0 max-w-full/);
-  assert.match(tagList, /relative mt-3 min-w-0 max-w-full overflow-hidden/);
-  assert.match(tagList, /pointer-events-inherit relative h-9 w-full min-w-0 max-w-full/);
-  assert.match(tagList, /orientation="horizontal"/);
-  assert.match(tagList, /flex w-max min-w-full flex-nowrap gap-2/);
-  assert.doesNotMatch(tagList, /sm:flex-wrap|sm:overflow-visible/);
+  assert.match(tagList, /relative mt-3 flex min-w-0 max-w-full flex-wrap/);
+  assert.match(tagList, /max-w-\[calc\(100vw-2rem\)\]/);
+  assert.match(tagList, /tags\.slice\(0, VISIBLE_TAG_LIMIT\)/);
 });

@@ -4,7 +4,7 @@ import { readFile } from 'node:fs/promises';
 
 const read = (path) => readFile(new URL(`../${path}`, import.meta.url), 'utf8');
 
-test('category native scrollport and Iris tag ScrollArea keep focus outlines on links', async () => {
+test('category native scrollport remains independent of the tag popover', async () => {
   const categorySelect = await read('src/components/journal/CategorySelect.svelte');
   const tagList = await read('src/components/cards/TagList.svelte');
 
@@ -16,11 +16,11 @@ test('category native scrollport and Iris tag ScrollArea keep focus outlines on 
   assert.match(categoryScrollport[1], /overflow-x-auto/);
   assert.doesNotMatch(categoryScrollport[1], /focus-visible:outline/);
 
-  assert.match(tagList, /<Root[\s\S]*?orientation="horizontal"/);
-  assert.match(tagList, /scrollbarXClasses=/);
+  assert.match(tagList, /@weluvabid\/iris\/components\/ui\/popover/);
+  assert.match(tagList, /<Trigger[\s\S]*?type="button"/);
 });
 
-test('category and tag links keep their keyboard focus outlines inside their scrollports', async () => {
+test('category and tag links retain visible keyboard focus outlines', async () => {
   const categorySelect = await read('src/components/journal/CategorySelect.svelte');
   const tagList = await read('src/components/cards/TagList.svelte');
 

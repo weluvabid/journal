@@ -20,10 +20,9 @@ test('journal tags remain independent links above the stretched card link', asyn
   const tags = await read('../src/components/cards/TagList.svelte');
 
   assert.match(card, /<ContentCard href=\{entry\.href\}/);
-  assert.match(tags, /tagHref\(tag, scope\)/);
-  assert.match(tags, /pointer-events-inherit relative h-9 w-full min-w-0 max-w-full/);
-  assert.match(tags, /orientation="horizontal"/);
-  assert.match(tags, /inline-flex w-max flex-nowrap gap-2 pointer-events-auto/);
+  assert.match(tags, /VISIBLE_TAG_LIMIT = 3/);
+  assert.match(tags, /pointer-events-auto inline-flex shrink-0/);
+  assert.match(tags, /<Root>[\s\S]*?<Trigger[\s\S]*?<Content/);
 });
 
 test('homepage and Projects archive render canonical project articles through shared cards', async () => {
@@ -39,13 +38,12 @@ test('homepage and Projects archive render canonical project articles through sh
   assert.match(card, /<ContentCard \{href\}/);
 });
 
-test('tag scrollports stay width constrained and horizontally scrollable', async () => {
+test('tag overflow uses the shared Iris Popover instead of a nested scrollport', async () => {
   const tags = await read('../src/components/cards/TagList.svelte');
 
-  assert.match(tags, /min-w-0 max-w-full/);
-  assert.match(tags, /<Root[\s\S]*?orientation="horizontal"/);
-  assert.match(tags, /scrollbarXClasses=/);
-  assert.match(tags, /flex w-max min-w-full flex-nowrap gap-2/);
+  assert.match(tags, /@weluvabid\/iris\/components\/ui\/popover/);
+  assert.match(tags, /max-w-\[calc\(100vw-2rem\)\]/);
+  assert.doesNotMatch(tags, /scroll-area|orientation=\"horizontal\"|scrollbarXClasses/);
   const projectCard = await read('../src/components/cards/ProjectCard.svelte');
 
   assert.match(projectCard, /flex h-full min-w-0 flex-col gap-3/);
