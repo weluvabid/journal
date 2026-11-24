@@ -20,8 +20,7 @@ export interface FetchedJournalPage {
 export async function fetchJournalPage(
   options: FetchJournalPageOptions,
 ): Promise<FetchedJournalPage> {
-  const { pageUrl, currentUrl, currentOrigin, pageSize, requestedPageUrls, signal } =
-    options;
+  const { pageUrl, currentUrl, currentOrigin, pageSize, requestedPageUrls, signal } = options;
   const requestUrl = new URL(pageUrl, currentUrl);
   const fetcher = options.fetcher ?? fetch;
 

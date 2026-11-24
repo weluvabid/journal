@@ -20,7 +20,10 @@ test('tag list shows three archive links and exposes remaining tags through Iris
   assert.match(source, /tagHref\(tag, scope\)/);
   assert.match(source, /More topics/);
   assert.match(source, /focus-visible:outline-2 focus-visible:outline-offset-\[-2px\]/);
-  assert.doesNotMatch(source, /scroll-area|orientation="horizontal"|scrollbarXClasses|overflow-x-auto/);
+  assert.doesNotMatch(
+    source,
+    /scroll-area|orientation="horizontal"|scrollbarXClasses|overflow-x-auto/,
+  );
 });
 
 test('card and detail pages share the same tag presentation', async () => {
@@ -31,5 +34,8 @@ test('card and detail pages share the same tag presentation', async () => {
   assert.match(projectCard, /import TagList from '\.\/TagList\.svelte'/);
   assert.match(journalCard, /import TagList from '\.\/TagList\.svelte'/);
   assert.match(journalDetail, /import TagList from '@components\/cards\/TagList\.svelte'/);
-  assert.match(journalDetail, /<TagList[\s\S]*?scope=\{entry\.data\.kind === 'project' \? 'projects' : 'journal'\}/);
+  assert.match(
+    journalDetail,
+    /<TagList[\s\S]*?scope=\{entry\.data\.kind === 'project' \? 'projects' : 'journal'\}/,
+  );
 });

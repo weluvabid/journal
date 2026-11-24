@@ -18,7 +18,9 @@
 </script>
 
 {#if tags.length > 0}
-  <div class="pointer-events-none relative mt-3 flex min-w-0 max-w-full flex-wrap items-center gap-2">
+  <div
+    class="pointer-events-none relative mt-3 flex min-w-0 max-w-full flex-wrap items-center gap-2"
+  >
     {#each visibleTags as tag (tag)}
       <a href={tagHref(tag, scope)} class={chipClass}>{tag}</a>
     {/each}

@@ -8,35 +8,35 @@ summary: A TypeScript algorithms toolkit shaped by representation choices, typed
 date: '2026-11-23'
 project: algokit
 tags:
-- typescript
-- algorithms
-- data-structures
-- performance
-- typed-arrays
-- project
+  - typescript
+  - algorithms
+  - data-structures
+  - performance
+  - typed-arrays
+  - project
 searchTerms:
-- CSR graph
-- Dijkstra indexed heap
-- tournament tree merge
-- Bloom filter
-- HyperLogLog
-- consistent hashing
+  - CSR graph
+  - Dijkstra indexed heap
+  - tournament tree merge
+  - Bloom filter
+  - HyperLogLog
+  - consistent hashing
 draft: false
 kind: project
 projectDetails:
   status: released
   stack:
-  - TypeScript
-  - Node.js
-  - Vitest
+    - TypeScript
+    - Node.js
+    - Vitest
   github: https://github.com/weluvabid/algokit
   stackblitz: https://stackblitz.com/edit/algokit?file=index.js
   order: 18
   resources:
-  - label: Source repository
-    url: https://github.com/weluvabid/algokit
-  - label: StackBlitz usage playground
-    url: https://stackblitz.com/edit/algokit?file=index.js
+    - label: Source repository
+      url: https://github.com/weluvabid/algokit
+    - label: StackBlitz usage playground
+      url: https://stackblitz.com/edit/algokit?file=index.js
 links:
   git: https://github.com/weluvabid/algokit
   stackblitz: https://stackblitz.com/edit/algokit?file=index.js
@@ -48,7 +48,7 @@ The toolkit covers graph traversal and shortest paths, priority queues, ordered 
 
 ## Graphs: change the representation
 
-The graph module supports familiar algorithms such as BFS, DFS, Dijkstra, A*, topological sorting and cycle detection. For large numeric graphs, the optimized path uses compressed sparse row storage: offsets and adjacency are held in typed arrays, vertices are numeric IDs, and traversal uses typed-array queues and visited state.
+The graph module supports familiar algorithms such as BFS, DFS, Dijkstra, A\*, topological sorting and cycle detection. For large numeric graphs, the optimized path uses compressed sparse row storage: offsets and adjacency are held in typed arrays, vertices are numeric IDs, and traversal uses typed-array queues and visited state.
 
 That representation reduces per-edge object overhead and makes adjacency traversal contiguous. In the measured 100K-node BFS workload, CSR traversal took 0.489 ms compared with 6.501 ms for the object graph, around 13.3 times faster. Build-inclusive timings are also reported because constructing CSR has a cost; the benefit becomes more compelling when the graph is traversed repeatedly.
 
