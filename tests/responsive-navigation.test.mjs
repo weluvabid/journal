@@ -45,3 +45,8 @@ test('mobile overflow menu exposes secondary controls without duplicating primar
   assert.doesNotMatch(menu, /<details|<summary/);
   assert.doesNotMatch(footer, /Writing|Projects|Resume/);
 });
+
+test('resume navigation points to the bundled PDF asset through the configured base path', () => {
+  assert.match(header, /href=\{withBase\('\/resume\.pdf'\)\}/);
+  assert.doesNotMatch(header, /https:\/\/example\.com\/resume/);
+});

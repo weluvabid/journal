@@ -102,7 +102,7 @@
                 variant="ghost"
                 size="icon"
                 class="rounded-full"
-                href="https://example.com/resume"
+                href={withBase('/resume.pdf')}
                 target="_blank"
                 rel="noopener noreferrer"
                 aria-label="Resume (opens in a new tab)"
