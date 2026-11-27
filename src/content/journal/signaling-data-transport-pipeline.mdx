@@ -1,0 +1,93 @@
+---
+id: signaling-data-transport-pipeline
+title: 'Building SEE: A Versioned Binary Protocol for Reliable Data Exchange'
+type: deep-dive
+category: systems-engineering
+summary: A versioned binary envelope and bounded transfer engine for compressing, fragmenting and reconstructing data across file, clipboard, QR and WebRTC workflows.
+date: 2026-11-27
+project: signaling
+tags:
+  - typescript
+  - binary-protocols
+  - compression
+  - web-rtc
+  - data-transport
+  - project
+searchTerms:
+  - Signaling Exchange Envelope
+  - deterministic CBOR
+  - fragment reassembly
+  - QR data transfer
+  - WebRTC signaling
+draft: false
+kind: project
+projectDetails:
+  status: experimental
+  stack:
+    - TypeScript
+    - CBOR
+    - Web Crypto
+    - Compression Streams
+    - WebRTC
+  github: https://github.com/weluvabid/signaling
+  name: SEE — Signaling Exchange
+  summary: >-
+    Versioned binary envelope and bounded transfer protocol with compression,
+    integrity verification, fragmentation and file, clipboard, QR and WebRTC adapters.
+  order: 18
+  resources:
+    - label: Source repository
+      url: https://github.com/weluvabid/signaling
+    - label: Architecture
+      url: https://github.com/weluvabid/signaling/blob/main/docs/architecture.md
+    - label: Protocol specification
+      url: https://github.com/weluvabid/signaling/blob/main/docs/protocol.md
+    - label: Benchmark results
+      url: https://github.com/weluvabid/signaling/blob/main/docs/benchmarks.md
+---
+
+WebRTC connection setup often requires exchanging an offer, an answer and ICE candidates between devices. Those values can become large text payloads, which makes manual exchange awkward. SEE started by making those payloads easier to move through QR images, clipboard text and files. The transport layer grew around a versioned binary format that can carry WebRTC signaling and application-defined data through the same pipeline.
+
+The wire container is the **Signaling Exchange Envelope**. SEE separates that protocol core from the adapters that represent an envelope as a file, clipboard value, QR frames or WebRTC payload data.
+
+## A deterministic envelope
+
+The envelope uses deterministic CBOR. Its fields identify the protocol and wire version, session and message IDs, message kind, creation and optional expiry times, content type, compression mode, original payload length and encoded data. An optional reply reference links related messages.
+
+The encoder creates the canonical envelope data, computes a SHA-256 digest over that representation and stores the digest in the integrity field. Decoding validates the CBOR representation, allowed fields, version, identifiers, timestamps, content type, compression mode and advertised payload length. It then recomputes the digest and verifies the payload before returning an owned byte array.
+
+The envelope has an explicit schema and version. That gives the decoder a stable boundary for validating incoming data and gives the transport layer one representation to carry regardless of the exchange channel.
+
+## Compression that earns its space
+
+SEE supports zlib-wrapped DEFLATE through the platform Compression Streams API. Compression is selected with a prefix probe: payloads below 4 KiB skip the probe, while larger payloads sample the first 1 KiB. Full compression runs when that prefix saves at least 10%.
+
+The encoder then compares the complete compressed and uncompressed envelope encodings. It retains DEFLATE only when the compressed envelope is smaller. Incompressible payloads therefore keep their original representation, while structured text benefits from the repeated patterns common in SDP and ICE data.
+
+## Fragmentation and reconstruction
+
+An envelope can be divided into transfer fragments for channels with limited payload capacity. Each fragment carries a transfer ID, its index, the total fragment count, the complete transfer length, a SHA-256 transfer digest and its data. Fragment metadata is encoded canonically so each frame can be validated independently.
+
+`FragmentReassembler` owns the state for incomplete transfers. It stores fragments by index, accepts out-of-order delivery, recognises repeated fragments and checks that every fragment agrees on the transfer count, total length and digest. Once all fragments arrive, it joins them in index order and verifies the digest of the reconstructed envelope before returning the bytes.
+
+Transfer state is bounded. The defaults allow four concurrent incomplete transfers, 1,024 fragments per transfer, 4,096 in-flight fragments and 8 MiB of aggregate in-flight fragment data. Incomplete transfers expire after five minutes. Callers can abort a transfer or clear the reassembler, and completed transfer IDs are retained in a bounded cache to prevent duplicate completion events.
+
+The reassembler also accounts for retained bytes and fragment counts as fragments arrive and releases that accounting when a transfer completes, fails, expires or is aborted. Each instance owns its own transfer map, so independent consumers do not share a global mutable transfer registry.
+
+## Transport adapters stay outside the core
+
+The package exposes separate entry points for the protocol core, file, clipboard, QR and WebRTC integrations. The core does not depend on DOM, filesystem, clipboard or WebRTC APIs. The clipboard adapter accepts a consumer-supplied port; the QR adapter is an optional peer integration; the WebRTC adapter maps session descriptions and ICE candidates into the envelope model and includes an ICE gathering observer.
+
+The file adapter imports and exports Blob/File data. The clipboard adapter uses a versioned base64url representation. The QR adapter encodes frames and decodes images in the browser. These adapters share the same envelope and fragmentation machinery, so the protocol does not need a separate data model for each transport.
+
+## What the benchmarks show
+
+The benchmark suite covers envelope encoding and decoding, compression, fragmentation, ordered and out-of-order reassembly, duplicate delivery, concurrent transfers and resource-limit handling. The latest archived run was captured on Node.js 26.13.0 with an Apple M4 Max.
+
+For 1 MiB structured payloads, compression reduced the complete envelope to approximately 4.9–6.5 KiB. The SDP-like payload became 4,958 bytes, a 99.53% reduction; the ICE-heavy payload became 4,927 bytes, also a 99.53% reduction. The fixture-derived WebRTC payload became 6,540 bytes, a 99.38% reduction.
+
+That size change also reduced the default transfer from 65 fragments to a single fragment. For the SDP-like payload, fragmentation p50 fell from approximately 0.60 ms to 0.02 ms, and reassembly p50 fell from approximately 2.3 ms to 0.11–0.15 ms. The compressed 1 MiB structured payloads encoded at approximately 1.95–2.04 ms p50.
+
+The same benchmark retained the incompressible 1 MiB workload without DEFLATE, leaving its envelope size unchanged. The complete benchmark archive records the individual cases and measurements for the run.
+
+SEE turns a large signaling payload into a versioned message that can move through several exchange channels. Deterministic encoding, integrity verification, bounded fragmentation and shared transport adapters make the envelope and its reconstruction rules the centre of the system.

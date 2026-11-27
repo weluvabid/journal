@@ -50,8 +50,8 @@ const projects = rankProjects(taggedProjects);
             client:load
             project={{
               id: entry.data.project!,
-              title: entry.data.title,
-              summary: entry.data.summary,
+              name: entry.data.projectDetails!.name,
+              summary: entry.data.projectDetails!.summary,
               status: entry.data.projectDetails!.status,
               order: entry.data.projectDetails!.order,
               tags: entry.data.tags.filter((tag) => tag !== 'project'),

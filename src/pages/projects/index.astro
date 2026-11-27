@@ -49,8 +49,8 @@ const additionalProjects = projects.slice(FEATURED_PROJECT_COUNT);
             client:load
             project={{
               id: entry.data.project!,
-              title: entry.data.title,
-              summary: entry.data.summary,
+              name: entry.data.projectDetails!.name,
+              summary: entry.data.projectDetails!.summary,
               status: entry.data.projectDetails!.status,
               order: index + 1,
               tags: entry.data.tags.filter((tag) => tag !== 'project'),
@@ -74,8 +74,8 @@ const additionalProjects = projects.slice(FEATURED_PROJECT_COUNT);
               client:load
               project={{
                 id: entry.data.project!,
-                title: entry.data.title,
-                summary: entry.data.summary,
+                name: entry.data.projectDetails!.name,
+                summary: entry.data.projectDetails!.summary,
                 status: entry.data.projectDetails!.status,
                 order: FEATURED_PROJECT_COUNT + index + 1,
                 tags: entry.data.tags.filter((tag) => tag !== 'project'),

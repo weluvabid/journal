@@ -1,0 +1,97 @@
+---
+id: queryx-query-string-library
+title: 'Building QueryX: A Query-String Engine That Decodes Only What You Need'
+type: deep-dive
+category: systems-engineering
+summary: A dependency-free query-string engine with span-based scanning, selective lookup, explicit decoding policies and fast serialization.
+date: 2026-11-27
+project: queryx
+tags:
+  - typescript
+  - javascript
+  - parsing
+  - serialization
+  - performance
+  - project
+searchTerms:
+  - query string parser
+  - URLSearchParams
+  - RFC 3986
+  - selective lookup
+  - lazy decoding
+draft: false
+kind: project
+projectDetails:
+  status: released
+  stack:
+    - TypeScript
+    - JavaScript
+    - Node.js
+    - Vitest
+  github: https://github.com/weluvabid/queryx
+  name: QueryX
+  summary: >-
+    Dependency-free query-string parser and serializer with span-based scanning,
+    lazy decoding and selective parameter access.
+  order: 17
+  resources:
+    - label: Source repository
+      url: https://github.com/weluvabid/queryx
+---
+
+A query string is often parsed in full even when a caller needs one parameter. That turns a small lookup into several allocations: every key and value is decoded, a result object is built, and only then is the requested field read. QueryX provides the full parser when callers need it, but keeps selective operations on a direct path through the original string.
+
+## One scanner for the query
+
+The core `walk()` function scans the input by character offsets. It skips an optional leading `?`, stops at the first fragment marker, ignores empty segments and locates each key/value boundary without first splitting the string into an array.
+
+The scanner passes raw start and end offsets to a visitor. It does not allocate a public entry object for every parameter. `get()`, `has()`, `getAll()` and `pick()` share this traversal, so the parsing rules stay consistent across the API.
+
+`get()` compares the requested key against each raw key span and stops as soon as it finds a match. It decodes only the matching value. `has()` can stop after matching the key without decoding the value at all. `getAll()` continues through the query to collect every matching value.
+
+`pick()` builds a null-prototype result containing only requested keys. A single requested key uses raw-span comparison without decoding every input key. Multiple requested keys use a `Set` for membership checks while traversing the query once. Duplicate values follow the same configured policy as the full parser.
+
+## Decode when the caller asks
+
+The public `scan()` API exposes a lazy iterable. Each entry stores the original source string and the offsets for its key and value. Callers can inspect those offsets or invoke `decodeKey()`, `decodeValue()` or `decode()` when they need decoded strings.
+
+This keeps scanning separate from decoding. A caller can skip entries, inspect raw spans or decode only selected components without materializing a complete object first.
+
+The codec handles percent-encoded UTF-8 and form-style `+` spaces. Decoding behaviour is explicit: `replace` substitutes malformed sequences, `throw` reports them, and `preserve` retains malformed component text. The default is replacement behaviour.
+
+## Predictable query semantics
+
+The parser returns objects with a null prototype, so keys such as `__proto__` remain ordinary query data. Duplicate keys combine into arrays by default, with `first` and `last` policies available. A parameter without `=` has a `null` value; `key=` has an empty string. Empty segments are ignored, an empty key is retained, and scanning stops at `#`.
+
+Serialization has two distinct contracts. `stringify()` uses RFC 3986 component encoding, while `stringifyForm()` follows WHATWG `application/x-www-form-urlencoded` encoding and matches `URLSearchParams` form serialization. Both support repeated keys for arrays and insertion or sorted key order. Null values are emitted as valueless keys by default; undefined values are omitted.
+
+The API also rejects non-finite numbers and nested objects instead of silently coercing them. That keeps the serialized representation tied to the supported value model.
+
+## Benchmark results
+
+The benchmark uses Node.js 26.13.0, 100 parameters, 100,000 iterations per sample and seven samples, reporting median latency.
+
+| Operation         |       QueryX | URLSearchParams | query-string |
+| ----------------- | -----------: | --------------: | -----------: |
+| Parse into object | **17.69 µs** |        17.69 µs |     41.54 µs |
+| Stringify         | **13.96 µs** |        12.29 µs |     29.75 µs |
+
+QueryX parsed at the same median latency as the native `URLSearchParams` conversion and was 2.35× faster than `query-string`. Its serializer was 2.13× faster than `query-string`.
+
+Selective lookup makes the difference more visible because it avoids constructing the complete parsed representation:
+
+| Operation                    | Median latency |
+| ---------------------------- | -------------: |
+| QueryX `get()` — last of 100 |    **2.18 µs** |
+| QueryX `pick()` — 1 of 100   |    **3.12 µs** |
+| QueryX `pick()` — 3 of 100   |    **7.06 µs** |
+| QueryX `pick()` — all 100    |   **20.65 µs** |
+| URLSearchParams parse + get  |       12.81 µs |
+
+For a lookup of the last parameter, `get()` was 5.9× faster than parsing with `URLSearchParams` and then retrieving the value. The benchmark also measures lazy scanning, form serialization, reserved-character-heavy inputs and component decoding. See the [parsing and lookup results](https://bencher.dev/perf/queryx?branches=01a217cf-c51e-7790-8a10-603f75f50b83&testbeds=01a217cf-c51e-7790-8a10-6041ebea368e&benchmarks=01a217cf-c526-7338-9ba9-67f709240fed,01a217cf-c521-7352-8ba9-5863caa7f637,01a217cf-c523-75bd-b504-469bcda8c027,01a217cf-c523-75bd-b504-46982fd01e2a,01a217cf-c520-70ce-9d4b-a5c5362ab2a1,01a217cf-c522-7779-a213-a21743d6c04c&measures=01a217cf-c520-70ce-9d4b-a5c1096b40b4,01a217cf-c520-70ce-9d4b-a5c0d0338549) and [serialization results](https://bencher.dev/perf/queryx?branches=01a217cf-c51e-7790-8a10-603f75f50b83&testbeds=01a217cf-c51e-7790-8a10-6041ebea368e&benchmarks=01a217cf-c524-72d6-9c12-28689d321ec7,01a217cf-c527-746c-bb67-e0fb6d249758,01a217cf-c525-70b3-8b98-7cdc540d0a4c,01a217cf-c525-70b3-8b98-7cd6e86067d2,01a217cf-c527-746c-bb67-e0f8b8b25151,01a217cf-c524-72d6-9c12-286bfd206938&measures=01a217cf-c520-70ce-9d4b-a5c1096b40b4,01a217cf-c520-70ce-9d4b-a5c0d0338549).
+
+## A small API with separate fast paths
+
+QueryX keeps the common operations small: use `parse()` when the caller needs an object, `get()` or `has()` for a single key, `pick()` for a subset, and `scan()` when iteration should remain lazy. All of them share the same span traversal and codec rules.
+
+The implementation is dependency-free and keeps parsing, lookup and serialization contracts explicit. The main performance gain comes from doing less work: preserve source offsets, avoid intermediate segment arrays, and decode only the components the requested operation needs.

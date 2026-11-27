@@ -1,0 +1,119 @@
+---
+id: discover-roblox-game-discovery
+title: 'Building Discover: A Deterministic and Explainable Game Discovery Engine'
+type: deep-dive
+category: product-engineering
+summary: A live Roblox discovery engine that combines context eligibility, six ranking signals, persona matching and explainable diversity-aware reranking.
+date: 2026-11-27
+project: discover
+tags:
+  - typescript
+  - data-pipelines
+  - ranking
+  - roblox
+  - project
+searchTerms:
+  - Roblox discovery
+  - deterministic ranking
+  - game discovery
+  - ranking explainability
+  - persona matching
+draft: false
+kind: project
+projectDetails:
+  status: experimental
+  stack:
+    - TypeScript
+    - Astro
+    - React
+    - Node.js
+    - RoTunnel
+  github: https://github.com/weluvabid/discover
+  name: Discover
+  summary: >-
+    Live Roblox game discovery with deterministic, persona-aware ranking,
+    context-specific eligibility and inspectable scoring explanations.
+  order: 11
+  resources:
+    - label: Source repository
+      url: https://github.com/weluvabid/discover
+    - label: Ranking architecture
+      url: https://github.com/weluvabid/discover/blob/main/docs/architecture/discovery-ranking.md
+    - label: Live Roblox provider
+      url: https://github.com/weluvabid/discover/blob/main/docs/architecture/live-roblox-provider.md
+---
+
+A discovery feed has two separate jobs: decide which experiences belong in a section, then decide how they should be ordered. Discover makes both decisions explicit. It retrieves live Roblox candidates, applies context-specific eligibility, computes a shared set of ranking signals and produces a ranked list whose score can be inspected down to its individual contributions.
+
+## Live candidate acquisition
+
+The active application uses a server-side RoTunnel provider for Roblox Explore and Omni Search. The browser talks to the Discover API; it does not call the upstream provider directly. The server retrieves candidate IDs, batches game details, votes and artwork, then normalizes the responses into a shared `Experience` model.
+
+The provider preserves each experience's native Roblox sort ID and original position. Discover can therefore personalize the ordering while retaining the information needed to compare its result with the source feed. The same HTTP handler serves local development and the Vercel API entry points, keeping routing, validation and error handling in one place.
+
+Candidate acquisition and ranking have separate responsibilities. The provider owns upstream requests, response parsing, normalization and enrichment. The ranking engine receives normalized experiences and applies the same ranking model across the discovery contexts.
+
+## Eligibility comes before scoring
+
+Featured, Trending, Recommended, Hidden Gems and Recently Launched share one ranking engine, but each context defines its own candidate pool. Eligibility is evaluated before ranking, so a high score cannot make an experience appear in a section whose rules it does not satisfy.
+
+| Context           | Eligibility rule                                                                                                |
+| ----------------- | --------------------------------------------------------------------------------------------------------------- |
+| Featured          | Uses rating and vote thresholds when evidence is available; otherwise inherits the selected native Roblox feed. |
+| Trending          | Uses positive weekly-change evidence when available; otherwise inherits the selected native feed.               |
+| Recommended       | Accepts every valid candidate in the retrieved pool.                                                            |
+| Hidden Gems       | Requires an available player count of at most 10,000; an available rating must be at least 88.                  |
+| Recently Launched | Requires a valid publication timestamp within the previous 30 days.                                             |
+
+The thresholds and time windows are policy values in code. The ranking clock can be injected for deterministic evaluation; live candidate sets use their freshness reference when available. Stable ID tie-breaking makes equal-score ordering repeatable.
+
+## Six signals, one inspectable score
+
+The engine computes six normalized signals:
+
+- **Affinity** — alignment with the selected play-style profile.
+- **Engagement quality** — rating quality, using vote evidence where available.
+- **Relevance** — topical alignment with the selected profile or search query.
+- **Freshness** — launch and update recency.
+- **Popularity** — the available audience and engagement scale.
+- **Diversity** — a preference for a less repetitive result set.
+
+The user-configured weights are normalized to 100 across enabled signals. Each discovery context applies its own multiplier profile, then normalizes the effective weights again. The weighted score is the sum of each normalized signal multiplied by its effective weight.
+
+A candidate is scored only with evidence it actually has. If a signal's required data is unavailable, that signal is disabled for that candidate and the remaining effective weights are renormalized. For rating-only live candidates, the quality signal uses the one-sided 95% Wilson lower confidence bound when a vote count is available. This gives ratings with stronger vote support more influence than equally high ratings backed by very few votes.
+
+## Diversity is a second ranking pass
+
+A weighted score alone can produce a page filled with similar experiences. Discover applies a greedy reranking pass after scoring. It compares genre similarity and Jaccard similarity across semantic metadata tags, then applies a bounded ordering penalty to candidates that repeat evidence already represented in the selected results.
+
+Genre is removed from the tag set before Jaccard similarity is calculated because genre already contributes independently. Specific metadata such as `FPS` remains useful, while broad category labels are excluded. This keeps the diversity pass from counting the same classification twice.
+
+The penalty is tied to the configured diversity weight. Setting diversity to zero disables the rarity contribution and the reranking pass; increasing the weight increases the penalty up to its configured maximum. Candidate-pool expansion accounts for that same maximum penalty, retaining candidates that could still move into the visible result window after reranking.
+
+The engine keeps the weighted score, raw penalty and applied score adjustment separate. That makes the arithmetic auditable: signal contributions reconcile to the weighted score, and the final score includes the explicit diversity adjustment.
+
+## Explain every result
+
+Each ranked experience carries its context, final and weighted scores, diversity adjustment, raw and normalized signal values, effective weights, weighted contributions, eligibility evidence and top contributing reasons. The interface exposes this data through a **Why this result?** popover. The explanation is rendered outside the card layout, so opening it does not change card dimensions or get clipped by card overflow.
+
+Play-style profiles are part of the same model. The catalogue exposes twelve profiles, and the selected profile is stored in the URL so a discovery view can be shared or refreshed without losing its settings. Genre preferences contribute to affinity; profile keywords found in the title, description, subgenre or tags contribute to relevance. Each keyword contributes once, so a longer description does not automatically receive a higher relevance score.
+
+Search uses Roblox Omni Search for candidate acquisition, then applies deterministic lexical query relevance through the shared ranking engine. Relevance remains the dominant signal for search results, while profile and configured quality, popularity and freshness preferences provide secondary ordering.
+
+## Measure the ranking engine
+
+The repository includes a ranking benchmark for all five contexts over the checked-in 20-experience catalogue, a deterministic 100-candidate pool and a 10,000-record stress pool. It performs five warm-up runs and reports median and p95 across 35 measured runs.
+
+On the recorded Node.js 22.16.0 run, the 10,000-record workload completed with these median and p95 times:
+
+| Context           |    Median |        p95 |
+| ----------------- | --------: | ---------: |
+| Featured          | 48.413 ms |  72.046 ms |
+| Trending          | 67.615 ms |  87.740 ms |
+| Recommended       | 93.274 ms | 111.517 ms |
+| Hidden Gems       | 18.909 ms |  19.500 ms |
+| Recently Launched | 39.200 ms |  56.002 ms |
+
+The benchmark measures the pure ranking engine. The implementation uses a bounded top-candidate heap before diversity reranking, avoiding a full-catalog sort and pairwise comparison when the visible result window is small.
+
+Discover brings candidate acquisition, eligibility, ranking and explanation into one explicit pipeline. The result is a live discovery experience where ordering is personalized, repeatable and traceable to the data and weights that produced it.

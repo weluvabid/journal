@@ -47,7 +47,7 @@ test('each project has exactly one canonical journal entry and related articles 
     associated.set(entry.data.project, group);
   }
 
-  assert.equal(associated.size, 19);
+  assert.equal(associated.size, 22);
 
   for (const [id, group] of associated) {
     const canonical = group.filter(({ data }) => data.kind === 'project');
@@ -192,8 +192,8 @@ test('Canvas article relates to both canonical projects and projects occupy posi
   assert.match(article, /^relatedProjects:\n {2}- chronos\n {2}- pixelflow$/mu);
   assert.match(chronos, /^title: 'Chronos'$/mu);
   assert.match(pixelflow, /^title: 'Pixelflow'$/mu);
-  assert.match(chronos, /^ {2}order: 3$/mu);
-  assert.match(pixelflow, /^ {2}order: 4$/mu);
-  assert.match(atlas, /^ {2}order: 5$/mu);
+  assert.match(chronos, /^ {2}order: 5$/mu);
+  assert.match(pixelflow, /^ {2}order: 2$/mu);
+  assert.match(atlas, /^ {2}order: 16$/mu);
   assert.match(atlas, /^ {2}demo: https:\/\/weluvabid\.github\.io\/frontend-atlas\/$/mu);
 });

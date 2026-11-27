@@ -28,6 +28,8 @@ const journal = defineCollection({
         .optional(),
       projectDetails: z
         .object({
+          name: z.string().min(1).max(80),
+          summary: z.string().min(30).max(240),
           status: z.enum(['active', 'released', 'experimental']),
           stack: z.array(z.string().min(1)).min(1).max(12),
           github: z.url().optional(),

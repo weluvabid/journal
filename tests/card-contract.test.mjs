@@ -34,7 +34,7 @@ test('homepage and Projects archive render canonical project articles through sh
   assert.match(home, /href=\{entryHref\(project\.data\.id\)\}/);
   assert.match(projects, /data\.kind === 'project'/);
   assert.match(projects, /href=\{entryHref\(entry\.data\.id\)\}/);
-  assert.match(card, /TagList tags=\{project\.tags} label=\{project\.title} scope="projects" \/>/);
+  assert.match(card, /TagList tags=\{project\.tags} label=\{project\.name} scope="projects" \/>/);
   assert.match(card, /<ContentCard \{href\}/);
 });
 

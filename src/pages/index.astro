@@ -71,8 +71,8 @@ const selectedProjects = projects.slice(0, FEATURED_PROJECT_COUNT);
               client:load
               project={{
                 id: project.data.project!,
-                title: project.data.title,
-                summary: project.data.summary,
+                name: project.data.projectDetails!.name,
+                summary: project.data.projectDetails!.summary,
                 status: project.data.projectDetails!.status,
                 order: index + 1,
                 tags: project.data.tags.filter((tag) => tag !== 'project'),
