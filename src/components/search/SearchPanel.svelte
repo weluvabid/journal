@@ -117,6 +117,7 @@
     ? `Search ${documents.length} journal entries and projects across Journal.`
     : 'Search journal entries and projects across Journal.'}
   shouldFilter={false}
+  class="max-sm:-mt-[calc(0.75rem+env(safe-area-inset-bottom))]"
 >
   {@render commandContents()}
 </Command.Dialog>
