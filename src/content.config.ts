@@ -17,6 +17,10 @@ const journal = defineCollection({
         'engineering-thinking',
       ]),
       summary: z.string().min(30).max(240),
+      diagram: z
+        .string()
+        .regex(/^\/diagrams\/[a-z0-9-]+\.svg$/)
+        .optional(),
       date: z.coerce.date(),
       project: z
         .string()

@@ -6,6 +6,7 @@ category: frontend-engineering
 summary: How a Manifest V3 extension separates page extraction, conservative filtering,
   Markdown conversion and clipboard ownership while keeping copied content local.
 date: 2026-11-03
+diagram: /diagrams/copy-2-markdown-extraction.svg
 project: copy-2-markdown
 tags:
   - browser-extensions
@@ -46,8 +47,6 @@ projectDetails:
       url: https://github.com/weluvabid/copy-2-markdown/blob/main/PRIVACY.md
 ---
 
-import DiagramViewer from '@components/diagrams/DiagramViewer.svelte';
-
 A web page has more than the content we want to copy. Navigation, ads, hidden help text and framework UI all live in the same tree. The job is to find the useful content before turning it into Markdown. The formatting part is relatively simple.
 
 The Copy 2 Markdown extension handles page, selection and link actions locally in Chrome. Turndown converts the extracted HTML to Markdown. The harder part is keeping page access, content extraction and clipboard writing separate. Page access starts with a user action, and the clipboard is written from an extension-owned document.
@@ -63,13 +62,6 @@ action → worker → extract HTML → markdown → offscreen clipboard
 The extractor works with the live page. The converter takes the HTML and a base URL. The clipboard code runs in the extension document. Keeping those jobs separate stops the content script from becoming a dumping ground.
 
 For a page copy, the extension creates a clone of the document and tries Readability first. This works well for articles, but documentation sites and app UIs often need the fallback extractor. If Readability returns too little text, the extractor checks `main`, `article`, `[role="main"]` and then the cleaned body. It copies the selected content root rather than the whole page.
-
-<DiagramViewer
-  client:visible
-  src="/diagrams/copy-2-markdown-extraction.svg"
-  alt="Copy 2 Markdown extraction pipeline: user action, service worker, Readability, semantic fallback, Markdown conversion and clipboard write."
-  caption="Readability is the primary path; semantic extraction is the fallback."
-/>
 
 The filters are split into three groups:
 

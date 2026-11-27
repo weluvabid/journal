@@ -22,13 +22,16 @@ test('article resource actions reuse the existing Git and StackBlitz icons', asy
     /import \{ Button, Collapsible, Tooltip \} from '@weluvabid\/iris\/components'/,
   );
   assert.match(component, /import \{ SiGit, SiStackblitz \} from '@weluvabid\/iris\/simple-icons'/);
-  assert.equal((component.match(/<Button\.Root/g) ?? []).length, 3);
+  assert.equal((component.match(/<Button\.Root/g) ?? []).length, 4);
   assert.match(component, /href=\{git\}/);
   assert.match(component, /target="_blank"/);
   assert.match(component, /rel="noopener noreferrer"/);
   assert.match(component, /aria-label="Source repository \(opens in a new tab\)"/);
   assert.match(component, /href=\{demo\}/);
   assert.match(component, /<ExternalLink class="size-5" aria-hidden="true" \/>/);
+  assert.match(component, /<Workflow class="size-5" aria-hidden="true" \/>/);
+  assert.match(component, /aria-label="View architecture diagram \(opens in a new tab\)"/);
+  assert.match(component, /<Tooltip\.Content>View architecture diagram<\/Tooltip\.Content>/);
   assert.match(component, /aria-label="Live demo \(opens in a new tab\)"/);
   assert.match(component, /href=\{stackblitz\}/);
   assert.match(component, /<SiStackblitz class="size-5" aria-hidden="true" \/>/);

@@ -170,12 +170,13 @@ const seriesEntries = entry.data.series
         )
       }
       {
-        (sourceRepository || liveDemo || stackblitzDemo) && (
+        (sourceRepository || liveDemo || stackblitzDemo || entry.data.diagram) && (
           <ResourceActions
             client:load
             git={sourceRepository}
             demo={liveDemo}
             stackblitz={stackblitzDemo}
+            diagram={entry.data.diagram}
             resources={projectResources}
             title={entry.data.title}
             section="actions"

@@ -1,42 +1,29 @@
 # Journal diagrams
 
-The Mermaid files in this directory are the editable sources for the diagrams used in Journal articles. Their generated, optimized SVGs live in `public/diagrams/` and are served as static assets.
+Journal uses five self-contained SVG architecture diagrams. They open directly in a new browser tab from the article resource actions; they are not embedded in article layouts.
 
-## Files
+## Assets
 
-| Source                                   | Generated asset                        | Article         | Purpose                                                                         |
-| ---------------------------------------- | -------------------------------------- | --------------- | ------------------------------------------------------------------------------- |
-| `copy-2-markdown-extraction.mmd`         | `copy-2-markdown-extraction.svg`       | Copy 2 Markdown | Shows the extraction-to-clipboard path and Readability fallback.                |
-| `tiny-lsm-storage-lifecycle.mmd`         | `tiny-lsm-storage-lifecycle.svg`       | TinyLSM         | Shows flush publication ordering, retained memtable on failure, and compaction. |
-| `cachewise-single-flight.mmd`            | `cachewise-single-flight.svg`          | Cachewise       | Shows two callers sharing one factory and independent waiter cancellation.      |
-| `frontend-atlas-progress-transfer.mmd`   | `frontend-atlas-progress-transfer.svg` | Frontend Atlas  | Shows local progress export and validated import through a QR transfer.         |
-| `structaura-fingerprinting-pipeline.mmd` | `structaura-fingerprinting.svg`        | StructAura      | Shows parsing, supported normalization, canonical encoding and hashing.         |
+| SVG asset                              | Article         | Purpose                                                         |
+| -------------------------------------- | --------------- | --------------------------------------------------------------- |
+| `tiny-lsm-storage-lifecycle.svg`       | TinyLSM         | MemTable writes, immutable runs, reads and compaction           |
+| `cachewise-single-flight.svg`          | Cachewise       | Concurrent callers sharing one in-flight operation              |
+| `structaura-fingerprinting.svg`        | StructAura      | Structural extraction, normalization and fingerprint generation |
+| `copy-2-markdown-extraction.svg`       | Copy 2 Markdown | Source acquisition, content extraction and Markdown conversion  |
+| `frontend-atlas-progress-transfer.svg` | Frontend Atlas  | Accountless progress transfer between devices using QR          |
 
 ## Updating a diagram
 
-Edit the `.mmd` source, render it to SVG with Kroki, optimize the result with SVGO, and commit both files. For example:
+Edit the SVG in `public/diagrams/` and keep it self-contained. Preserve its `viewBox`, explicit dark background (`#121212`), readable foreground contrast, and consistent typography and stroke styling.
 
-```sh
-curl --fail --silent --show-error \
-  -H 'Content-Type: text/plain' \
-  --data-binary @docs/diagrams/copy-2-markdown-extraction.mmd \
-  https://kroki.io/mermaid/svg \
-  -o public/diagrams/copy-2-markdown-extraction.svg
+Each article declares its diagram through the optional `diagram` frontmatter property. The value must point to a local SVG under `/diagrams/`; tests verify that every declared asset exists.
 
-```
+Diagrams open directly in the browser rather than being embedded in the article. This keeps article layout independent of diagram dimensions and avoids theme-specific embedded backgrounds.
 
-Repeat for the other diagrams, keeping the generated filename in the table above. Production builds use the committed SVGs; they do not call Kroki.
+## Review checklist
 
-## Review notes
-
-- The diagrams are compact, schematic views of the implementation.
-- Check every node and transition against the current code before publishing an update.
-- TinyLSM's diagram must match the actual ordering and failure behaviour of run publication.
-- Cachewise's sequence illustrates per-waiter cancellation; it does not imply that an abort forcibly terminates a non-cooperative factory.
-- Frontend Atlas's diagram describes the local export/import flow. Keep the QR payload validation and import steps aligned with the implementation.
-- StructAura's normalization must include only transformations that are implemented. A matching fingerprint is not proof of semantic equivalence.
-- Keep generated SVGs self-contained. Do not add external images, fonts, links or embedded raster assets.
-
-## Asset sizes
-
-Keep the generated SVGs self-contained and check their size before committing changes. The current assets are close to the 30 KB limit, so avoid adding unnecessary markup.
+- Verify every label and transition against the current implementation.
+- Keep the composition compact and readable at full browser viewport size.
+- Use an explicit background so the diagram looks intentional in both Journal themes.
+- Keep SVGs self-contained: no external images, fonts, scripts or embedded raster assets.
+- Avoid adding implementation claims not supported by the associated article.

@@ -2,71 +2,59 @@ import assert from 'node:assert/strict';
 import { access, readFile, readdir } from 'node:fs/promises';
 import { join } from 'node:path';
 import test from 'node:test';
+
 const root = new URL('../', import.meta.url).pathname;
 const diagrams = [
-  ['copy-2-markdown-local-first-browser-extraction.mdx', 'copy-2-markdown-extraction.svg'],
-  ['building-a-cache-from-first-principles.mdx', 'cachewise-single-flight.svg'],
   ['a-small-lsm-tree.mdx', 'tiny-lsm-storage-lifecycle.svg'],
+  ['building-a-cache-from-first-principles.mdx', 'cachewise-single-flight.svg'],
   ['building-structaura.mdx', 'structaura-fingerprinting.svg'],
+  ['copy-2-markdown-local-first-browser-extraction.mdx', 'copy-2-markdown-extraction.svg'],
   ['frontend-atlas-progress-without-accounts.mdx', 'frontend-atlas-progress-transfer.svg'],
 ];
 
-test('the five architecture diagrams use the shared pan-and-zoom viewer', async () => {
+test('the five architecture diagrams are declared as article metadata and exist', async () => {
   for (const [article, diagram] of diagrams) {
     const content = await readFile(join(root, 'src/content/journal', article), 'utf8');
 
-    assert.match(content, new RegExp(`<DiagramViewer[^>]*src="/diagrams/${diagram}"`));
+    assert.ok(content.includes(`diagram: /diagrams/${diagram}`), `${article} declares ${diagram}`);
     await access(join(root, 'public/diagrams', diagram));
+
+    const svg = await readFile(join(root, 'public/diagrams', diagram), 'utf8');
+
+    assert.ok(svg.startsWith('<svg '), `${diagram} starts with an SVG root`);
+    assert.match(svg, /<title[\s>]/);
+    assert.match(svg, /fill="#121212"/);
+    assert.match(svg, /viewBox="0 0 [\d.]+ [\d.]+"/);
+    assert.ok(svg.trimEnd().endsWith('</svg>'), `${diagram} closes its SVG root`);
   }
-
-  const viewer = await readFile(join(root, 'src/components/diagrams/DiagramViewer.svelte'), 'utf8');
-  const viewerModule = await readFile(join(root, 'src/lib/diagrams/viewer.ts'), 'utf8');
-  const headers = await readFile(join(root, 'public/_headers'), 'utf8');
-
-  assert.match(viewerModule, /@panzoom\/panzoom/);
-  assert.match(viewerModule, /pinchAndPan: true/);
-  assert.match(viewerModule, /stage\.addEventListener\('wheel', viewer\.zoomWithWheel/);
-  assert.match(viewerModule, /stage\.addEventListener\('dblclick', handleDiagramDoubleClick/);
-  assert.match(viewerModule, /viewer\?\.zoomToPoint\(viewer\.getScale\(\) \* 1\.2, event\)/);
-  assert.match(viewerModule, /stage\.removeEventListener\('wheel', viewer\.zoomWithWheel/);
-  assert.match(viewerModule, /stage\.removeEventListener\('dblclick', handleDiagramDoubleClick/);
-  assert.doesNotMatch(viewerModule, /svg-pan-zoom/);
-  assert.doesNotMatch(viewer, /touch-action:none/);
-  assert.match(
-    viewer,
-    /<Skeleton[\s\S]*?class="h-9 w-\[156px\] rounded-md"[\s\S]*?role="status"[\s\S]*?aria-label="Loading diagram controls"/,
-  );
-  assert.doesNotMatch(viewer, /Preparing diagram controls|animate-spin/);
-  assert.match(viewer, /disabled={!ready}/);
-  assert.doesNotMatch(viewer, /Loading diagram…/);
-  assert.doesNotMatch(viewer, /absolute inset-x-4 top-1\/2/);
-  assert.match(viewer, /setTimeout\(handleLoadError, 10_000\)/);
-  assert.match(
-    viewer,
-    /<Button\.Root[\s\S]*?href=\{src\}[\s\S]*?target="_blank"[\s\S]*?rel="noopener noreferrer"[\s\S]*?aria-label="Open diagram in new tab"[\s\S]*?<ExternalLink/,
-  );
-  assert.doesNotMatch(
-    viewer,
-    /requestFullscreen|exitFullscreen|fullscreenchange|fullscreen-fallback|:fullscreen/,
-  );
-  assert.match(viewer, /new ResizeObserver\(\(\[entry\]\) =>/);
-  assert.match(viewer, /bind:this=\{panzoomElement\}/);
-  assert.match(
-    viewer,
-    /stageElement\.addEventListener\('touchmove', preventNativeTouch, \{\s*passive: false,\s*\}\)/,
-  );
-  assert.match(viewer, /stageElement\.removeEventListener\('touchmove', preventNativeTouch\)/);
-  assert.match(viewer, /function preventNativeTouch\(event: TouchEvent\)/);
-  assert.match(viewer, /pointer-events-none block size-full/);
-  assert.match(viewer, /destroyDiagramViewer\(viewer, stageElement\)/);
-  assert.match(viewer, /function scheduleDiagramFit\(\)/);
-  assert.match(viewer, /requestAnimationFrame\(/);
-  assert.match(viewer, /fitDiagramViewer\(viewer\)/);
-  assert.match(viewerModule, /viewer\?\.reset\(\{ animate: false \}\)/);
-  assert.match(viewer, /function handleObjectLoad\(\)/);
-  assert.match(headers, /Content-Security-Policy: frame-ancestors 'self'/);
-  assert.doesNotMatch(headers, /X-Frame-Options: DENY/);
 });
+
+test('diagram resource action is conditional and uses the shared tooltip pattern', async () => {
+  const actions = await readFile(
+    join(root, 'src/components/resources/ResourceActions.svelte'),
+    'utf8',
+  );
+  const page = await readFile(join(root, 'src/pages/journal/[...slug].astro'), 'utf8');
+
+  assert.match(actions, /Workflow.*@weluvabid\/iris\/lucide/);
+  assert.match(actions, /diagram\?: string/);
+  assert.match(actions, /href=\{diagram\}/);
+  assert.match(actions, /<Tooltip\.Content>View architecture diagram<\/Tooltip\.Content>/);
+  assert.match(actions, /aria-label="View architecture diagram \(opens in a new tab\)"/);
+  assert.match(page, /entry\.data\.diagram/);
+  assert.match(page, /diagram=\{entry\.data\.diagram\}/);
+});
+
+test('interactive diagram viewer and Panzoom are fully removed', async () => {
+  const pkg = JSON.parse(await readFile(join(root, 'package.json'), 'utf8'));
+  const lock = await readFile(join(root, 'pnpm-lock.yaml'), 'utf8');
+
+  assert.equal(pkg.dependencies['@panzoom/panzoom'], undefined);
+  assert.doesNotMatch(lock, /@panzoom\/panzoom/);
+  await assert.rejects(access(join(root, 'src/components/diagrams/DiagramViewer.svelte')));
+  await assert.rejects(access(join(root, 'src/lib/diagrams/viewer.ts')));
+});
+
 test('journal content contains no unfinished example notes', async () => {
   for (const name of await readdir(join(root, 'src/content/journal'))) {
     if (!name.endsWith('.mdx')) {

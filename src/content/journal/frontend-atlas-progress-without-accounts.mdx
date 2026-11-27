@@ -6,6 +6,7 @@ category: frontend-engineering
 summary: How I built a static frontend handbook with local reading progress, a compact
   bit-packed QR transfer protocol and no account system to maintain.
 date: 2026-11-06
+diagram: /diagrams/frontend-atlas-progress-transfer.svg
 project: frontend-atlas
 tags:
   - astro
@@ -59,8 +60,6 @@ projectDetails:
       url: https://github.com/weluvabid/frontend-atlas/blob/main/docs/content-architecture.md
 ---
 
-import DiagramViewer from '@components/diagrams/DiagramViewer.svelte';
-
 An account is a second product: registration, sessions, password recovery, email, deletion, persistence and support. Sometimes that infrastructure is justified, but I didn't feel that remembering which questions were completed was a good enough reason. Frontend Atlas is a reference guide, not a multiplayer application. I wanted the reading experience to earn that complexity first.
 
 Frontend Atlas needs to remember which questions have been completed and where the reader stopped. Progress is stored in the browser. It won't move between devices automatically, but it can be transferred explicitly using a QR code.
@@ -76,13 +75,6 @@ Progress can be exported as a QR code. The manifest is an ordered, append-only l
 | Completed   | `10`          | Marked finished.        |
 
 Merge takes the completed questions from both snapshots. If both snapshots have a reading position, the higher one is kept. Replace uses the imported snapshot as-is. Before applying any changes, the import checks the format version, manifest fingerprint, indexes and bounds. If the QR image is corrupt, it is rejected before the stored progress is changed.
-
-<DiagramViewer
-  client:visible
-  src="/diagrams/frontend-atlas-progress-transfer.svg"
-  alt="Frontend Atlas progress transfer from local completion through QR export, scan, payload validation and local import or rejection."
-  caption="QR export and import move progress between browsers."
-/>
 
 Progress has to be transferred manually. After importing it, the two browsers can be changed independently until the progress is exported and imported again. Both devices need to be available for the transfer. Automatic sync, shared workspaces and recovery after a wiped device would need a server. I haven't built that for this reference guide.
 

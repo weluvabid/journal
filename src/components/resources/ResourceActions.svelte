@@ -1,6 +1,6 @@
 <script lang="ts">
   import { Button, Collapsible, Tooltip } from '@weluvabid/iris/components';
-  import { ChevronDown, ExternalLink } from '@weluvabid/iris/lucide';
+  import { ChevronDown, ExternalLink, Workflow } from '@weluvabid/iris/lucide';
   import { SiGit, SiStackblitz } from '@weluvabid/iris/simple-icons';
 
   type Resource = { label: string; url?: string };
@@ -9,6 +9,7 @@
     git,
     demo,
     stackblitz,
+    diagram,
     resources = [],
     title,
     section = 'all',
@@ -16,6 +17,7 @@
     git?: string;
     demo?: string;
     stackblitz?: string;
+    diagram?: string;
     resources?: readonly Resource[];
     title: string;
     section?: 'all' | 'actions' | 'additional';
@@ -33,7 +35,7 @@
 </script>
 
 <Tooltip.Provider delayDuration={300}>
-  {#if section !== 'additional' && (git || demo || stackblitz)}
+  {#if section !== 'additional' && (git || demo || stackblitz || diagram)}
     <nav class="mt-3 flex flex-wrap items-center gap-2" aria-label={`${title} resources`}>
       {#if git}
         <Tooltip.Root>
@@ -75,6 +77,27 @@
             {/snippet}
           </Tooltip.Trigger>
           <Tooltip.Content>Live demo</Tooltip.Content>
+        </Tooltip.Root>
+      {/if}
+      {#if diagram}
+        <Tooltip.Root>
+          <Tooltip.Trigger>
+            {#snippet child({ props })}
+              <Button.Root
+                {...props}
+                href={diagram}
+                target="_blank"
+                rel="noopener noreferrer"
+                variant="ghost"
+                size="icon"
+                class="rounded-full"
+                aria-label="View architecture diagram (opens in a new tab)"
+              >
+                <Workflow class="size-5" aria-hidden="true" />
+              </Button.Root>
+            {/snippet}
+          </Tooltip.Trigger>
+          <Tooltip.Content>View architecture diagram</Tooltip.Content>
         </Tooltip.Root>
       {/if}
       {#if stackblitz}

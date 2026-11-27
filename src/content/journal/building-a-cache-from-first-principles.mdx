@@ -6,6 +6,7 @@ category: systems-engineering
 summary: Cachewise combines a logical byte budget, cost-aware retention, expiration
   and per-key single-flight computation in one bounded JavaScript-agent cache.
 date: 2026-10-31
+diagram: /diagrams/cachewise-single-flight.svg
 project: cachewise
 tags:
   - typescript
@@ -50,8 +51,6 @@ projectDetails:
       url: https://stackblitz.com/edit/cachewise?file=index.js
 ---
 
-import DiagramViewer from '@components/diagrams/DiagramViewer.svelte';
-
 Where all items have equal weight, LRU works just fine. We can keep the most recently used items and chuck out the cold stuff when we're full. In real scenarios, one item might be large but cheap to recompute, while another might be only a few hundred bytes and a pain to rebuild. Cachewise is a TypeScript cache that weights items based on their size and cost to recompute.
 
 The cache uses `maxBytes` to determine how much it can store. Each item uses the `estimateSize` function to determine how many bytes to account for. For `Uint8Array` values, `byteLength` gives us the actual size. For object graphs, we can choose how we want to weight items. The `maxBytes` limit is calculated from those estimates. Object headers, hidden slots, shared structure, closures and garbage-collection overhead will still contribute to process RSS.
@@ -79,12 +78,6 @@ If there's only one item to evict, it will be found with a scan. If there are mu
 Frequency uses a Count-Min Sketch. By default, there are four rows with 8-bit counters. This keeps its size fixed. If we used a map of counters, its size would grow as more keys are added to the cache. The minimum of the counters for a key is used to calculate the estimate. The counters will saturate at 255 and will be halved every half-life. Collisions can cause overestimation. I didn't include a side table to correct collisions because that would create an unbounded structure. Object keys will go through a bounded identity table. Two local symbols with the same description can collide. The width of the sketch is determined by `maxTrackedKeys`. The logical size of the cache is determined by `maxBytes`.
 
 The `getOrCompute()` method will ensure only one request is made per key. Multiple callers will join onto one promise. Each caller can cancel their own wait. The factory will receive a separate shared signal. If one caller cancels, the others won't be affected. The last caller to cancel will abort the shared signal and the flight will be dropped. Cancellation is cooperative. If the factory doesn't honour the signal, it will continue to run. Cachewise can choose not to store the result, but any side effects the factory has already performed will remain.
-
-<DiagramViewer
-  client:visible
-  src="/diagrams/cachewise-single-flight.svg"
-  alt="Cachewise single-flight sequence: two callers share one factory; caller A aborts its wait while caller B receives the result."
-/>
 
 If `set` or `delete` is used while a flight is in progress, it will mark the flight as non-cacheable. This means a late factory won't overwrite the explicit value. The `clear()` method will increment the epoch and cancel any known flights. If the factory settles after a clear, it won't repopulate the cache. The promise the caller is waiting on will still settle with the factory's result or error. Invalidation only affects acceptance.
 

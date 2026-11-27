@@ -6,6 +6,7 @@ category: systems-engineering
 summary: How I built a versioned JavaScript and TypeScript structural fingerprint
   using Tree-sitter, a shared Rust core, canonical encoding and iterative Merkle hashing.
 date: 2026-11-07
+diagram: /diagrams/structaura-fingerprinting.svg
 project: structaura
 tags:
   - rust
@@ -54,8 +55,6 @@ projectDetails:
       url: https://github.com/weluvabid/structaura/blob/main/docs/benchmarks.md
 ---
 
-import DiagramViewer from '@components/diagrams/DiagramViewer.svelte';
-
 A source hash will change if you edit a comment or give the formatter some breathing space. It will be correct at the byte level, but useless if the question is whether the syntax has changed.
 
 StructAura parses JavaScript or TypeScript using Tree-sitter, performs a few versioned syntax-only transformations and hashes the canonical tree. The Rust core is used by both the native version and the WASM version running in the browser. I wanted to make sure the fingerprint definition stayed the same in both places.
@@ -79,12 +78,6 @@ The encoder uses domain tags, fixed-size big-endian integers, length-prefixed by
 The release build numbers were recorded. Small inputs had a median time of around 116 µs across 15 samples, excluding warm-up. Inputs around 64–70 KB took about 12–14 ms at p95. The stage times give an indication of where work is being done. They cannot be added together, though, because the instrumentation changes how long the pipeline takes to run.
 
 The browser package has an async `init()` because the WASM module and grammars need to be loaded. Once it has been initialised, fingerprinting is synchronous. Large files should be run in a worker to avoid freezing the page.
-
-<DiagramViewer
-  client:visible
-  src="/diagrams/structaura-fingerprinting.svg"
-  alt="StructAura fingerprinting pipeline from source parsing through normalization, canonical encoding and hashing, with unsupported input rejected."
-/>
 
 ```js
 // Same retained syntax; comments and layout differ.
