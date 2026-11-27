@@ -9,8 +9,8 @@
   .title { font-size:30px; font-weight:650; letter-spacing:-.5px; }
   .subtitle { font-size:15px; fill:#b7b7b7; }
   .section { font-size:14px; font-weight:650; letter-spacing:1.1px; fill:#b7b7b7; }
-  .label { font-size:17px; font-weight:600; }
-  .small { font-size:14px; fill:#b7b7b7; }
+  .label { font-size:15px; font-weight:600; }
+  .small { font-size:12px; fill:#b7b7b7; }
   .tiny { font-size:12px; fill:#b7b7b7; }
   .card { fill:#1b1b1b; stroke:#777777; stroke-width:1.5; rx:13; }
   .cardAccent { fill:#202020; stroke:#a7a0ff; stroke-width:1.7; rx:13; }

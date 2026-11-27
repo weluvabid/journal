@@ -68,4 +68,4 @@ Supported categories: `systems-engineering`, `frontend-engineering`, `product-en
 - [Performance](docs/performance.md) — rendering, loading and performance decisions.
 - [Security and privacy](docs/security-and-privacy.md) — site security headers and data handling.
 - [Development](docs/development.md) — checks, tests and local workflows.
-- [Diagram sources](docs/diagrams/README.md) — editable Mermaid sources and generated SVGs.
+- [Architecture diagrams](docs/diagrams/README.md) — maintained SVG diagrams linked from project pages.
